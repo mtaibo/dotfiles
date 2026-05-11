@@ -139,12 +139,31 @@
     };
   };
 
+  programs.zsh = {
+    enable = true;
+    enableCompletion = true;
+    autosuggestions.enable = true;
+    syntaxHighlighting.enable = true;
+
+    shellAliases = {
+      ll = "ls -l";
+      update = "sudo nixos-rebuild switch --flake .#nixos";
+    };
+
+    promptInit = "eval \"$(starship init zsh)\"";
+  };
+
+  users.users.mtaibo.shell = pkgs.zsh;
+
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
+    kitty
+    starship
+    nerd-fonts.fira-code
     neovim
     git
     gh
