@@ -164,6 +164,7 @@
     kitty
     starship
     nerd-fonts.fira-code
+    fastfetch
     neovim
     git
     gh
@@ -207,8 +208,8 @@
 
   hardware.nvidia = {
     modesetting.enable = true;
-    package = config.boot.kernelPackages.nvidiaPackages.stable;
-    open = false;
+    open = true;
     nvidiaSettings = true;
+    package = config.boot.kernelPackages.nvidiaPackages.stable;
   };
 }
