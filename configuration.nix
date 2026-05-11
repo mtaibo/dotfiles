@@ -198,4 +198,17 @@
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
+  hardware.graphics = {
+    enable = true;
+    enable32Bit = true;
+  };
+
+  services.xserver.videoDriver = [ "nvidia" ];
+
+  hardware.nvidia = {
+    modesettings.enable = true;
+    package = config.boot.kernelPackages.nvidiaPackages.stable;
+    open = false;
+    nvidiaSettings = true;
+  };
 }
