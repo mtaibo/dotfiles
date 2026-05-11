@@ -161,10 +161,7 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-    kitty
-    starship
     nerd-fonts.fira-code
-    fastfetch
     neovim
     git
     gh
