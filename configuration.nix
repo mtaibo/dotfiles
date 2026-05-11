@@ -120,6 +120,8 @@
     ];
   };
 
+  programs.zsh.enable = true;
+
   # Install firefox.
   programs.firefox.enable = true;
 
@@ -137,20 +139,6 @@
       user.email = "miguel.taibo@icloud.com";
       init.defaultBranch = "main";
     };
-  };
-
-  programs.zsh = {
-    enable = true;
-    enableCompletion = true;
-    autosuggestions.enable = true;
-    syntaxHighlighting.enable = true;
-
-    shellAliases = {
-      ll = "ls -l";
-      update = "sudo nixos-rebuild switch --flake .#nixos";
-    };
-
-    promptInit = "eval \"$(starship init zsh)\"";
   };
 
   users.users.mtaibo.shell = pkgs.zsh;
