@@ -1,0 +1,12 @@
+format = """
+$directory\
+$git_branch\
+$git_status\
+$character"""
+
+[directory]
+style = "blue bold"
+
+[git_branch]
+symbol = "󰊢 "
+style = "magenta bold"
