@@ -10,8 +10,6 @@
   home.homeDirectory = "/home/mtaibo";
   home.stateVersion = "25.11";
 
-  programs.kitty.enable = true;
-
   programs.git = {
     enable = true;
     settings = {
