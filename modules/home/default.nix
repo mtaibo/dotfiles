@@ -9,6 +9,7 @@
   home.stateVersion = "25.11";
 
   programs.kitty.enable = true;
+  programs.vscode.enable = true;
 
   home.file.".config/hypr".source = ./dotfiles/hypr;
   home.file.".config/kitty".source = ./dotfiles/kitty;
