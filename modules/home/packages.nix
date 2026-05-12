@@ -4,6 +4,7 @@
     bat
     fastfetch
     opencode
+    bibata-cursors
     grim
     slurp
   ];
