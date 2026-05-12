@@ -3,7 +3,7 @@
     ./hardware-configuration.nix
     ../../modules/nixos/boot.nix
     ../../modules/nixos/networking.nix
-    ../../modules/nixos/desktop/gnome.nix
+    ../../modules/nixos/desktop/hyprland.nix
     ../../modules/nixos/desktop/nvidia.nix
   ];
 

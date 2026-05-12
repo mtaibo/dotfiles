@@ -10,6 +10,7 @@
 
   programs.kitty.enable = true;
 
+  home.file.".config/hypr".source = ./dotfiles/hypr;
   home.file.".config/kitty".source = ./dotfiles/kitty;
   home.file.".config/starship.toml".source = ./dotfiles/starship.toml;
 
