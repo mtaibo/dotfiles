@@ -38,6 +38,11 @@
   home.file.".config/hypr" = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
     source = ./dotfiles/hypr;
   };
+  home.file.".config/opencode/config.json".text = builtins.toJSON {
+    provider = "ollama";
+    model = "qwen2.5-coder:14b";
+    ollama.host = "http://localhost:11434";
+  };
 
   xdg.userDirs = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
     enable = true;
