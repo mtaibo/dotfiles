@@ -11,7 +11,7 @@
       update = "sudo nixos-rebuild switch --flake .#nixos";
     };
 
-    initExtra = ''
+    initContent = ''
       fastfetch --pipe false
       source ~/.config/zsh/.zshrc
     '';
