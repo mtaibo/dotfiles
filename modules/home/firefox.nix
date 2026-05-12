@@ -1,11 +1,10 @@
-{ ... }:
-
+{ pkgs, lib, ... }:
+with lib;
 {
-  programs.firefox = {
+  programs.firefox = mkIf pkgs.stdenv.hostPlatform.isLinux {
     enable = true;
 
     policies = {
-      # Privacy & telemetry
       DisableTelemetry = true;
       DisableFirefoxStudies = true;
       DisablePocket = true;
@@ -14,19 +13,16 @@
       OfferToSaveLoginsDefault = false;
       PasswordManagerEnabled = false;
 
-      # Appearance
       ShowHomeButton = true;
       HomepageUrl = "about:blank";
       HomepageStartPage = "homepage";
       NewTabPage = false;
 
-      # UX
       OverrideFirstRunPage = "";
       OverridePostUpdatePage = "";
       HardwareAcceleration = true;
       BackgroundMode = false;
 
-      # Force-installed extensions (from Mozilla CDN)
       ExtensionSettings = {
         "uBlock0@raymondhill.net" = {
           install_url = "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi";

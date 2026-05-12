@@ -1,4 +1,4 @@
-{ ... }: {
+{ pkgs, ... }: {
   programs.starship.enable = true;
 
   programs.zsh = {
@@ -8,7 +8,9 @@
     syntaxHighlighting.enable = true;
 
     shellAliases = {
-      update = "sudo nixos-rebuild switch --flake .#nixos";
+      update = if pkgs.stdenv.hostPlatform.isDarwin
+        then "darwin-rebuild switch --flake .#macbook"
+        else "sudo nixos-rebuild switch --flake .#nixos";
     };
 
     initContent = ''
