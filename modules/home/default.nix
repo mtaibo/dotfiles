@@ -19,6 +19,10 @@
     };
   };
 
+  programs.gh = {
+    enable = true;
+  };
+
   gtk = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
     enable = true;
     theme = {
