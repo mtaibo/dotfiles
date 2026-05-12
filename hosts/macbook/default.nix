@@ -7,6 +7,9 @@
 
   nix.enable = false;
   nixpkgs.config.allowUnfree = true;
+  nixpkgs.config.permittedInsecurePackages = [
+    "lima-full-1.2.2"
+  ];
 
   fonts.packages = with pkgs; [
     nerd-fonts.fira-code
