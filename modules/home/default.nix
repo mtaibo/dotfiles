@@ -13,6 +13,7 @@
   home.file.".config/hypr".source = ./dotfiles/hypr;
   home.file.".config/kitty".source = ./dotfiles/kitty;
   home.file.".config/starship.toml".source = ./dotfiles/starship.toml;
+  home.file.".config/zsh/.zshrc".source = ./dotfiles/zsh/.zshrc;
 
   xdg.userDirs = {
     enable = true;

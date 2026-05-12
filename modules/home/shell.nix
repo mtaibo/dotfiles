@@ -8,13 +8,12 @@
     syntaxHighlighting.enable = true;
 
     shellAliases = {
-      ll = "ls -l";
       update = "sudo nixos-rebuild switch --flake .#nixos";
     };
 
-    initContent = ''
-      fastfetch
-      eval "$(starship init zsh)"
+    initExtra = ''
+      fastfetch --pipe false
+      source ~/.config/zsh/.zshrc
     '';
   };
 }
