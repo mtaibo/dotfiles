@@ -2,8 +2,6 @@
   imports = [ ../../modules/home ];
   home.homeDirectory = lib.mkForce "/Users/migueltaibo";
 
-  nixpkgs.config.allowUnfree = true;
-
   home.file = builtins.listToAttrs (map
     (name: {
       name = "/Library/Fonts/${name}";
