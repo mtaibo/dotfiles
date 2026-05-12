@@ -22,6 +22,7 @@
   programs.gh = {
     enable = true;
   };
+  xdg.configFile."gh/config.yml".force = true;
 
   gtk = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
     enable = true;
