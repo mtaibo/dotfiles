@@ -35,7 +35,7 @@
   users.users.mtaibo.shell = pkgs.zsh;
   programs.zsh.enable = true;
 
-  programs.firefox.enable = true;
+
   programs.neovim = {
     enable = true;
     defaultEditor = true;
@@ -56,6 +56,7 @@
     neovim
     git
     gh
+    brave
   ];
 
   services.printing.enable = true;
