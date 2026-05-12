@@ -9,7 +9,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Grub theme repo
     grub2-themes.url = "github:vinceliuice/grub2-themes";
     grub2-themes.inputs.nixpkgs.follows = "nixpkgs";
   };
@@ -19,15 +18,15 @@
       system = "x86_64-linux";
       specialArgs = { inherit inputs; };
       modules = [
-        ./configuration.nix
+        ./hosts/desktop/default.nix
         grub2-themes.nixosModules.default
-	home-manager.nixosModules.home-manager 
-	{
-	  home-manager.useGlobalPkgs = true;
-	  home-manager.useUserPackages = true;
-	  home-manager.users.mtaibo = import ./home.nix;
-	  home-manager.extraSpecialArgs = { inherit inputs; };
-    	}
+        home-manager.nixosModules.home-manager
+        {
+          home-manager.useGlobalPkgs = true;
+          home-manager.useUserPackages = true;
+          home-manager.users.mtaibo = import ./modules/home;
+          home-manager.extraSpecialArgs = { inherit inputs; };
+        }
       ];
     };
   };
