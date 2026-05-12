@@ -27,12 +27,12 @@
   };
   console.keyMap = "es";
 
-  users.users.mtaibo = {
+  users.users.migueltaibo = {
     isNormalUser = true;
     description = "Miguel Taibo";
     extraGroups = [ "networkmanager" "wheel" ];
   };
-  users.users.mtaibo.shell = pkgs.zsh;
+  users.users.migueltaibo.shell = pkgs.zsh;
   programs.zsh.enable = true;
 
 

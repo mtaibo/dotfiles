@@ -6,8 +6,8 @@
     ./firefox.nix
   ];
 
-  home.username = "mtaibo";
-  home.homeDirectory = "/home/mtaibo";
+  home.username = "migueltaibo";
+  home.homeDirectory = "/home/migueltaibo";
   home.stateVersion = "25.11";
 
   programs.git = {
