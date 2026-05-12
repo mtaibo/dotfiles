@@ -1,4 +1,4 @@
-{ ... }: {
+{ lib, ... }: {
   boot.loader = {
     efi = {
       canTouchEfiVariables = true;
@@ -9,6 +9,7 @@
       device = "nodev";
       efiSupport = true;
       useOSProber = true;
+      splashImage = lib.mkForce ./wallpaper-grub.png;
     };
   };
 
