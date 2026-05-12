@@ -1,7 +1,6 @@
 { pkgs, lib, ... }: {
   imports = [ ../../modules/home ];
   home.homeDirectory = lib.mkForce "/Users/migueltaibo";
-
   home.file = (builtins.listToAttrs (map
     (name: {
       name = "/Library/Fonts/${name}";
@@ -16,13 +15,15 @@
       "FiraCodeNerdFont-Light.ttf"
     ]))
     // {
-      # macOS Service: ⌘K → Kitty fullscreen (macOS only, not NixOS)
       "Library/Services/OpenKittyFullscreen.workflow".source =
         ../../modules/home/dotfiles/macOS/OpenKittyFullscreen.workflow;
 
+      ".config/opencode/config.json".text = builtins.toJSON {
+        provider = "ollama";
+        model = "qwen2.5-coder:7b";
+        ollama.host = "http://localhost:11434";
+      };
     };
-
-  # Set custom Kitty icon (neue_azure from k0nserv)
   home.activation.setKittyIcon = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     KITTY_APP="/Users/migueltaibo/Applications/Home Manager Apps/kitty.app"
     if [ -d "$KITTY_APP" ]; then
@@ -36,7 +37,6 @@
 
   # Register ⌘K shortcut for the service after linking
   home.activation.registerKittyShortcut = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    # Register ⌘K for the Open Kitty Fullscreen service using PlistBuddy
     $DRY_RUN_CMD /usr/libexec/PlistBuddy -c "Add NSServicesStatus:'(Open Kitty Fullscreen - runWorkflowAsService - com.migueltaibo.OpenKittyFullscreen)' dict" \
       ~/Library/Preferences/pbs.plist 2>/dev/null || true
     $DRY_RUN_CMD /usr/libexec/PlistBuddy -c "Add NSServicesStatus:'(Open Kitty Fullscreen - runWorkflowAsService - com.migueltaibo.OpenKittyFullscreen)':key_equivalent string @K" \
@@ -44,5 +44,13 @@
       /usr/libexec/PlistBuddy -c "Set NSServicesStatus:'(Open Kitty Fullscreen - runWorkflowAsService - com.migueltaibo.OpenKittyFullscreen)':key_equivalent @K" \
       ~/Library/Preferences/pbs.plist 2>/dev/null || true
     $DRY_RUN_CMD killall pbs 2>/dev/null || true
+  '';
+
+  home.activation.pullOllamaModels = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    echo "Pulling qwen2.5-coder:7b for Ollama..."
+    PATH="${pkgs.ollama}/bin:$PATH"
+    if ! ollama list 2>/dev/null | grep -q "qwen2.5-coder:7b"; then
+      ollama pull qwen2.5-coder:7b || echo "Ollama no está corriendo todavía, ejecuta: ollama pull qwen2.5-coder:7b"
+    fi
   '';
 }

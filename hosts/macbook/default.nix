@@ -3,6 +3,10 @@
 
   system.stateVersion = 5;
 
+  services.ollama = {
+    enable = true;
+  };
+
   networking.hostName = "macbook";
 
   nix.enable = false;
@@ -23,17 +27,7 @@
     gh
     colima
     docker-client
-    (ollama.overrideAttrs (oldAttrs: {
-      patchPhase = "true";
-      doCheck = false; 
-      buildPhase = ''
-        go build -ldflags "-X github.com/ollama/ollama/version.Version=0.21.1" -o ollama .
-      '';
-      installPhase = ''
-        mkdir -p $out/bin
-        cp ollama $out/bin/
-      ''; 
-    }))
+    ollama
   ];
 
   programs.nix-index.enable = true;
