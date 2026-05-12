@@ -4,5 +4,7 @@
     bat
     fastfetch
     opencode
+    grim
+    slurp
   ];
 }

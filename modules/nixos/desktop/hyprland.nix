@@ -14,7 +14,6 @@
   };
 
   environment.systemPackages = with pkgs; [
-    waybar
     wofi
     dunst
     libnotify
