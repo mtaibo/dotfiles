@@ -21,6 +21,18 @@
         ../../modules/home/dotfiles/macOS/OpenKittyFullscreen.workflow;
     };
 
+  # Set custom Kitty icon (neue_azure from k0nserv)
+  home.activation.setKittyIcon = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    KITTY_APP="/Users/migueltaibo/Applications/Home Manager Apps/kitty.app"
+    if [ -d "$KITTY_APP" ]; then
+      $DRY_RUN_CMD cp ${../../modules/home/dotfiles/macOS/kitty-icon.icns} \
+        "$KITTY_APP/Contents/Resources/kitty.icns"
+      $DRY_RUN_CMD touch "$KITTY_APP"
+      $DRY_RUN_CMD rm -f /var/folders/*/*/*/com.apple.dock.iconcache 2>/dev/null || true
+      $DRY_RUN_CMD killall Dock 2>/dev/null || true
+    fi
+  '';
+
   # Register ⌘K shortcut for the service after linking
   home.activation.registerKittyShortcut = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     # Register ⌘K for the Open Kitty Fullscreen service
