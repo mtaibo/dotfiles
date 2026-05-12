@@ -1,12 +1,27 @@
-{ pkgs, ... }: {
+{ pkgs, lib, ... }: {
   imports = [
     ./shell.nix
     ./packages.nix
+    ./vscode.nix
     ./firefox.nix
   ];
 
-  # System-wide dark theme
-  gtk = {
+  home.username = "mtaibo";
+  home.homeDirectory = "/home/mtaibo";
+  home.stateVersion = "25.11";
+
+  programs.kitty.enable = true;
+
+  programs.git = {
+    enable = true;
+    settings = {
+      user.name = "Miguel Taibo";
+      user.email = "miguel.taibo@icloud.com";
+      init.defaultBranch = "main";
+    };
+  };
+
+  gtk = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
     enable = true;
     theme = {
       name = "Adwaita-dark";
@@ -14,19 +29,14 @@
     };
   };
 
-  home.username = "mtaibo";
-  home.homeDirectory = "/home/mtaibo";
-  home.stateVersion = "25.11";
-
-  programs.kitty.enable = true;
-  programs.vscode.enable = true;
-
-  home.file.".config/hypr".source = ./dotfiles/hypr;
   home.file.".config/kitty".source = ./dotfiles/kitty;
   home.file.".config/starship.toml".source = ./dotfiles/starship.toml;
   home.file.".config/zsh/.zshrc".source = ./dotfiles/zsh/.zshrc;
+  home.file.".config/hypr" = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
+    source = ./dotfiles/hypr;
+  };
 
-  xdg.userDirs = {
+  xdg.userDirs = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
     enable = true;
     createDirectories = true;
     desktop = "$HOME/downloads";

@@ -9,11 +9,24 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    nix-darwin = {
+      url = "github:LnL7/nix-darwin/nix-darwin-25.11";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     grub2-themes.url = "github:vinceliuice/grub2-themes";
     grub2-themes.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = inputs@{ self, nixpkgs, home-manager, grub2-themes, ... }: {
+  outputs = inputs@{ self, nixpkgs, home-manager, nix-darwin, grub2-themes, ... }: {
+    homeConfigurations = {
+      migueltaibo = home-manager.lib.homeManagerConfiguration {
+        pkgs = nixpkgs.legacyPackages.aarch64-darwin;
+        extraSpecialArgs = { inherit inputs; };
+        modules = [ ./hosts/macbook/home.nix ];
+      };
+    };
+
     nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
       specialArgs = { inherit inputs; };
@@ -25,6 +38,21 @@
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
           home-manager.users.mtaibo = import ./modules/home;
+          home-manager.extraSpecialArgs = { inherit inputs; };
+        }
+      ];
+    };
+
+    darwinConfigurations.macbook = nix-darwin.lib.darwinSystem {
+      system = "aarch64-darwin";
+      specialArgs = { inherit inputs; };
+      modules = [
+        ./hosts/macbook/default.nix
+        home-manager.darwinModules.home-manager
+        {
+          home-manager.useGlobalPkgs = true;
+          home-manager.useUserPackages = true;
+          home-manager.users.mtaibo = import ./hosts/macbook/home.nix;
           home-manager.extraSpecialArgs = { inherit inputs; };
         }
       ];
