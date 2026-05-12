@@ -2,10 +2,10 @@
   imports = [
     ./shell.nix
     ./packages.nix
-    ./brave.nix
+    ./firefox.nix
   ];
 
-  # System-wide dark theme (also makes Brave chrome dark)
+  # System-wide dark theme
   gtk = {
     enable = true;
     theme = {

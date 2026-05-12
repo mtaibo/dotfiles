@@ -51,33 +51,6 @@
     };
   };
 
-  # Brave browser policies (written to /etc/brave/policies/managed/)
-  environment.etc."brave/policies/managed/GroupPolicy.json".text = builtins.toJSON {
-    BookmarksBarEnabled = true;
-    ShowHomeButton = true;
-    HomepageLocation = "about:blank";
-    NewTabPageLocation = "about:blank";
-    BraveRewardsIconHidden = true;
-    BraveWalletDisabled = true;
-    BraveVPNDisabled = true;
-    BraveAIChatEnabled = false;
-    BraveNewsDisabled = true;
-    BraveTalkDisabled = true;
-    BraveSpeedreaderEnabled = false;
-    BravePlaylistEnabled = false;
-    BraveWaybackMachineEnabled = false;
-    TorDisabled = true;
-    PasswordManagerEnabled = false;
-    PasswordSharingEnabled = false;
-    MetricsReportingEnabled = false;
-    BraveP3AEnabled = false;
-    BraveStatsPingEnabled = false;
-    BraveWebDiscoveryEnabled = false;
-    BackgroundModeEnabled = false;
-    WideAddressBar = true;
-    MemorySaverEnabled = true;
-  };
-
   environment.systemPackages = with pkgs; [
     nerd-fonts.fira-code
     neovim
