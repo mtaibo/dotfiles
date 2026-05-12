@@ -2,7 +2,17 @@
   imports = [
     ./shell.nix
     ./packages.nix
+    ./brave.nix
   ];
+
+  # System-wide dark theme (also makes Brave chrome dark)
+  gtk = {
+    enable = true;
+    theme = {
+      name = "Adwaita-dark";
+      package = pkgs.gnome-themes-extra;
+    };
+  };
 
   home.username = "mtaibo";
   home.homeDirectory = "/home/mtaibo";
