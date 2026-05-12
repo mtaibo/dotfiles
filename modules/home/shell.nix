@@ -9,8 +9,8 @@
 
     shellAliases = {
       update = if pkgs.stdenv.hostPlatform.isDarwin
-        then "sudo darwin-rebuild switch --flake .#macbook"
-        else "sudo nixos-rebuild switch --flake .#nixos";
+        then "sudo darwin-rebuild switch --flake ~/Dotfiles#macbook"
+        else "sudo nixos-rebuild switch --flake ~/dotfiles#nixos";
     };
 
     initContent = ''
