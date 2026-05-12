@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ ... }:
 
 {
   programs.firefox = {
@@ -25,6 +25,22 @@
       OverridePostUpdatePage = "";
       HardwareAcceleration = true;
       BackgroundMode = false;
+
+      # Force-installed extensions (from Mozilla CDN)
+      ExtensionSettings = {
+        "uBlock0@raymondhill.net" = {
+          install_url = "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi";
+          installation_mode = "force_installed";
+          default_area = "menupanel";
+          private_browsing = true;
+        };
+        "addon@darkreader.org" = {
+          install_url = "https://addons.mozilla.org/firefox/downloads/latest/darkreader/latest.xpi";
+          installation_mode = "force_installed";
+          default_area = "menupanel";
+          private_browsing = true;
+        };
+      };
     };
 
     profiles.default = {
@@ -39,11 +55,6 @@
         "media.ffmpeg.vaapi.enabled" = true;
         "extensions.pocket.enabled" = false;
       };
-
-      extensions.packages = with pkgs.firefox-addons; [
-        ublock-origin
-        dark-reader
-      ];
     };
   };
 }
