@@ -14,5 +14,18 @@
   home.file.".config/kitty".source = ./dotfiles/kitty;
   home.file.".config/starship.toml".source = ./dotfiles/starship.toml;
 
+  xdg.userDirs = {
+    enable = true;
+    createDirectories = true;
+    desktop = "$HOME/downloads";
+    documents = "$HOME/downloads";
+    download = "$HOME/downloads";
+    music = "$HOME/downloads";
+    pictures = "$HOME/downloads";
+    publicShare = "$HOME/downloads";
+    templates = "$HOME/downloads";
+    videos = "$HOME/downloads";
+  };
+
   programs.home-manager.enable = true;
 }
