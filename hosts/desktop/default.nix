@@ -51,11 +51,15 @@
     };
   };
 
+  virtualisation.docker.enable = true;
+
   environment.systemPackages = with pkgs; [
     nerd-fonts.fira-code
     neovim
     git
     gh
+    docker-client
+    docker-compose
   ];
 
   services.printing.enable = true;

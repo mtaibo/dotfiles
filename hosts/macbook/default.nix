@@ -17,6 +17,8 @@
     neovim
     git
     gh
+    colima
+    docker-client
   ];
 
   programs.nix-index.enable = true;
