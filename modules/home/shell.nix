@@ -10,8 +10,6 @@
     shellAliases = {
       ll = "ls -l";
       update = "sudo nixos-rebuild switch --flake .#nixos";
-      conf = "nvim ~/Workspace/dotfiles/hosts/desktop/default.nix";
-      hconf = "nvim ~/Workspace/dotfiles/modules/home/default.nix";
     };
 
     initContent = ''
