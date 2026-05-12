@@ -37,7 +37,7 @@
         {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
-          home-manager.users.mtaibo = import ./modules/home;
+          home-manager.users.migueltaibo = import ./modules/home;
           home-manager.extraSpecialArgs = { inherit inputs; };
         }
       ];
@@ -52,7 +52,7 @@
         {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
-          home-manager.users.mtaibo = import ./hosts/macbook/home.nix;
+          home-manager.users.migueltaibo = import ./hosts/macbook/home.nix;
           home-manager.extraSpecialArgs = { inherit inputs; };
         }
       ];
