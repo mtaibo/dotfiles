@@ -5,11 +5,9 @@
     ./vscode.nix
     ./firefox.nix
   ];
-
   home.username = "migueltaibo";
   home.homeDirectory = "/home/migueltaibo";
   home.stateVersion = "25.11";
-
   programs.git = {
     enable = true;
     settings = {
@@ -18,12 +16,10 @@
       init.defaultBranch = "main";
     };
   };
-
   programs.gh = {
     enable = true;
   };
   xdg.configFile."gh/config.yml".force = true;
-
   gtk = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
     enable = true;
     theme = {
@@ -31,19 +27,12 @@
       package = pkgs.gnome-themes-extra;
     };
   };
-
   home.file.".config/kitty".source = ./dotfiles/kitty;
   home.file.".config/starship.toml".source = ./dotfiles/starship.toml;
   home.file.".config/zsh/.zshrc".source = ./dotfiles/zsh/.zshrc;
   home.file.".config/hypr" = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
     source = ./dotfiles/hypr;
   };
-  home.file.".config/opencode/config.json".text = builtins.toJSON {
-    provider = "ollama";
-    model = "qwen2.5-coder:14b";
-    ollama.host = "http://localhost:11434";
-  };
-
   xdg.userDirs = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
     enable = true;
     createDirectories = true;
@@ -56,6 +45,5 @@
     templates = "$HOME/downloads";
     videos = "$HOME/downloads";
   };
-
   programs.home-manager.enable = true;
 }

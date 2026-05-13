@@ -1,23 +1,19 @@
 {
   description = "dotfiles";
-
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
-
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     home-manager = {
       url = "github:nix-community/home-manager/release-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
     nix-darwin = {
       url = "github:LnL7/nix-darwin/nix-darwin-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
     grub2-themes.url = "github:vinceliuice/grub2-themes";
     grub2-themes.inputs.nixpkgs.follows = "nixpkgs";
   };
-
   outputs = inputs@{ self, nixpkgs, home-manager, nix-darwin, grub2-themes, ... }: {
     homeConfigurations = {
       migueltaibo = home-manager.lib.homeManagerConfiguration {
@@ -26,7 +22,6 @@
         modules = [ ./hosts/macbook/home.nix ];
       };
     };
-
     nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
       specialArgs = { inherit inputs; };
@@ -38,11 +33,16 @@
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
           home-manager.users.migueltaibo = import ./modules/home;
-          home-manager.extraSpecialArgs = { inherit inputs; };
+          home-manager.extraSpecialArgs = {
+            inherit inputs;
+            pkgsUnstable = import inputs.nixpkgs-unstable {
+              system = "x86_64-linux";
+              config.allowUnfree = true;
+            };
+          };
         }
       ];
     };
-
     darwinConfigurations.macbook = nix-darwin.lib.darwinSystem {
       system = "aarch64-darwin";
       specialArgs = { inherit inputs; };
@@ -53,7 +53,13 @@
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
           home-manager.users.migueltaibo = import ./hosts/macbook/home.nix;
-          home-manager.extraSpecialArgs = { inherit inputs; };
+          home-manager.extraSpecialArgs = {
+            inherit inputs;
+            pkgsUnstable = import inputs.nixpkgs-unstable {
+              system = "aarch64-darwin";
+              config.allowUnfree = true;
+            };
+          };
           home-manager.backupFileExtension = "backup";
         }
       ];
