@@ -1,8 +1,8 @@
-# dotfiles
+<h1 align="center">Dotfiles</h1>
 
-Hey! I'm Miguel, a first-year computer engineering student. This repo contains all the configuration files I use to set up my machines exactly how I like them for programming, studying, and my personal projects.
+I'm a first-year computer engineering student and this repo contains all the configuration files I use to set up my machines exactly how I like them for programming, studying, and my personal projects.
 
-## What's the idea?
+## How it started
 
 I wanted a single place to configure **all my devices** — my MacBook, my NixOS desktop, and my Raspberry Pi — so they all share the same terminal, the same editor setup, the same shortcuts, and the same look & feel. If a machine breaks or I get a new one, I can reproduce my whole environment with a single command.
 
@@ -63,7 +63,7 @@ dotfiles/
     └── macos/             # Kitty icon + Automator workflow
 ```
 
-## How it works under the hood
+## How it works
 
 This repo uses **Nix flakes** + **Home Manager** to declare everything:
 
@@ -79,7 +79,7 @@ For example, when I run `darwin-rebuild switch` on my MacBook, Nix:
 - Symlinks all config files from `assets/` into `~/.config/`
 - Runs activation scripts (sets wallpaper, replaces Kitty icon, registers the `Cmd+K` shortcut)
 
-On my NixOS desktop it's the same flow but with `nixos-rebuild switch`.
+On my NixOS desktop it's the same but with `nixos-rebuild switch`, however, `update` command works on every machine as an alias for the proper command.
 
 ## Tools I use daily
 
@@ -97,7 +97,7 @@ On my NixOS desktop it's the same flow but with `nixos-rebuild switch`.
 | **OpenCode** | AI coding assistant in the terminal |
 | **Git / GitHub CLI** | Version control |
 
-## How to use this (if you want to try it)
+## How to use
 
 You'll need **Nix** with flakes enabled:
 
@@ -112,4 +112,4 @@ sudo darwin-rebuild switch --flake ~/dotfiles#macbook
 sudo nixos-rebuild switch --flake ~/dotfiles#nixos
 ```
 
-> **Note:** This is **my** personal config — hardware paths, usernames, and programs are tailored to my machines. But feel free to fork it and adapt it to yours!
+> **Note:** This is **my** personal config — hardware paths, usernames, and programs are tailored to my machines. But feel free to fork it and adapt it to you.
