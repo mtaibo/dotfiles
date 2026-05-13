@@ -28,6 +28,7 @@
     };
   };
   home.file.".config/kitty".source = ./dotfiles/kitty;
+  home.file.".config/opencode/opencode.json".source = ./dotfiles/opencode/opencode.json;
   home.file.".config/starship.toml".source = ./dotfiles/starship.toml;
   home.file.".config/zsh/.zshrc".source = ./dotfiles/zsh/.zshrc;
   home.file.".config/hypr" = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
