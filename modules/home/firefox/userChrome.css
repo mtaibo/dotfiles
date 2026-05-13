@@ -36,7 +36,7 @@
 
 .tabbrowser-tab .tab-background[selected="true"] {
   background-color: var(--tn-bg) !important;
-  border-bottom: 1px solid var(--tn-blue) !important;
+  border-bottom: 1px solid #1a2b4d !important;
 }
 
 .tabbrowser-tab:hover .tab-background:not([selected="true"]) {
@@ -246,16 +246,16 @@ menupopup > menu:hover {
 }
 
 .tab-line {
-  background-color: var(--tn-blue) !important;
-  height: 1px !important;
+  background-color: #1a2b4d !important;
+  height: 2px !important;
 }
 
 #tabbrowser-tabs {
-  --tab-loading-fill: var(--tn-blue) !important;
+  --tab-loading-fill: #1a2b4d !important;
 }
 
 #tabbrowser-tabs .tabbrowser-tab .tab-loading-burst:not(.complete) {
-  background-color: var(--tn-blue) !important;
+  background-color: #1a2b4d !important;
 }
 
 #urlbar:not([focused]) #identity-box.verifiedIdentity > #identity-icon {

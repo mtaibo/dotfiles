@@ -55,6 +55,32 @@ with lib;
         "widget.allow-background-blur" = true;
       };
 
+      bookmarks = {
+        force = true;
+        settings = [
+          {
+            name = "GitHub";
+            url = "https://github.com/mtaibo";
+          }
+          {
+            name = "Gemini";
+            url = "https://gemini.google.com";
+          }
+          {
+            name = "TPHome";
+            url = "http://tp.home";
+          }
+          {
+            name = "YouTube";
+            url = "https://youtube.com";
+          }
+          {
+            name = "OpenCode";
+            url = "https://opencode.ai";
+          }
+        ];
+      };
+
       userChrome = builtins.readFile ./firefox/userChrome.css;
       userContent = builtins.readFile ./firefox/userContent.css;
     };
