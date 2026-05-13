@@ -74,20 +74,20 @@ with lib;
                 url = "https://github.com/mtaibo";
               }
               {
-                name = "Gemini";
-                url = "https://gemini.google.com";
-              }
-              {
                 name = "TPHome";
                 url = "http://tp.home";
               }
               {
-                name = "YouTube";
-                url = "https://youtube.com";
+                name = "Claude";
+                url = "https://claude.ai/new";
               }
               {
-                name = "OpenCode";
-                url = "https://opencode.ai";
+                name = "Gemini";
+                url = "https://gemini.google.com";
+              }
+              {
+                name = "YouTube";
+                url = "https://youtube.com";
               }
             ];
           }
