@@ -15,7 +15,7 @@ with lib;
 
       ShowHomeButton = true;
       HomepageUrl = "about:blank";
-      HomepageStartPage = "homepage";
+      HomepageStartPage = "none";
       NewTabPage = false;
 
       OverrideFirstRunPage = "";
@@ -53,6 +53,12 @@ with lib;
         "layout.css.devPixelsPerPx" = "1.2";
         "browser.tabs.allowTransparentBrowser" = true;
         "widget.allow-background-blur" = true;
+        "browser.newtabpage.enabled" = false;
+        "browser.newtabpage.activity-stream.showSearch" = false;
+        "browser.newtabpage.activity-stream.feeds.topsites" = false;
+        "browser.newtabpage.activity-stream.feeds.snippets" = false;
+        "browser.newtabpage.activity-stream.feeds.section.topstories" = false;
+        "browser.newtabpage.activity-stream.feeds.section.highlights" = false;
       };
 
       bookmarks = {
