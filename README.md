@@ -30,7 +30,7 @@ Everything here is:
 |---|---|---|---|
 | `nixos` | NixOS 25.11 | x86_64 | Desktop PC (Intel + NVIDIA) |
 | `macbook` | macOS (nix-darwin) | aarch64 (Apple Silicon) | Daily laptop |
-| *(raspberry)* | NixOS | aarch64 | Home server / tinkering |
+| `raspberry` | NixOS | aarch64 | Home server / tinkering |
 
 ## How it's organized
 
