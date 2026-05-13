@@ -3,10 +3,6 @@
 
   system.stateVersion = 5;
 
-  services.ollama = {
-    enable = true;
-  };
-
   networking.hostName = "macbook";
 
   nix.enable = false;
@@ -27,7 +23,6 @@
     gh
     colima
     docker-client
-    ollama
   ];
 
   programs.nix-index.enable = true;
