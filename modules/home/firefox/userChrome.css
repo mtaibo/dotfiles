@@ -31,8 +31,8 @@
 }
 
 .tabbrowser-tab .tab-background[selected="true"] {
-  background-color: var(--tn-bg) !important;
-  border-bottom: 2px solid var(--tn-blue) !important;
+  background-color: var(--tn-bg-surface) !important;
+  border-bottom: 2px solid var(--tn-purple) !important;
 }
 
 .tabbrowser-tab:hover .tab-background:not([selected="true"]) {
@@ -45,6 +45,11 @@
 
 .tabbrowser-tab[selected="true"] {
   color: var(--tn-fg-bright) !important;
+}
+
+.tabbrowser-tab[selected="true"] .tab-label {
+  color: var(--tn-fg-bright) !important;
+  font-weight: 500 !important;
 }
 
 .tabbrowser-tab:hover:not([selected="true"]) {
@@ -209,13 +214,15 @@ menupopup > menu:hover {
   --toolbar-color: var(--tn-fg) !important;
   --lwt-tabs-bottom-color: transparent !important;
   --lwt-text-color: var(--tn-fg) !important;
-  --lwt-tab-text: var(--tn-fg-dim) !important;
+  --lwt-tab-text: #a9b1d6 !important;
+  --lwt-tab-text-selected: #c0caf5 !important;
 }
 
 :root:-moz-lwtheme-brighttext {
   --toolbar-bgcolor: var(--tn-bg-alt) !important;
   --toolbar-color: var(--tn-fg) !important;
-  --lwt-tab-text: var(--tn-fg-dim) !important;
+  --lwt-tab-text: #565f89 !important;
+  --lwt-tab-text-selected: #c0caf5 !important;
 }
 
 .titlebar-color {
@@ -229,6 +236,7 @@ menupopup > menu:hover {
 
 .tabbrowser-tab[selected] .tab-label {
   color: var(--tn-fg-bright) !important;
+  font-weight: 500 !important;
 }
 
 .tabbrowser-tab:hover:not([selected]) .tab-label {
@@ -236,15 +244,16 @@ menupopup > menu:hover {
 }
 
 .tab-line {
-  background-color: var(--tn-blue) !important;
+  background-color: var(--tn-purple) !important;
+  height: 2px !important;
 }
 
 #tabbrowser-tabs {
-  --tab-loading-fill: var(--tn-blue) !important;
+  --tab-loading-fill: var(--tn-purple) !important;
 }
 
 #tabbrowser-tabs .tabbrowser-tab .tab-loading-burst:not(.complete) {
-  background-color: var(--tn-blue) !important;
+  background-color: var(--tn-purple) !important;
 }
 
 #urlbar:not([focused]) #identity-box.verifiedIdentity > #identity-icon {

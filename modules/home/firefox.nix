@@ -50,6 +50,9 @@ with lib;
         "media.ffmpeg.vaapi.enabled" = true;
         "extensions.pocket.enabled" = false;
         "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
+        "layout.css.devPixelsPerPx" = "1.15";
+        "browser.tabs.allowTransparentBrowser" = true;
+        "widget.allow-background-blur" = true;
       };
 
       userChrome = builtins.readFile ./firefox/userChrome.css;
