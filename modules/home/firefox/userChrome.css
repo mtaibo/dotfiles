@@ -1,0 +1,286 @@
+:root {
+  --tn-bg: #1a1b26;
+  --tn-bg-alt: #16161e;
+  --tn-bg-surface: #24283b;
+  --tn-bg-hover: #2a2e3f;
+  --tn-fg: #a9b1d6;
+  --tn-fg-dim: #565f89;
+  --tn-fg-bright: #c0caf5;
+  --tn-blue: #7aa2f7;
+  --tn-cyan: #7dcfff;
+  --tn-green: #9ece6a;
+  --tn-purple: #bb9af7;
+  --tn-red: #f7768e;
+  --tn-yellow: #e0af68;
+  --tn-orange: #ff9e64;
+  --tn-teal: #73daca;
+}
+
+#navigator-toolbox {
+  background-color: var(--tn-bg-alt) !important;
+  border-bottom: none !important;
+}
+
+#TabsToolbar {
+  background-color: var(--tn-bg-alt) !important;
+}
+
+.tabbrowser-tab .tab-background {
+  background-color: transparent !important;
+  border: none !important;
+}
+
+.tabbrowser-tab .tab-background[selected="true"] {
+  background-color: var(--tn-bg) !important;
+  border-bottom: 2px solid var(--tn-blue) !important;
+}
+
+.tabbrowser-tab:hover .tab-background:not([selected="true"]) {
+  background-color: var(--tn-bg-surface) !important;
+}
+
+.tabbrowser-tab {
+  color: var(--tn-fg-dim) !important;
+}
+
+.tabbrowser-tab[selected="true"] {
+  color: var(--tn-fg-bright) !important;
+}
+
+.tabbrowser-tab:hover:not([selected="true"]) {
+  color: var(--tn-fg) !important;
+}
+
+#urlbar-background {
+  background-color: var(--tn-bg) !important;
+  border: 1px solid var(--tn-bg-surface) !important;
+}
+
+#urlbar[focused] #urlbar-background {
+  border-color: var(--tn-blue) !important;
+}
+
+#urlbar {
+  color: var(--tn-fg) !important;
+}
+
+#urlbar-input {
+  color: var(--tn-fg) !important;
+}
+
+.urlbarView {
+  background-color: var(--tn-bg) !important;
+  border: 1px solid var(--tn-bg-surface) !important;
+}
+
+.urlbarView-row:hover {
+  background-color: var(--tn-bg-surface) !important;
+}
+
+.urlbarView-row[selected] {
+  background-color: var(--tn-bg-hover) !important;
+}
+
+#nav-bar {
+  background-color: var(--tn-bg-alt) !important;
+  box-shadow: none !important;
+}
+
+#PersonalToolbar {
+  background-color: var(--tn-bg) !important;
+}
+
+#PersonalToolbar .bookmark-item {
+  color: var(--tn-fg) !important;
+}
+
+#PersonalToolbar .bookmark-item:hover {
+  background-color: var(--tn-bg-surface) !important;
+}
+
+toolbar {
+  background-color: var(--tn-bg-alt) !important;
+}
+
+toolbar .toolbarbutton-1 {
+  fill: var(--tn-fg) !important;
+  color: var(--tn-fg) !important;
+}
+
+toolbar .toolbarbutton-1:hover {
+  fill: var(--tn-fg-bright) !important;
+  background-color: var(--tn-bg-surface) !important;
+}
+
+#urlbar .urlbar-page-action,
+#urlbar #tracking-protection-icon-container,
+#urlbar #identity-box {
+  fill: var(--tn-fg-dim) !important;
+  color: var(--tn-fg-dim) !important;
+}
+
+#urlbar:hover .urlbar-page-action,
+#urlbar:hover #tracking-protection-icon-container,
+#urlbar:hover #identity-box {
+  fill: var(--tn-fg) !important;
+  color: var(--tn-fg) !important;
+}
+
+menupopup,
+panel {
+  --arrowpanel-background: var(--tn-bg) !important;
+  --arrowpanel-border-color: var(--tn-bg-surface) !important;
+  --arrowpanel-color: var(--tn-fg) !important;
+  --panel-background: var(--tn-bg) !important;
+  --panel-border-color: var(--tn-bg-surface) !important;
+}
+
+menupopup > menuitem,
+menupopup > menu {
+  color: var(--tn-fg) !important;
+}
+
+menupopup > menuitem:hover,
+menupopup > menu:hover {
+  background-color: var(--tn-bg-surface) !important;
+}
+
+#statuspanel-label {
+  background-color: var(--tn-bg) !important;
+  color: var(--tn-fg) !important;
+  border-color: var(--tn-bg-surface) !important;
+}
+
+#sidebar-box {
+  background-color: var(--tn-bg) !important;
+}
+
+#sidebar-header {
+  background-color: var(--tn-bg-alt) !important;
+  border-bottom: 1px solid var(--tn-bg-surface) !important;
+}
+
+#sidebar {
+  background-color: var(--tn-bg) !important;
+  color: var(--tn-fg) !important;
+}
+
+:root {
+  --toolbar-bgcolor: var(--tn-bg-alt) !important;
+  --toolbar-color: var(--tn-fg) !important;
+  --toolbar-field-background-color: var(--tn-bg) !important;
+  --toolbar-field-color: var(--tn-fg) !important;
+  --toolbar-field-border-color: var(--tn-bg-surface) !important;
+  --toolbar-field-focus-background-color: var(--tn-bg) !important;
+  --toolbar-field-focus-color: var(--tn-fg-bright) !important;
+  --toolbar-field-focus-border-color: var(--tn-blue) !important;
+  --lwt-toolbar-field-highlight: var(--tn-blue) !important;
+  --lwt-selected-tab-background-color: var(--tn-bg) !important;
+  --tabs-border-color: transparent !important;
+  --lwt-sidebar-background-color: var(--tn-bg) !important;
+  --lwt-sidebar-text-color: var(--tn-fg) !important;
+  --arrowpanel-background: var(--tn-bg) !important;
+  --arrowpanel-color: var(--tn-fg) !important;
+  --arrowpanel-border-color: var(--tn-bg-surface) !important;
+  --panel-disabled-color: var(--tn-fg-dim) !important;
+  --panel-description-color: var(--tn-fg-dim) !important;
+  --button-bgcolor: var(--tn-bg-surface) !important;
+  --button-hover-bgcolor: var(--tn-bg-hover) !important;
+  --button-active-bgcolor: var(--tn-bg-surface) !important;
+  --button-color: var(--tn-fg) !important;
+  --button-primary-bgcolor: var(--tn-blue) !important;
+  --button-primary-color: var(--tn-bg) !important;
+  --input-bgcolor: var(--tn-bg) !important;
+  --input-color: var(--tn-fg) !important;
+  --input-border-color: var(--tn-bg-surface) !important;
+  --autocomplete-popup-background: var(--tn-bg) !important;
+  --autocomplete-popup-color: var(--tn-fg) !important;
+  --autocomplete-popup-highlight-background: var(--tn-bg-surface) !important;
+  --autocomplete-popup-highlight-color: var(--tn-fg-bright) !important;
+}
+
+#main-window:not([lwtheme]) #tabbrowser-tabs {
+  --lwt-tab-text: var(--tn-fg) !important;
+}
+
+:root:-moz-lwtheme {
+  --toolbar-non-lwt-bgcolor: var(--tn-bg-alt) !important;
+  --toolbar-bgcolor: var(--tn-bg-alt) !important;
+  --toolbar-color: var(--tn-fg) !important;
+  --lwt-tabs-bottom-color: transparent !important;
+  --lwt-text-color: var(--tn-fg) !important;
+  --lwt-tab-text: var(--tn-fg-dim) !important;
+}
+
+:root:-moz-lwtheme-brighttext {
+  --toolbar-bgcolor: var(--tn-bg-alt) !important;
+  --toolbar-color: var(--tn-fg) !important;
+  --lwt-tab-text: var(--tn-fg-dim) !important;
+}
+
+.titlebar-color {
+  background-color: var(--tn-bg-alt) !important;
+  color: var(--tn-fg) !important;
+}
+
+.tabbrowser-tab:not([selected]):not([multiselected]) .tab-label {
+  color: var(--tn-fg-dim) !important;
+}
+
+.tabbrowser-tab[selected] .tab-label {
+  color: var(--tn-fg-bright) !important;
+}
+
+.tabbrowser-tab:hover:not([selected]) .tab-label {
+  color: var(--tn-fg) !important;
+}
+
+.tab-line {
+  background-color: var(--tn-blue) !important;
+}
+
+#tabbrowser-tabs {
+  --tab-loading-fill: var(--tn-blue) !important;
+}
+
+#tabbrowser-tabs .tabbrowser-tab .tab-loading-burst:not(.complete) {
+  background-color: var(--tn-blue) !important;
+}
+
+#urlbar:not([focused]) #identity-box.verifiedIdentity > #identity-icon {
+  fill: var(--tn-green) !important;
+}
+
+#urlbar:not([focused]) #identity-box:not(.verifiedIdentity) > #identity-icon {
+  fill: var(--tn-fg-dim) !important;
+}
+
+#identity-box.chromeUI > #identity-icon {
+  fill: var(--tn-blue) !important;
+}
+
+toolbar .toolbarbutton-badge {
+  background-color: var(--tn-red) !important;
+  color: var(--tn-bg) !important;
+}
+
+#tabbrowser-tabs {
+  --tab-min-height: 32px !important;
+}
+
+.tabbrowser-tab:not([pinned]) .tab-close-button {
+  fill: var(--tn-fg-dim) !important;
+}
+
+.tabbrowser-tab:not([pinned]):hover .tab-close-button {
+  fill: var(--tn-fg) !important;
+}
+
+.tabbrowser-tab:not([pinned]) .tab-close-button:hover {
+  fill: var(--tn-red) !important;
+  background-color: transparent !important;
+}
+
+.tabbrowser-tab:not([pinned]):not([selected]) .tab-icon-image {
+  opacity: 0.7 !important;
+}

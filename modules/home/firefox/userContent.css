@@ -1,0 +1,103 @@
+:root {
+  --tn-bg: #1a1b26;
+  --tn-bg-alt: #16161e;
+  --tn-bg-surface: #24283b;
+  --tn-bg-hover: #2a2e3f;
+  --tn-fg: #a9b1d6;
+  --tn-fg-dim: #565f89;
+  --tn-fg-bright: #c0caf5;
+  --tn-blue: #7aa2f7;
+  --tn-cyan: #7dcfff;
+  --tn-green: #9ece6a;
+  --tn-purple: #bb9af7;
+  --tn-red: #f7768e;
+  --tn-yellow: #e0af68;
+  --tn-teal: #73daca;
+}
+
+@-moz-document url("about:newtab"), url("about:home"), url("about:blank") {
+  body,
+  html,
+  #newtab-customize-overlay {
+    background-color: var(--tn-bg-alt) !important;
+  }
+
+  .search-wrapper .search-handoff-button,
+  .search-handoff-button {
+    background-color: var(--tn-bg) !important;
+    color: var(--tn-fg) !important;
+    border: 1px solid var(--tn-bg-surface) !important;
+    border-radius: 8px !important;
+  }
+
+  .search-wrapper .search-handoff-button:hover,
+  .search-handoff-button:hover {
+    border-color: var(--tn-bg-hover) !important;
+  }
+
+  .search-wrapper .search-handoff-button .fake-caret {
+    background-color: var(--tn-blue) !important;
+  }
+
+  .search-wrapper .logo-and-wordmark {
+    opacity: 0.8 !important;
+  }
+
+  .search-wrapper .logo-and-wordmark .wordmark {
+    fill: var(--tn-fg) !important;
+  }
+
+  .top-site-outer .tile {
+    border-radius: 8px;
+    background-color: var(--tn-bg) !important;
+    border: 1px solid var(--tn-bg-surface) !important;
+  }
+
+  .top-site-outer:hover .tile {
+    background-color: var(--tn-bg-surface) !important;
+    border-color: var(--tn-bg-hover) !important;
+  }
+
+  .top-site-outer .title {
+    color: var(--tn-fg-dim) !important;
+  }
+
+  .top-site-outer:hover .title {
+    color: var(--tn-fg) !important;
+  }
+
+  .top-sites-list:not(.dnd-active) .top-site-outer:is(.active, :focus, :hover) {
+    background-color: transparent !important;
+  }
+
+  .icon.icon-pin-small {
+    display: none !important;
+  }
+}
+
+@-moz-document url("about:privatebrowsing") {
+  html,
+  body {
+    background-color: var(--tn-bg-alt) !important;
+    color: var(--tn-fg) !important;
+  }
+
+  .search-handoff-button {
+    background-color: var(--tn-bg) !important;
+    color: var(--tn-fg) !important;
+    border: 1px solid var(--tn-bg-surface) !important;
+    border-radius: 8px !important;
+  }
+
+  .search-handoff-button:hover {
+    border-color: var(--tn-bg-hover) !important;
+  }
+
+  .fake-caret {
+    background-color: var(--tn-blue) !important;
+  }
+
+  .logo-and-wordmark .wordmark {
+    fill: var(--tn-fg) !important;
+  }
+}
