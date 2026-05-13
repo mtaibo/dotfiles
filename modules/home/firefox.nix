@@ -30,12 +30,6 @@ with lib;
           default_area = "menupanel";
           private_browsing = true;
         };
-        "addon@darkreader.org" = {
-          install_url = "https://addons.mozilla.org/firefox/downloads/latest/darkreader/latest.xpi";
-          installation_mode = "force_installed";
-          default_area = "menupanel";
-          private_browsing = true;
-        };
       };
     };
 
