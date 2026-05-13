@@ -76,8 +76,6 @@
       "sqldeveloper.telemetry.enabled" = false;
       "sqldeveloper.datagrid.fontFamily" = "Menlo, Monaco, 'Courier New', monospace";
 
-      "claudeCode.preferredLocation" = "panel";
-
       "files.associations" = {
         "Caddyfile" = "plaintext";
       };

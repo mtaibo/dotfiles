@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to OpenCode when working with code in this repository.
 
 ## What this repo is
 
@@ -33,7 +33,7 @@ Three flake outputs, all defined in `flake.nix`:
 - `nixosConfigurations.nixos` — entry: `hosts/desktop/default.nix`. Imports Home-Manager as a NixOS module and points it at `modules/home` directly.
 - `homeConfigurations.migueltaibo` — standalone Home-Manager for darwin, also pointing at `hosts/macbook/home.nix`.
 
-`pkgsUnstable` is constructed in `flake.nix` from `nixpkgs-unstable` and passed via `extraSpecialArgs` to Home-Manager modules. Use it sparingly — only for packages where the release channel lags (currently `claude-code` and macOS `ollama`).
+`pkgsUnstable` is constructed in `flake.nix` from `nixpkgs-unstable` and passed via `extraSpecialArgs` to Home-Manager modules. Use it sparingly — only for packages where the release channel lags (currently `ollama` on macOS).
 
 ### Layout
 
