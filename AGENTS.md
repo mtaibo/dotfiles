@@ -33,7 +33,7 @@ Three flake outputs, all defined in `flake.nix`:
 - `nixosConfigurations.nixos` — entry: `hosts/desktop/default.nix`. Imports Home-Manager as a NixOS module and points it at `modules/home` directly.
 - `homeConfigurations.migueltaibo` — standalone Home-Manager for darwin, also pointing at `hosts/macbook/home.nix`.
 
-`pkgsUnstable` is constructed in `flake.nix` from `nixpkgs-unstable` and passed via `extraSpecialArgs` to Home-Manager modules. Use it sparingly — only for packages where the release channel lags (currently `ollama` on macOS).
+`pkgsUnstable` is constructed in `flake.nix` from `nixpkgs-unstable` and passed via `extraSpecialArgs` to Home-Manager modules. Use it sparingly — only for packages where the release channel lags (currently none).
 
 ### Layout
 
@@ -41,7 +41,6 @@ Three flake outputs, all defined in `flake.nix`:
 - `hosts/macbook/home.nix` — darwin-specific Home-Manager entry. Imports `modules/home` and layers on macOS-only bits: forcing `home.homeDirectory` to `/Users/migueltaibo`, installing Nerd Font `.ttf`s into `/Library/Fonts`, the `OpenKittyFullscreen.workflow` Service, and two `home.activation` hooks that swap kitty's app icon and register a system Services keyboard shortcut.
 - `modules/home/` — cross-platform Home-Manager modules. `default.nix` is the entry that aggregates `shell.nix`, `packages.nix`, `vscode.nix`, `firefox.nix`, and wires up dotfile sources from `modules/home/dotfiles/` (kitty, zsh, starship, and hypr on Linux).
 - `modules/nixos/` — Linux-only system modules (`boot.nix` with GRUB + grub2-themes, `networking.nix`, `desktop/hyprland.nix`, `desktop/nvidia.nix`).
-- `modules/ollama.nix` — custom NixOS module exposing the `mySystem.ollama` option (`enable`, `acceleration`, `models`). When `models` is non-empty it adds a `ollama-pull-models` oneshot systemd unit that waits for the ollama HTTP API and pulls each model on activation.
 
 ### Cross-platform gating
 

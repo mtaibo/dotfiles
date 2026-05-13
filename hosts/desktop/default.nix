@@ -1,7 +1,6 @@
 { config, pkgs, ... }: {
   imports = [
     ./hardware-configuration.nix
-    ../../modules/ollama.nix
     ../../modules/nixos/boot.nix
     ../../modules/nixos/networking.nix
     ../../modules/nixos/desktop/hyprland.nix
@@ -9,12 +8,6 @@
   ];
 
   system.stateVersion = "25.11";
-
-  mySystem.ollama = {
-    enable = true;
-    acceleration = "cuda";
-    models = [ "qwen2.5-coder:14b" ];
-  };
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   nixpkgs.config.allowUnfree = true;

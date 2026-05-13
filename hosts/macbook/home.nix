@@ -1,10 +1,6 @@
-{ pkgs, lib, pkgsUnstable, ... }: {
+{ pkgs, lib, ... }: {
   imports = [ ../../modules/home ];
   home.homeDirectory = lib.mkForce "/Users/migueltaibo";
-  services.ollama = {
-    enable = true;
-    package = pkgsUnstable.ollama;
-  };
   home.file = (builtins.listToAttrs (map
     (name: {
       name = "/Library/Fonts/${name}";
