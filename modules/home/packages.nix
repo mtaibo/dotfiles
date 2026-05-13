@@ -4,7 +4,7 @@
     eza
     bat
     fastfetch
-    pkgsUnstable.claude-code
+    pkgs.opencode
   ] ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [
     bibata-cursors
     grim
