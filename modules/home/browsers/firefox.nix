@@ -53,6 +53,7 @@ with lib;
         "layout.css.devPixelsPerPx" = "1.2";
         "browser.tabs.allowTransparentBrowser" = true;
         "widget.allow-background-blur" = true;
+        "browser.toolbars.bookmarks.visibility" = "always";
         "browser.newtabpage.enabled" = false;
         "browser.newtabpage.activity-stream.showSearch" = false;
         "browser.newtabpage.activity-stream.feeds.topsites" = false;
@@ -65,24 +66,30 @@ with lib;
         force = true;
         settings = [
           {
-            name = "GitHub";
-            url = "https://github.com/mtaibo";
-          }
-          {
-            name = "Gemini";
-            url = "https://gemini.google.com";
-          }
-          {
-            name = "TPHome";
-            url = "http://tp.home";
-          }
-          {
-            name = "YouTube";
-            url = "https://youtube.com";
-          }
-          {
-            name = "OpenCode";
-            url = "https://opencode.ai";
+            name = "Bookmarks Toolbar";
+            toolbar = true;
+            bookmarks = [
+              {
+                name = "GitHub";
+                url = "https://github.com/mtaibo";
+              }
+              {
+                name = "Gemini";
+                url = "https://gemini.google.com";
+              }
+              {
+                name = "TPHome";
+                url = "http://tp.home";
+              }
+              {
+                name = "YouTube";
+                url = "https://youtube.com";
+              }
+              {
+                name = "OpenCode";
+                url = "https://opencode.ai";
+              }
+            ];
           }
         ];
       };
