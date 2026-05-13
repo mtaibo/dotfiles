@@ -11,6 +11,7 @@
     ];
 
     extraLuaConfig = ''
+      vim.g.tokyonight_transparent_background = true
       vim.cmd([[colorscheme tokyonight]])
 
       vim.opt.number = true
