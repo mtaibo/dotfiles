@@ -30,6 +30,11 @@ with lib;
           default_area = "menupanel";
           private_browsing = true;
         };
+        "{cebd391d-f568-473f-bb6e-698d08ec81ec}" = {
+          install_url = "https://addons.mozilla.org/firefox/downloads/latest/tokyo-night-dark-theme/latest.xpi";
+          installation_mode = "force_installed";
+          default_area = "navbar";
+        };
       };
     };
 
@@ -44,7 +49,11 @@ with lib;
         "browser.aboutConfig.showWarning" = false;
         "media.ffmpeg.vaapi.enabled" = true;
         "extensions.pocket.enabled" = false;
+        "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
       };
+
+      userChrome = builtins.readFile ./firefox/userChrome.css;
+      userContent = builtins.readFile ./firefox/userContent.css;
     };
   };
 }
