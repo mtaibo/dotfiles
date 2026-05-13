@@ -50,7 +50,7 @@ with lib;
         "media.ffmpeg.vaapi.enabled" = true;
         "extensions.pocket.enabled" = false;
         "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
-        "layout.css.devPixelsPerPx" = "1.15";
+        "layout.css.devPixelsPerPx" = "1.2";
         "browser.tabs.allowTransparentBrowser" = true;
         "widget.allow-background-blur" = true;
       };

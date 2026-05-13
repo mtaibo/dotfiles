@@ -16,6 +16,10 @@
   --tn-teal: #73daca;
 }
 
+#tabbrowser-tabpanels {
+  background: transparent !important;
+}
+
 #navigator-toolbox {
   background-color: var(--tn-bg-alt) !important;
   border-bottom: none !important;
@@ -31,12 +35,12 @@
 }
 
 .tabbrowser-tab .tab-background[selected="true"] {
-  background-color: var(--tn-bg-surface) !important;
-  border-bottom: 2px solid var(--tn-purple) !important;
+  background-color: var(--tn-bg) !important;
+  border-bottom: 1px solid var(--tn-blue) !important;
 }
 
 .tabbrowser-tab:hover .tab-background:not([selected="true"]) {
-  background-color: var(--tn-bg-surface) !important;
+  background-color: rgba(36, 40, 59, 0.5) !important;
 }
 
 .tabbrowser-tab {
@@ -48,11 +52,10 @@
 }
 
 .tabbrowser-tab[selected="true"] .tab-label {
-  color: var(--tn-fg-bright) !important;
-  font-weight: 500 !important;
+  color: #c0caf5 !important;
 }
 
-.tabbrowser-tab:hover:not([selected="true"]) {
+.tabbrowser-tab:hover:not([selected="true"]) .tab-label {
   color: var(--tn-fg) !important;
 }
 
@@ -214,7 +217,7 @@ menupopup > menu:hover {
   --toolbar-color: var(--tn-fg) !important;
   --lwt-tabs-bottom-color: transparent !important;
   --lwt-text-color: var(--tn-fg) !important;
-  --lwt-tab-text: #a9b1d6 !important;
+  --lwt-tab-text: #565f89 !important;
   --lwt-tab-text-selected: #c0caf5 !important;
 }
 
@@ -235,8 +238,7 @@ menupopup > menu:hover {
 }
 
 .tabbrowser-tab[selected] .tab-label {
-  color: var(--tn-fg-bright) !important;
-  font-weight: 500 !important;
+  color: #c0caf5 !important;
 }
 
 .tabbrowser-tab:hover:not([selected]) .tab-label {
@@ -244,16 +246,16 @@ menupopup > menu:hover {
 }
 
 .tab-line {
-  background-color: var(--tn-purple) !important;
-  height: 2px !important;
+  background-color: var(--tn-blue) !important;
+  height: 1px !important;
 }
 
 #tabbrowser-tabs {
-  --tab-loading-fill: var(--tn-purple) !important;
+  --tab-loading-fill: var(--tn-blue) !important;
 }
 
 #tabbrowser-tabs .tabbrowser-tab .tab-loading-burst:not(.complete) {
-  background-color: var(--tn-purple) !important;
+  background-color: var(--tn-blue) !important;
 }
 
 #urlbar:not([focused]) #identity-box.verifiedIdentity > #identity-icon {
