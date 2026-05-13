@@ -2,6 +2,7 @@
   imports = [
     ./shell.nix
     ./packages.nix
+    ./nvim.nix
     ./vscode.nix
     ./firefox.nix
   ];
