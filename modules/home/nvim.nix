@@ -4,26 +4,73 @@
     defaultEditor = true;
     vimAlias = true;
 
-    plugins = with pkgs.vimPlugins; [
-      tokyonight-nvim
-      nvim-lspconfig
-      plenary-nvim
-      neo-tree-nvim
-      nvim-web-devicons
-      lualine-nvim
-      bufferline-nvim
-      telescope-nvim
-      which-key-nvim
-      gitsigns-nvim
-    ];
-
     extraLuaConfig = ''
+      -- Bootstrap lazy.nvim
+      local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+      if not (vim.uv or vim.loop).fs_stat(lazypath) then
+        local lazyrepo = "https://github.com/folke/lazy.nvim.git"
+        local out = vim.fn.system({ "git", "clone", "--filter=blob:none", "--branch=stable", lazyrepo, lazypath })
+        if vim.v.shell_error ~= 0 then
+          vim.api.nvim_echo({
+            { "Failed to clone lazy.nvim:\n", "ErrorMsg" },
+            { out, "WarningMsg" },
+            { "\nPress any key to exit..." },
+          }, true, {})
+          vim.fn.getchar()
+          os.exit(1)
+        end
+      end
+      vim.opt.rtp:prepend(lazypath)
+
+      require("lazy").setup({
+        spec = {
+          { "folke/tokyonight.nvim", name = "tokyonight", lazy = false, priority = 1000 },
+          { "nvim-lua/plenary.nvim" },
+          { "nvim-tree/nvim-web-devicons" },
+          {
+            "nvim-neo-tree/neo-tree.nvim",
+            dependencies = {
+              "nvim-lua/plenary.nvim",
+              "nvim-tree/nvim-web-devicons",
+              "MunifTanjim/nui.nvim",
+            },
+            cmd = "Neotree",
+          },
+          { "nvim-lualine/lualine.nvim", dependencies = { "nvim-tree/nvim-web-devicons" } },
+          { "akinsho/bufferline.nvim", dependencies = { "nvim-tree/nvim-web-devicons" } },
+          { "folke/which-key.nvim", lazy = false, priority = 500 },
+          { "nvim-telescope/telescope.nvim", dependencies = { "nvim-lua/plenary.nvim" } },
+          { "lewis6991/gitsigns.nvim" },
+          { "neovim/nvim-lspconfig" },
+        },
+        defaults = {
+          lazy = false,
+          version = false,
+        },
+        install = { colorscheme = { "tokyonight" } },
+        checker = { enabled = true, notify = false },
+        performance = {
+          rtp = {
+            disabled_plugins = {
+              "gzip",
+              "tarPlugin",
+              "tohtml",
+              "tutor",
+              "zipPlugin",
+            },
+          },
+        },
+      })
+
       -- Transparent background
       vim.cmd([[highlight Normal ctermbg=NONE guibg=NONE]])
       vim.cmd([[highlight NonText ctermbg=NONE guibg=NONE]])
       vim.cmd([[highlight NormalFloat ctermbg=NONE guibg=NONE]])
       vim.cmd([[highlight LineNr ctermbg=NONE guibg=NONE]])
       vim.cmd([[highlight SignColumn ctermbg=NONE guibg=NONE]])
+      vim.cmd([[highlight! NeoTreeNormal ctermbg=NONE guibg=NONE]])
+      vim.cmd([[highlight! NeoTreeNormalNC ctermbg=NONE guibg=NONE]])
+      vim.cmd([[highlight! NeoTreeEndOfBuffer ctermbg=NONE guibg=NONE]])
 
       -- TokyoNight
       require("tokyonight").setup({
@@ -54,17 +101,14 @@
 
       vim.g.mapleader = " "
 
-      -- Neo-tree (VS Code-like file explorer)
-      vim.cmd([[highlight! NeoTreeNormal ctermbg=NONE guibg=NONE]])
-      vim.cmd([[highlight! NeoTreeNormalNC ctermbg=NONE guibg=NONE]])
-      vim.cmd([[highlight! NeoTreeEndOfBuffer ctermbg=NONE guibg=NONE]])
+      -- Which-key
+      require("which-key").setup({})
 
-      -- macOS: disable libuv file watcher (low maxfiles limit causes issues)
+      -- Neo-tree
       local use_file_watcher = true
       if vim.fn.has("mac") == 1 then
         use_file_watcher = false
       end
-
       require("neo-tree").setup({
         close_if_last_window = true,
         window = {
@@ -121,7 +165,7 @@
         },
       })
 
-      -- Lualine (statusline)
+      -- Lualine
       require("lualine").setup({
         options = {
           theme = "tokyonight",
@@ -140,8 +184,7 @@
         },
       })
 
-      -- Bufferline (tabs at top like VS Code)
-      vim.opt.termguicolors = true
+      -- Bufferline
       require("bufferline").setup({
         options = {
           numbers = "none",
@@ -179,15 +222,7 @@
         },
       })
 
-      -- Which-key
-      require("which-key").setup({
-        plugins = { spelling = true, presets = { operators = false } },
-        icons = { breadcrumb = ">", separator = " ", group = "+" },
-        window = { border = "rounded", margin = { 0, 0, 0, 0 } },
-        layout = { height = { min = 4, max = 25 }, width = { min = 20, max = 50 } },
-      })
-
-      -- Telescope (fuzzy finder)
+      -- Telescope
       require("telescope").setup({
         defaults = {
           prompt_prefix = "   ",
@@ -207,7 +242,7 @@
         },
       })
 
-      -- Gitsigns (git decorations in gutter)
+      -- Gitsigns
       require("gitsigns").setup({
         signs = {
           add = { text = "│" },
@@ -225,22 +260,18 @@
       local keymap = vim.keymap.set
       local opts = { noremap = true, silent = true }
 
-      -- Better window navigation
       keymap("n", "<C-h>", "<C-w>h", opts)
       keymap("n", "<C-j>", "<C-w>j", opts)
       keymap("n", "<C-k>", "<C-w>k", opts)
       keymap("n", "<C-l>", "<C-w>l", opts)
 
-      -- Neo-tree toggle (like VS Code Ctrl+B)
       keymap("n", "<leader>e", ":Neotree toggle<CR>", opts)
 
-      -- Telescope (like VS Code Ctrl+P / Ctrl+Shift+F)
       keymap("n", "<leader>ff", "<cmd>Telescope find_files<CR>", opts)
       keymap("n", "<leader>fg", "<cmd>Telescope live_grep<CR>", opts)
       keymap("n", "<leader>fb", "<cmd>Telescope buffers<CR>", opts)
       keymap("n", "<leader>fh", "<cmd>Telescope help_tags<CR>", opts)
 
-      -- Buffer navigation (like VS Code tabs)
       keymap("n", "<Tab>", ":bnext<CR>", opts)
       keymap("n", "<S-Tab>", ":bprevious<CR>", opts)
       keymap("n", "<leader>x", ":bdelete<CR>", opts)
