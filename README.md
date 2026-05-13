@@ -1,4 +1,4 @@
-<h1 align="left">Dotfiles</h1>
+<h1>Dotfiles</h1>
 
 I'm a first-year computer engineering student and this repo contains all the configuration files I use to set up my machines exactly how I like them for programming, studying, and my personal projects.
 
