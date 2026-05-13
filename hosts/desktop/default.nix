@@ -53,8 +53,11 @@
 
   virtualisation.docker.enable = true;
 
-  environment.systemPackages = with pkgs; [
+  fonts.packages = with pkgs; [
     nerd-fonts.fira-code
+  ];
+
+  environment.systemPackages = with pkgs; [
     neovim
     git
     gh
