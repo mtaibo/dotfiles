@@ -19,13 +19,19 @@
   body,
   html {
     background: transparent !important;
+    background-color: transparent !important;
   }
 
   #newtab-customize-overlay,
   #root,
   .outer-wrapper,
-  .newtab-page-wrapper {
+  .newtab-page-wrapper,
+  .activity-stream,
+  main,
+  .sponsored-label,
+  .section-list {
     background: transparent !important;
+    background-color: transparent !important;
   }
 
   .search-wrapper .search-handoff-button,
@@ -86,6 +92,13 @@
 
   #newtab-wallpaper-background {
     background: transparent !important;
+    background-color: transparent !important;
+  }
+
+  .wallpaper,
+  .wallpaper-container {
+    background: transparent !important;
+    background-color: transparent !important;
   }
 }
 
@@ -93,6 +106,7 @@
   html,
   body {
     background: transparent !important;
+    background-color: transparent !important;
     color: var(--tn-fg) !important;
   }
 
