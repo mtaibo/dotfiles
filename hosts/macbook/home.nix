@@ -16,12 +16,12 @@
     ]))
     // {
       "Library/Services/OpenKittyFullscreen.workflow".source =
-        ../../modules/home/dotfiles/macOS/OpenKittyFullscreen.workflow;
+        ../../assets/macos/OpenKittyFullscreen.workflow;
     };
   home.activation.setKittyIcon = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     KITTY_APP="/Users/migueltaibo/Applications/Home Manager Apps/kitty.app"
     if [ -d "$KITTY_APP" ]; then
-      $DRY_RUN_CMD cp ${../../modules/home/dotfiles/macOS/kitty-icon.icns} \
+      $DRY_RUN_CMD cp ${../../assets/macos/kitty-icon.icns} \
         "$KITTY_APP/Contents/Resources/kitty.icns"
       $DRY_RUN_CMD touch "$KITTY_APP"
       $DRY_RUN_CMD rm -f /var/folders/*/*/*/com.apple.dock.iconcache 2>/dev/null || true
@@ -39,7 +39,7 @@
   '';
   home.activation.setCyberpunkWallpaper = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     WALLPAPER_DIR="$HOME/Pictures/wallpapers"
-    WALLPAPER_SRC=${../../modules/home/dotfiles/hypr/wallpaper.png}
+    WALLPAPER_SRC=${../../assets/hypr/wallpaper.png}
     $DRY_RUN_CMD mkdir -p "$WALLPAPER_DIR"
     $DRY_RUN_CMD cp "$WALLPAPER_SRC" "$WALLPAPER_DIR/cyberpunk-wallpaper.png"
     $DRY_RUN_CMD sips -s format jpeg "$WALLPAPER_SRC" --out "$WALLPAPER_DIR/cyberpunk-wallpaper.jpg" 2>/dev/null || true

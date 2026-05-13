@@ -2,9 +2,9 @@
   imports = [
     ./shell.nix
     ./packages.nix
-    ./nvim.nix
-    ./vscode.nix
-    ./firefox.nix
+    ./editors/nvim.nix
+    ./editors/vscode.nix
+    ./browsers/firefox.nix
   ];
   home.username = "migueltaibo";
   home.homeDirectory = "/home/migueltaibo";
@@ -28,12 +28,12 @@
       package = pkgs.gnome-themes-extra;
     };
   };
-  home.file.".config/kitty".source = ./dotfiles/kitty;
-  home.file.".config/opencode/opencode.json".source = ./dotfiles/opencode/opencode.json;
-  home.file.".config/starship.toml".source = ./dotfiles/starship.toml;
-  home.file.".config/zsh/.zshrc".source = ./dotfiles/zsh/.zshrc;
+  home.file.".config/kitty".source = ../../assets/kitty;
+  home.file.".config/opencode/opencode.json".source = ../../assets/opencode/opencode.json;
+  home.file.".config/starship.toml".source = ../../assets/starship/starship.toml;
+  home.file.".config/zsh/.zshrc".source = ../../assets/zsh/.zshrc;
   home.file.".config/hypr" = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
-    source = ./dotfiles/hypr;
+    source = ../../assets/hypr;
   };
   xdg.userDirs = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
     enable = true;

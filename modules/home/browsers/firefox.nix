@@ -81,8 +81,8 @@ with lib;
         ];
       };
 
-      userChrome = builtins.readFile ./firefox/userChrome.css;
-      userContent = builtins.readFile ./firefox/userContent.css;
+      userChrome = builtins.readFile ../../../assets/firefox/userChrome.css;
+      userContent = builtins.readFile ../../../assets/firefox/userContent.css;
     };
   };
 }

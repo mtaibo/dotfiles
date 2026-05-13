@@ -9,7 +9,7 @@
       device = "nodev";
       efiSupport = true;
       useOSProber = true;
-      splashImage = lib.mkForce ./wallpaper-grub.png;
+      splashImage = lib.mkForce ../../assets/grub/wallpaper-grub.png;
     };
   };
 
