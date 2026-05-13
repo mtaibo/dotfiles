@@ -37,4 +37,12 @@
       ~/Library/Preferences/pbs.plist 2>/dev/null || true
     $DRY_RUN_CMD killall pbs 2>/dev/null || true
   '';
+  home.activation.setCyberpunkWallpaper = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    WALLPAPER_DIR="$HOME/Pictures/wallpapers"
+    WALLPAPER_SRC=${../../modules/home/dotfiles/hypr/wallpaper.png}
+    $DRY_RUN_CMD mkdir -p "$WALLPAPER_DIR"
+    $DRY_RUN_CMD cp "$WALLPAPER_SRC" "$WALLPAPER_DIR/cyberpunk-wallpaper.png"
+    $DRY_RUN_CMD sips -s format jpeg "$WALLPAPER_SRC" --out "$WALLPAPER_DIR/cyberpunk-wallpaper.jpg" 2>/dev/null || true
+    $DRY_RUN_CMD osascript -e "tell application \"System Events\" to set picture of every desktop to POSIX file \"$WALLPAPER_DIR/cyberpunk-wallpaper.jpg\"" 2>/dev/null || true
+  '';
 }
