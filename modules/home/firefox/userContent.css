@@ -17,23 +17,30 @@
 
 @-moz-document url("about:newtab"), url("about:home"), url("about:blank") {
   body,
-  html,
-  #newtab-customize-overlay {
+  html {
+    background: transparent !important;
+  }
+
+  #newtab-customize-overlay,
+  #root,
+  .outer-wrapper,
+  .newtab-page-wrapper {
     background: transparent !important;
   }
 
   .search-wrapper .search-handoff-button,
   .search-handoff-button {
-    background-color: rgba(26, 27, 38, 0.85) !important;
+    background-color: rgba(26, 27, 38, 0.75) !important;
+    backdrop-filter: blur(8px) !important;
     color: var(--tn-fg) !important;
-    border: 1px solid var(--tn-bg-surface) !important;
+    border: 1px solid rgba(36, 40, 59, 0.6) !important;
     border-radius: 8px !important;
   }
 
   .search-wrapper .search-handoff-button:hover,
   .search-handoff-button:hover {
     border-color: var(--tn-bg-hover) !important;
-    background-color: rgba(26, 27, 38, 0.95) !important;
+    background-color: rgba(26, 27, 38, 0.9) !important;
   }
 
   .search-wrapper .search-handoff-button .fake-caret {
@@ -41,7 +48,7 @@
   }
 
   .search-wrapper .logo-and-wordmark {
-    opacity: 0.6 !important;
+    opacity: 0.5 !important;
   }
 
   .search-wrapper .logo-and-wordmark .wordmark {
@@ -50,13 +57,14 @@
 
   .top-site-outer .tile {
     border-radius: 8px;
-    background-color: rgba(26, 27, 38, 0.85) !important;
-    border: 1px solid var(--tn-bg-surface) !important;
+    background-color: rgba(26, 27, 38, 0.75) !important;
+    backdrop-filter: blur(8px) !important;
+    border: 1px solid rgba(36, 40, 59, 0.6) !important;
     transition: background-color 0.2s ease, border-color 0.2s ease;
   }
 
   .top-site-outer:hover .tile {
-    background-color: rgba(36, 40, 59, 0.9) !important;
+    background-color: rgba(36, 40, 59, 0.85) !important;
     border-color: var(--tn-bg-hover) !important;
   }
 
@@ -89,15 +97,16 @@
   }
 
   .search-handoff-button {
-    background-color: rgba(26, 27, 38, 0.85) !important;
+    background-color: rgba(26, 27, 38, 0.75) !important;
+    backdrop-filter: blur(8px) !important;
     color: var(--tn-fg) !important;
-    border: 1px solid var(--tn-bg-surface) !important;
+    border: 1px solid rgba(36, 40, 59, 0.6) !important;
     border-radius: 8px !important;
   }
 
   .search-handoff-button:hover {
     border-color: var(--tn-bg-hover) !important;
-    background-color: rgba(26, 27, 38, 0.95) !important;
+    background-color: rgba(26, 27, 38, 0.9) !important;
   }
 
   .fake-caret {
