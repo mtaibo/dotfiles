@@ -59,6 +59,12 @@
       vim.cmd([[highlight! NeoTreeNormalNC ctermbg=NONE guibg=NONE]])
       vim.cmd([[highlight! NeoTreeEndOfBuffer ctermbg=NONE guibg=NONE]])
 
+      -- macOS: disable libuv file watcher (low maxfiles limit causes issues)
+      local use_file_watcher = true
+      if vim.fn.has("mac") == 1 then
+        use_file_watcher = false
+      end
+
       require("neo-tree").setup({
         close_if_last_window = true,
         window = {
@@ -100,10 +106,19 @@
             },
           },
           follow_current_file = { enabled = true },
-          use_libuv_file_watcher = true,
+          use_libuv_file_watcher = use_file_watcher,
         },
         buffers = { follow_current_file = { enabled = true } },
         git_status = { window = { position = "float" } },
+        default_component_configs = {
+          icon = {
+            folder_closed = "\u{f115}",
+            folder_open = "\u{f114}",
+            folder_empty = "\u{f114}",
+            default = "\u{f016}",
+          },
+          indent = { padding = 1, with_markers = true },
+        },
       })
 
       -- Lualine (statusline)
