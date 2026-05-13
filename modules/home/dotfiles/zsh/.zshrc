@@ -1,6 +1,3 @@
-# opencode path
-export PATH=/Users/migueltaibo/.opencode/bin:$PATH
-
 # Aliases
 alias l='eza -lhH --icons --group-directories-first --git --color-scale=size'
 alias ls='eza --icons --group-directories-first --color-scale=size'
