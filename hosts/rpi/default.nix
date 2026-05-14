@@ -36,6 +36,12 @@
 
   programs.dconf.enable = true;
 
+  system.activationScripts.rpi5-oscheck = ''
+    if [ -f /boot/config.txt ]; then
+      grep -q "os_check=0" /boot/config.txt || echo "os_check=0" >> /boot/config.txt
+    fi
+  '';
+
   virtualisation.docker.enable = true;
 
   programs.neovim = {
