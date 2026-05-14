@@ -22,7 +22,7 @@
         modules = [ ./hosts/macbook/home.nix ];
       };
     };
-    nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
+    nixosConfigurations.desktop = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
       specialArgs = { inherit inputs; };
       modules = [
@@ -37,6 +37,26 @@
             inherit inputs;
             pkgsUnstable = import inputs.nixpkgs-unstable {
               system = "x86_64-linux";
+              config.allowUnfree = true;
+            };
+          };
+        }
+      ];
+    };
+    nixosConfigurations.tphome = nixpkgs.lib.nixosSystem {
+      system = "aarch64-linux";
+      specialArgs = { inherit inputs; };
+      modules = [
+        ./hosts/rpi/default.nix
+        home-manager.nixosModules.home-manager
+        {
+          home-manager.useGlobalPkgs = true;
+          home-manager.useUserPackages = true;
+          home-manager.users.migueltaibo = import ./modules/home;
+          home-manager.extraSpecialArgs = {
+            inherit inputs;
+            pkgsUnstable = import inputs.nixpkgs-unstable {
+              system = "aarch64-linux";
               config.allowUnfree = true;
             };
           };

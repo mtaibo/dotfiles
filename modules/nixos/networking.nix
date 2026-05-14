@@ -1,4 +1,4 @@
 { ... }: {
-  networking.hostName = "nixos";
+  networking.hostName = "desktop";
   networking.networkmanager.enable = true;
 }
