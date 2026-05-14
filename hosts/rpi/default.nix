@@ -34,6 +34,8 @@
   programs.zsh.enable = true;
   security.sudo.wheelNeedsPassword = false;
 
+  programs.dconf.enable = true;
+
   virtualisation.docker.enable = true;
 
   programs.neovim = {
