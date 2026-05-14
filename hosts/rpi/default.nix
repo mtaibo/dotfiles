@@ -10,13 +10,11 @@
   system.stateVersion = "25.11";
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
-  nix.settings.max-jobs = 2;
+  nix.settings.max-jobs = 1;
   nixpkgs.config.allowUnfree = true;
 
   time.timeZone = "Europe/Madrid";
   i18n.defaultLocale = "es_ES.UTF-8";
-
-  swapDevices = [{ device = "/swapfile"; }];
 
   services.openssh = {
     enable = true;
