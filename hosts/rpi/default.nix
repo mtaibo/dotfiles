@@ -16,10 +16,7 @@
   time.timeZone = "Europe/Madrid";
   i18n.defaultLocale = "es_ES.UTF-8";
 
-  swapDevices = [{
-    device = "/swapfile";
-    size = 8192;
-  }];
+  swapDevices = [{ device = "/swapfile"; }];
 
   services.openssh = {
     enable = true;
