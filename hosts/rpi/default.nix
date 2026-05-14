@@ -27,6 +27,7 @@
     isNormalUser = true;
     description = "Miguel Taibo";
     extraGroups = [ "networkmanager" "wheel" "docker" ];
+    initialPassword = "changeme";
   };
   users.users.migueltaibo.shell = pkgs.zsh;
   programs.zsh.enable = true;
