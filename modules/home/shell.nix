@@ -11,7 +11,7 @@
       update = if pkgs.stdenv.hostPlatform.isDarwin
         then "sudo darwin-rebuild switch --flake ~/Dotfiles#macbook"
         else "sudo nixos-rebuild switch --flake ~/dotfiles#nixos";
-      close = "curl -X POST http://192.168.1.160/api/commands/B0301/down";
+      close = "curl -s -X POST http://192.168.1.160/api/commands/B0301/down > /dev/null";
     };
 
     initContent = ''
