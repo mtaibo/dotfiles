@@ -34,6 +34,8 @@
   programs.zsh.enable = true;
   security.sudo.wheelNeedsPassword = false;
 
+  boot.kernelPackages = pkgs.linuxPackages_rpi_bcm2712;
+
   programs.dconf.enable = true;
 
   system.activationScripts.rpi5-oscheck = ''
