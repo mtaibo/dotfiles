@@ -18,8 +18,16 @@
       "Library/Services/OpenKittyFullscreen.workflow".source =
         ../../assets/macos/OpenKittyFullscreen.workflow;
     };
-  home.activation.setKittyIcon = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    KITTY_APP="/Users/migueltaibo/Applications/Home Manager Apps/kitty.app"
+  home.activation.installKittyApp = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    KITTY_SRC="/Users/migueltaibo/Applications/Home Manager Apps/kitty.app"
+    KITTY_DEST="/Users/migueltaibo/Applications/Kitty.app"
+    if [ -d "$KITTY_SRC" ]; then
+      $DRY_RUN_CMD rm -rf "$KITTY_DEST"
+      $DRY_RUN_CMD ditto "$KITTY_SRC" "$KITTY_DEST"
+    fi
+  '';
+  home.activation.setKittyIcon = lib.hm.dag.entryAfter [ "installKittyApp" ] ''
+    KITTY_APP="/Users/migueltaibo/Applications/Kitty.app"
     if [ -d "$KITTY_APP" ]; then
       $DRY_RUN_CMD cp ${../../assets/macos/kitty-icon.icns} \
         "$KITTY_APP/Contents/Resources/kitty.icns"
