@@ -26,7 +26,6 @@
     pkgs.opencode
   ];
 
-  home.file.".ssh/authorized_keys".text = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBgGarRPxNYLOGMKaJlSZCCgeEIL8esXZbuYJRTomXwg";
   home.file.".hushlogin".text = "";
   home.file.".config/opencode/opencode.json".source = ../../assets/opencode/opencode.json;
   home.file.".config/starship.toml".source = ../../assets/starship/starship.toml;
@@ -41,6 +40,12 @@
   home.activation.setupKittyTerminfo = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
     mkdir -p "$HOME/.terminfo/x"
     $DRY_RUN_CMD ${pkgs.ncurses}/bin/tic -x -o "$HOME/.terminfo" ${../../assets/kitty/xterm-kitty.terminfo}
+  '';
+
+  home.activation.setupSshKeys = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    mkdir -p "$HOME/.ssh"
+    $DRY_RUN_CMD curl -fsSL https://github.com/mtaibo.keys -o "$HOME/.ssh/authorized_keys"
+    $DRY_RUN_CMD chmod 600 "$HOME/.ssh/authorized_keys"
   '';
 
   home.activation.suppressMotd = lib.hm.dag.entryAfter [ "writeBoundary" ] ''

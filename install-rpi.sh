@@ -108,6 +108,12 @@ else
   ok "zsh is already the default shell"
 fi
 
+# ------------------------------------------------------------------
+log "Authenticating with GitHub..."
+# ------------------------------------------------------------------
+gh auth login
+ok "GitHub authenticated"
+
 echo ""
 echo -e "${GREEN}RPi setup complete!${NC}"
 echo ""
