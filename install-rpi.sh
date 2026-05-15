@@ -78,7 +78,9 @@ ok "Tailscale installed"
 # ------------------------------------------------------------------
 log "Suppressing Debian MOTD..."
 # ------------------------------------------------------------------
+echo "PrintMotd no" | sudo tee /etc/ssh/sshd_config.d/99-no-motd.conf >/dev/null
 sudo truncate -s 0 /etc/motd 2>/dev/null || true
+sudo systemctl restart sshd
 ok "MOTD suppressed"
 
 # ------------------------------------------------------------------
