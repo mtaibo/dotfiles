@@ -30,7 +30,7 @@ Everything here is:
 |---|---|---|---|
 | `nixos` | NixOS 25.11 | x86_64 | Desktop PC (Intel + NVIDIA) |
 | `macbook` | macOS (nix-darwin) | aarch64 (Apple Silicon) | Daily laptop |
-| `raspberry` | NixOS | aarch64 | Home server / tinkering |
+| `tphome` | Raspberry Pi OS | aarch64 | Home server (RPi 5) |
 
 ## How it's organized
 
@@ -40,7 +40,8 @@ dotfiles/
 ├── flake.lock             # Pins all dependency versions
 ├── hosts/                 # Per-machine config
 │   ├── desktop/           # NixOS desktop (GRUB, hardware, locale)
-│   └── macbook/           # macOS laptop (fonts, services, wallpaper)
+│   ├── macbook/           # macOS laptop (fonts, services, wallpaper)
+│   └── tphome/            # RPi OS (Home Manager standalone)
 ├── modules/               # Shared logic (Nix expressions)
 │   ├── home/              # Home Manager — user-level config
 │   │   ├── default.nix    # Hub: imports everything below
@@ -67,9 +68,9 @@ dotfiles/
 
 This repo uses **Nix flakes** + **Home Manager** to declare everything:
 
-1. **`flake.nix`** is the brain — it takes inputs (nixpkgs, home-manager, nix-darwin) and builds three outputs: one for each machine.
-2. **`hosts/desktop/`** and **`hosts/macbook/`** define what makes each machine unique (hostname, hardware, macOS-specific stuff like fonts and wallpaper).
-3. **`modules/home/`** is the shared core — both machines import this. It defines my user packages, shell, editors, and browser. The macOS host overrides a few paths (like `homeDirectory`).
+1. **`flake.nix`** is the brain — it takes inputs (nixpkgs, home-manager, nix-darwin) and builds all machine configurations.
+2. **`hosts/desktop/`** (NixOS), **`hosts/macbook/`** (macOS), and **`hosts/tphome/`** (RPi OS standalone) define what makes each machine unique.
+3. **`modules/home/`** is the shared core — the NixOS and macOS machines import the full hub. The RPi imports a subset (shell, neovim) without desktop apps.
 4. **`assets/`** holds the plain config files (`.zshrc`, `kitty.conf`, CSS themes, etc.). Home Manager symlinks them into place at `~/.config/`.
 
 For example, when I run `darwin-rebuild switch` on my MacBook, Nix:
@@ -111,5 +112,21 @@ sudo darwin-rebuild switch --flake ~/dotfiles#macbook
 # On NixOS
 sudo nixos-rebuild switch --flake ~/dotfiles#nixos
 ```
+
+### On Raspberry Pi (Raspberry Pi OS)
+
+Fresh install — boot, plug in, and run:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/mtaibo/dotfiles/main/install-rpi.sh | bash
+```
+
+This script:
+1. Sets hostname to `tphome`
+2. Installs **Nix** via Determinate Systems
+3. Clones this repo (via curl tarball, no git needed)
+4. Installs **Home Manager** and deploys config (starship, zsh with autosuggestions, neovim, eza, bat, fastfetch, opencode)
+5. Installs **Docker** daemon
+6. Installs **Tailscale**
 
 > **Note:** This is **my** personal config — hardware paths, usernames, and programs are tailored to my machines. But feel free to fork it and adapt it to you.
