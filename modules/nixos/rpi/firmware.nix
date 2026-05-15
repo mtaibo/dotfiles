@@ -5,25 +5,27 @@
   };
 
   # RPi5 boot flow: start4.elf → config.txt → kernel directly
-  # The extlinux module writes kernel/initrd to /boot/nixos/<hash>-*
+  # extlinux writes kernel/initrd to /boot/nixos/<hash>-*
   # but does NOT update config.txt, so it becomes stale after rebuild.
-  # This activation script rewrites config.txt with the latest paths.
+  # This wraps installBootLoader to update config.txt after extlinux runs.
 
   hardware.enableRedistributableFirmware = true;
 
-  system.activationScripts.rpi-config = lib.mkAfter ''
+  system.build.installBootLoader = pkgs.writeShellScript "install-rpi-bootloader" ''
+    ${config.boot.loader.generic-extlinux-compatible.populateCmd} "$1"
+
     latest_kernel=$(ls -1t /boot/nixos/*-Image 2>/dev/null | head -1)
     latest_initrd=$(ls -1t /boot/nixos/*-initrd 2>/dev/null | head -1)
 
     if [ -n "$latest_kernel" ] && [ -n "$latest_initrd" ]; then
-      cat > /boot/config.txt << CONFIG
-[all]
-arm_64bit=1
-enable_uart=1
-kernel=nixos/$(basename "$latest_kernel")
-initramfs nixos/$(basename "$latest_initrd") followkernel
-os_check=0
-CONFIG
+      {
+        echo '[all]'
+        echo 'arm_64bit=1'
+        echo 'enable_uart=1'
+        echo "kernel=nixos/$(basename "$latest_kernel")"
+        echo "initramfs nixos/$(basename "$latest_initrd") followkernel"
+        echo 'os_check=0'
+      } > /boot/config.txt
     fi
   '';
 }
