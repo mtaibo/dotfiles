@@ -60,10 +60,9 @@ else
 fi
 
 # ------------------------------------------------------------------
-log "Installing Docker..."
+log "Installing Docker (official script)..."
 # ------------------------------------------------------------------
-sudo apt update -qq
-sudo apt install -y -qq docker.io
+curl -fsSL https://get.docker.com | sh
 sudo systemctl enable --now docker
 sudo usermod -aG docker "$USER"
 ok "Docker installed and enabled"
