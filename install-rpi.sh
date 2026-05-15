@@ -7,12 +7,15 @@ ok()  { echo -e "${GREEN}[✓]${NC} $1"; }
 
 HOSTNAME="tphome"
 REPO="https://github.com/mtaibo/dotfiles"
-FLAKE_PATH="$HOME/Dotfiles"
+FLAKE_PATH="$HOME/dotfiles"
+
+# Ensure Nix is in PATH (works whether fresh install or existing)
+export PATH="$HOME/.nix-profile/bin:/nix/var/nix/profiles/default/bin:$PATH"
 
 # ------------------------------------------------------------------
 log "Setting hostname to $HOSTNAME..."
 # ------------------------------------------------------------------
-sudo hostnamectl set-hostname "$HOSTNAME"
+sudo hostnamectl set-hostname "$HOSTNAME" 2>/dev/null || true
 if grep -q "127.0.1.1" /etc/hosts 2>/dev/null; then
   sudo sed -i "s/^127\.[0-9]\+\.[0-9]\+\.[0-9]\+[[:space:]]\+.*/127.0.1.1\t$HOSTNAME/" /etc/hosts
 else
@@ -25,12 +28,11 @@ log "Installing Nix (Determinate Systems)..."
 # ------------------------------------------------------------------
 if ! command -v nix &>/dev/null; then
   curl --proto '=https' --tlsv1.2 -fsSL https://install.determinate.systems/nix | sh -s -- install
+  . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
   ok "Nix installed"
 else
   ok "Nix already installed"
 fi
-
-export PATH="$HOME/.nix-profile/bin:/nix/var/nix/profiles/default/bin:$PATH"
 
 mkdir -p ~/.config/nix
 if ! grep -q "experimental-features" ~/.config/nix/nix.conf 2>/dev/null; then
@@ -41,12 +43,19 @@ fi
 # ------------------------------------------------------------------
 log "Cloning dotfiles repo..."
 # ------------------------------------------------------------------
-if [ ! -d "$FLAKE_PATH" ]; then
-  mkdir -p "$FLAKE_PATH"
-  curl -fsSL "$REPO/archive/main.tar.gz" | tar xz -C "$FLAKE_PATH" --strip-components=1
-  ok "Repo cloned to $FLAKE_PATH"
+rm -rf "$FLAKE_PATH"
+mkdir -p "$FLAKE_PATH"
+curl -fsSL "$REPO/archive/main.tar.gz" | tar xz -C "$FLAKE_PATH" --strip-components=1
+ok "Repo cloned to $FLAKE_PATH"
+
+# ------------------------------------------------------------------
+log "Cleaning previous home-manager profile (if any)..."
+# ------------------------------------------------------------------
+if nix profile list 2>/dev/null | grep -qi home-manager; then
+  nix profile remove home-manager 2>/dev/null || true
+  ok "Removed conflicting home-manager from nix profile"
 else
-  ok "Repo already exists at $FLAKE_PATH"
+  ok "No conflict found"
 fi
 
 # ------------------------------------------------------------------
@@ -66,7 +75,7 @@ sudo systemctl enable --now tailscaled
 ok "Tailscale installed"
 
 # ------------------------------------------------------------------
-log "Deploying home-manager config (first run with nix run)..."
+log "Deploying home-manager config..."
 # ------------------------------------------------------------------
 nix run github:nix-community/home-manager -- switch --flake "$FLAKE_PATH#tphome"
 ok "Config deployed"
@@ -77,5 +86,5 @@ echo ""
 echo "  Next steps:"
 echo "    1. Log out and back in for docker group to take effect"
 echo "    2. Run: tailscale up"
-echo "    3. Run: dotfiles          (or just open a new terminal)"
+echo "    3. Then, just run: dotfiles"
 echo ""
