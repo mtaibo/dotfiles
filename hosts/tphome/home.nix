@@ -31,8 +31,7 @@
   home.file.".config/zsh/.zshrc".source = ../../assets/zsh/.zshrc;
 
   programs.zsh.shellAliases = {
-    dotfiles = "home-manager switch --flake ~/dotfiles#tphome";
-    update = lib.mkForce "echo 'on rpi use: dotfiles (not update)'";
+    update = "home-manager switch --flake ~/dotfiles#tphome";
   };
 
   programs.home-manager.enable = true;
