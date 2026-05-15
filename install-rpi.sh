@@ -63,7 +63,7 @@ fi
 log "Installing Docker..."
 # ------------------------------------------------------------------
 sudo apt update -qq
-sudo apt install -y -qq docker.io
+sudo apt install -y -qq docker.io docker-compose-v2
 sudo systemctl enable --now docker
 sudo usermod -aG docker "$USER"
 ok "Docker installed and enabled"
