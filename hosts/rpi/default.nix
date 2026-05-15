@@ -39,6 +39,11 @@
     size = 4096;
   }];
 
+  boot.kernelParams = [
+    "console=serial0,115200n8"
+    "console=tty1"
+  ];
+
   boot.kernelPackages = nixos-raspberrypi.packages.aarch64-linux.linuxPackages_rpi5;
 
   nix.settings = {
