@@ -43,10 +43,10 @@ fi
 # ------------------------------------------------------------------
 log "Cloning dotfiles repo..."
 # ------------------------------------------------------------------
+sudo apt install -y -qq git
 cd /tmp
 rm -rf "$FLAKE_PATH"
-mkdir -p "$FLAKE_PATH"
-curl -fsSL "$REPO/archive/main.tar.gz" | tar xz -C "$FLAKE_PATH" --strip-components=1
+git clone "$REPO" "$FLAKE_PATH"
 ok "Repo cloned to $FLAKE_PATH"
 
 # ------------------------------------------------------------------
