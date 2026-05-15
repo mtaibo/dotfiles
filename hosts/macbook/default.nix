@@ -24,5 +24,4 @@
     docker-client
   ];
 
-  programs.nix-index.enable = true;
 }
