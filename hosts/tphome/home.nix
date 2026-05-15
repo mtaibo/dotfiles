@@ -26,6 +26,7 @@
     pkgs.opencode
   ];
 
+  home.file.".hushlogin".text = "";
   home.file.".config/opencode/opencode.json".source = ../../assets/opencode/opencode.json;
   home.file.".config/starship.toml".source = ../../assets/starship/starship.toml;
   home.file.".config/zsh/.zshrc".source = ../../assets/zsh/.zshrc;
@@ -42,6 +43,7 @@
   '';
 
   home.activation.suppressMotd = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    $DRY_RUN_CMD sudo -n bash -c 'printf "PrintMotd no\n" > /etc/ssh/sshd_config.d/99-no-motd.conf' 2>/dev/null || true
     $DRY_RUN_CMD sudo -n truncate -s 0 /etc/motd 2>/dev/null || true
   '';
 }
