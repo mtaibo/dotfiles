@@ -47,6 +47,12 @@
     trusted-public-keys = [ "nixos-raspberrypi.cachix.org-1:4iMO9LXa8BqhU+Rpg6LQKiGa2lsNh/j2oiYLNOQ5sPI=" ];
   };
 
+  system.activationScripts.rpi5-oscheck = lib.mkAfter ''
+    if [ -f /boot/config.txt ]; then
+      grep -q "os_check=0" /boot/config.txt || echo "os_check=0" >> /boot/config.txt
+    fi
+  '';
+
   programs.dconf.enable = true;
 
   virtualisation.docker.enable = true;
