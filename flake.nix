@@ -13,8 +13,14 @@
     };
     grub2-themes.url = "github:vinceliuice/grub2-themes";
     grub2-themes.inputs.nixpkgs.follows = "nixpkgs";
+    nixos-raspberrypi.url = "github:nvmd/nixos-raspberrypi/main";
   };
-  outputs = inputs@{ self, nixpkgs, home-manager, nix-darwin, grub2-themes, ... }: {
+
+  nixConfig = {
+    extra-substituters = [ "https://nixos-raspberrypi.cachix.org" ];
+    extra-trusted-public-keys = [ "nixos-raspberrypi.cachix.org-1:4iMO9LXa8BqhU+Rpg6LQKiGa2lsNh/j2oiYLNOQ5sPI=" ];
+  };
+  outputs = inputs@{ self, nixpkgs, home-manager, nix-darwin, grub2-themes, nixos-raspberrypi, ... }: {
     homeConfigurations = {
       migueltaibo = home-manager.lib.homeManagerConfiguration {
         pkgs = nixpkgs.legacyPackages.aarch64-darwin;
@@ -45,7 +51,7 @@
     };
     nixosConfigurations.tphome = nixpkgs.lib.nixosSystem {
       system = "aarch64-linux";
-      specialArgs = { inherit inputs; };
+      specialArgs = { inherit inputs nixos-raspberrypi; };
       modules = [
         ./hosts/rpi/default.nix
         home-manager.nixosModules.home-manager
