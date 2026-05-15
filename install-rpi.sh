@@ -50,16 +50,6 @@ else
 fi
 
 # ------------------------------------------------------------------
-log "Installing home-manager..."
-# ------------------------------------------------------------------
-if ! command -v home-manager &>/dev/null; then
-  nix profile install github:nix-community/home-manager
-  ok "home-manager installed"
-else
-  ok "home-manager already installed"
-fi
-
-# ------------------------------------------------------------------
 log "Installing Docker..."
 # ------------------------------------------------------------------
 sudo apt update -qq
@@ -76,9 +66,9 @@ sudo systemctl enable --now tailscaled
 ok "Tailscale installed"
 
 # ------------------------------------------------------------------
-log "Deploying home-manager config..."
+log "Deploying home-manager config (first run with nix run)..."
 # ------------------------------------------------------------------
-home-manager switch --flake "$FLAKE_PATH#tphome"
+nix run github:nix-community/home-manager -- switch --flake "$FLAKE_PATH#tphome"
 ok "Config deployed"
 
 echo ""
