@@ -41,13 +41,13 @@ if ! grep -q "experimental-features" ~/.config/nix/nix.conf 2>/dev/null; then
 fi
 
 # ------------------------------------------------------------------
-log "Cloning dotfiles repo..."
+log "Cloning dotfiles repo (curl tarball, git not available yet)..."
 # ------------------------------------------------------------------
-sudo apt install -y -qq git
 cd /tmp
 rm -rf "$FLAKE_PATH"
-git clone "$REPO" "$FLAKE_PATH"
-ok "Repo cloned to $FLAKE_PATH"
+mkdir -p "$FLAKE_PATH"
+curl -fsSL "$REPO/archive/main.tar.gz" | tar xz -C "$FLAKE_PATH" --strip-components=1
+ok "Repo fetched to $FLAKE_PATH (no .git yet)"
 
 # ------------------------------------------------------------------
 log "Cleaning previous home-manager profile (if any)..."
@@ -80,6 +80,14 @@ log "Deploying home-manager config..."
 # ------------------------------------------------------------------
 nix run github:nix-community/home-manager -- switch --flake "$FLAKE_PATH#tphome"
 ok "Config deployed"
+
+# ------------------------------------------------------------------
+log "Re-cloning with git (so repo has .git history)..."
+# ------------------------------------------------------------------
+cd /tmp
+rm -rf "$FLAKE_PATH"
+git clone "$REPO" "$FLAKE_PATH"
+ok "Repo now has .git — you can git pull"
 
 # ------------------------------------------------------------------
 log "Setting default shell to zsh..."
