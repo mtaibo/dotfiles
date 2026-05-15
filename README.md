@@ -130,4 +130,14 @@ This script:
 6. Re-clones the repo with **git** (for proper version control)
 7. Sets **zsh** as the default shell
 
+### SSH access to the RPi
+
+After the RPi is set up, run this **on your local machine** (MacBook / desktop) to generate an SSH key and upload it to GitHub:
+
+```bash
+bash scripts/setup-ssh-tphome.sh
+```
+
+Then on the RPi run `update` to download the key from GitHub and enable passwordless SSH.
+
 > **Note:** This is **my** personal config — hardware paths, usernames, and programs are tailored to my machines. But feel free to fork it and adapt it to you.
