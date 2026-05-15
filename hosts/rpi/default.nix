@@ -4,8 +4,6 @@
     nixos-raspberrypi.lib.inject-overlays
     nixos-raspberrypi.nixosModules.raspberry-pi-5.base
     nixos-raspberrypi.nixosModules.raspberry-pi-5.page-size-16k
-    nixos-raspberrypi.nixosModules.raspberry-pi-5.display-vc4
-    nixos-raspberrypi.nixosModules.raspberry-pi-5.bluetooth
   ];
 
   networking.hostName = "tphome";
@@ -37,6 +35,11 @@
   users.users.migueltaibo.shell = pkgs.zsh;
   programs.zsh.enable = true;
   security.sudo.wheelNeedsPassword = false;
+
+  swapDevices = [{
+    device = "/swapfile";
+    size = 4096;
+  }];
 
   boot.loader.raspberry-pi = {
     firmwarePath = "/boot";
