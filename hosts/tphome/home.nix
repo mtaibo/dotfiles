@@ -24,6 +24,7 @@
     bat
     fastfetch
     pkgs.opencode
+    docker-compose
   ];
 
   home.file.".hushlogin".text = "";
