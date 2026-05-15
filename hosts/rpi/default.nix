@@ -1,9 +1,8 @@
 { config, pkgs, lib, nixos-raspberrypi, ... }: {
   imports = [
     ./hardware-configuration.nix
+    ../../modules/nixos/rpi/firmware.nix
     nixos-raspberrypi.lib.inject-overlays
-    nixos-raspberrypi.nixosModules.raspberry-pi-5.base
-    nixos-raspberrypi.nixosModules.raspberry-pi-5.page-size-16k
   ];
 
   networking.hostName = "tphome";
@@ -41,11 +40,7 @@
     size = 4096;
   }];
 
-  boot.loader.raspberry-pi = {
-    firmwarePath = "/boot";
-    bootloader = "kernel";
-    configurationLimit = 3;
-  };
+  boot.kernelPackages = pkgs.linuxPackages_rpi5;
 
   programs.dconf.enable = true;
 
