@@ -1,7 +1,11 @@
-{ config, pkgs, ... }: {
+{ config, pkgs, lib, nixos-raspberrypi, ... }: {
   imports = [
     ./hardware-configuration.nix
-    ../../modules/nixos/rpi/firmware.nix
+    nixos-raspberrypi.lib.inject-overlays
+    nixos-raspberrypi.nixosModules.raspberry-pi-5.base
+    nixos-raspberrypi.nixosModules.raspberry-pi-5.page-size-16k
+    nixos-raspberrypi.nixosModules.raspberry-pi-5.display-vc4
+    nixos-raspberrypi.nixosModules.raspberry-pi-5.bluetooth
   ];
 
   networking.hostName = "tphome";
@@ -34,15 +38,13 @@
   programs.zsh.enable = true;
   security.sudo.wheelNeedsPassword = false;
 
-  boot.kernelPackages = pkgs.linuxPackages_rpi4;
+  boot.loader.raspberry-pi = {
+    firmwarePath = "/boot";
+    bootloader = "kernel";
+    configurationLimit = 3;
+  };
 
   programs.dconf.enable = true;
-
-  system.activationScripts.rpi5-oscheck = ''
-    if [ -f /boot/config.txt ]; then
-      grep -q "os_check=0" /boot/config.txt || echo "os_check=0" >> /boot/config.txt
-    fi
-  '';
 
   virtualisation.docker.enable = true;
 
