@@ -26,6 +26,7 @@
     pkgs.opencode
   ];
 
+  home.file.".hushlogin".text = "";
   home.file.".config/opencode/opencode.json".source = ../../assets/opencode/opencode.json;
   home.file.".config/starship.toml".source = ../../assets/starship/starship.toml;
   home.file.".config/zsh/.zshrc".source = ../../assets/zsh/.zshrc;
