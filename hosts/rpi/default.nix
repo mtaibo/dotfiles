@@ -34,7 +34,7 @@
   programs.zsh.enable = true;
   security.sudo.wheelNeedsPassword = false;
 
-  boot.kernelPackages = pkgs.linuxPackages_rpi_bcm2712;
+  boot.kernelPackages = pkgs.linuxPackages_rpi4;
 
   programs.dconf.enable = true;
 
