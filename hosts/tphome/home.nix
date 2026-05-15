@@ -23,6 +23,7 @@
     eza
     bat
     fastfetch
+    docker-compose
     pkgs.opencode
   ];
 
@@ -32,7 +33,12 @@
   home.file.".config/zsh/.zshrc".source = ../../assets/zsh/.zshrc;
 
   programs.zsh.shellAliases = {
-    update = lib.mkForce "home-manager switch --flake ~/dotfiles#tphome";
+    update       = lib.mkForce "home-manager switch --flake ~/dotfiles#tphome";
+    tphome-up    = "~/dotfiles/scripts/tphome-docker.sh up";
+    tphome-down  = "~/dotfiles/scripts/tphome-docker.sh down";
+    tphome-logs  = "~/dotfiles/scripts/tphome-docker.sh logs";
+    tphome-ps    = "~/dotfiles/scripts/tphome-docker.sh ps";
+    tphome-rebuild = "~/dotfiles/scripts/tphome-docker.sh rebuild";
   };
 
   programs.home-manager.enable = true;
