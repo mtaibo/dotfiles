@@ -31,7 +31,7 @@
   home.file.".config/zsh/.zshrc".source = ../../assets/zsh/.zshrc;
 
   programs.zsh.shellAliases = {
-    update = "home-manager switch --flake ~/dotfiles#tphome";
+    update = lib.mkForce "home-manager switch --flake ~/dotfiles#tphome";
   };
 
   programs.home-manager.enable = true;
