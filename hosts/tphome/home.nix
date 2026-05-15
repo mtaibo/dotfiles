@@ -26,7 +26,6 @@
     pkgs.opencode
   ];
 
-  home.file.".hushlogin".text = "";
   home.file.".config/opencode/opencode.json".source = ../../assets/opencode/opencode.json;
   home.file.".config/starship.toml".source = ../../assets/starship/starship.toml;
   home.file.".config/zsh/.zshrc".source = ../../assets/zsh/.zshrc;
@@ -40,5 +39,9 @@
   home.activation.setupKittyTerminfo = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
     mkdir -p "$HOME/.terminfo/x"
     $DRY_RUN_CMD ${pkgs.ncurses}/bin/tic -x -o "$HOME/.terminfo" ${../../assets/kitty/xterm-kitty.terminfo}
+  '';
+
+  home.activation.suppressMotd = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    $DRY_RUN_CMD sudo -n truncate -s 0 /etc/motd 2>/dev/null || true
   '';
 }
