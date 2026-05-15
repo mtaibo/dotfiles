@@ -48,21 +48,22 @@ else
 fi
 
 # ------------------------------------------------------------------
-log "Adding tphome host to ~/.ssh/config..."
+log "Writing tphome host to ~/.ssh/config..."
 # ------------------------------------------------------------------
 mkdir -p "$(dirname "$SSH_CONFIG")"
-if grep -q "Host $HOST\b" "$SSH_CONFIG" 2>/dev/null; then
-  ok "Host $HOST already in $SSH_CONFIG"
-else
-  cat >> "$SSH_CONFIG" <<EOF
+touch "$SSH_CONFIG"
+# Remove old Host tphome block if any
+awk '/^Host /{found=0} /^Host tphome(\b|$)/{found=1; next} !found' "$SSH_CONFIG" > "$SSH_CONFIG.tmp"
+mv "$SSH_CONFIG.tmp" "$SSH_CONFIG"
+
+cat >> "$SSH_CONFIG" <<EOF
 
 Host $HOST
   HostName $ADDR
   User $USER
   IdentityFile $KEY_PATH
 EOF
-  ok "Host $HOST added to $SSH_CONFIG"
-fi
+ok "Host $HOST configured in $SSH_CONFIG"
 
 echo ""
 echo -e "${GREEN}Done!${NC}"
