@@ -8,6 +8,7 @@
   hardware.enableRedistributableFirmware = true;
 
   system.build.installBootLoader = pkgs.writeShellScript "install-rpi-bootloader" ''
+    export PATH=${pkgs.coreutils}/bin:${pkgs.gnugrep}/bin:$PATH
     set -e
 
     kernel_src="${config.system.build.kernel}/${config.system.boot.loader.kernelFile}"
