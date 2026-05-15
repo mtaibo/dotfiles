@@ -19,9 +19,17 @@
       cat > /boot/config.txt << CONFIG
 [all]
 arm_64bit=1
+arm_boost=1
+avoid_warnings=1
+display_auto_detect=1
+disable_overscan=1
 enable_uart=1
 kernel=nixos/$(basename "$latest_kernel")
 initramfs nixos/$(basename "$latest_initrd") followkernel
+max_framebuffers=2
+dtparam=audio=on
+dtoverlay=vc4-kms-v3d
+dtoverlay=
 os_check=0
 CONFIG
     fi
