@@ -35,6 +35,11 @@ fi
 # ------------------------------------------------------------------
 log "Uploading public key to GitHub..."
 # ------------------------------------------------------------------
+if ! gh ssh-key list &>/dev/null; then
+  err "gh token missing 'admin:public_key' scope."
+  err "Run: gh auth refresh -h github.com -s admin:public_key"
+  exit 1
+fi
 if gh ssh-key list 2>/dev/null | grep -qi "$TAG"; then
   ok "Key '$TAG' already on GitHub"
 else
