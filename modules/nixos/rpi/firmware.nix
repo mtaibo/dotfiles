@@ -4,19 +4,19 @@
     generic-extlinux-compatible.enable = true;
   };
 
+  # The RPi5 boot flow:
+  #   start4.elf → reads config.txt → loads U-Boot → reads extlinux.conf
+  # The armstub for RPi5 is built into start4.elf, no external file needed.
+  # generic-extlinux-compatible installs U-Boot automatically.
+
   hardware.enableRedistributableFirmware = true;
 
-  # Write a correct config.txt and install RPi5 armstub on every rebuild.
-  # generic-extlinux-compatible handles U-Boot installation automatically.
-  system.activationScripts.rpi-boot = lib.mkAfter ''
-    cp -f ${pkgs.raspberrypifw}/share/raspberrypi/boot/armstub8-2712.bin /boot/armstub8-2712.bin
-
+  system.activationScripts.rpi-config = lib.mkAfter ''
     cat > /boot/config.txt << 'CONFIG'
 [all]
 arm_64bit=1
 enable_uart=1
 kernel=u-boot-rpi-arm64.bin
-armstub=armstub8-2712.bin
 dtoverlay=vc4-kms-v3d
 dtoverlay=
 [all]
