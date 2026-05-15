@@ -76,6 +76,12 @@ sudo systemctl enable --now tailscaled
 ok "Tailscale installed"
 
 # ------------------------------------------------------------------
+log "Suppressing Debian MOTD..."
+# ------------------------------------------------------------------
+sudo truncate -s 0 /etc/motd 2>/dev/null || true
+ok "MOTD suppressed"
+
+# ------------------------------------------------------------------
 log "Deploying home-manager config..."
 # ------------------------------------------------------------------
 nix run github:nix-community/home-manager -- switch --flake "$FLAKE_PATH#tphome"
