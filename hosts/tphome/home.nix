@@ -36,4 +36,9 @@
   };
 
   programs.home-manager.enable = true;
+
+  home.activation.setupKittyTerminfo = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+    mkdir -p "$HOME/.terminfo/x"
+    $DRY_RUN_CMD ${pkgs.ncurses}/bin/tic -x -o "$HOME/.terminfo" ${../../assets/kitty/xterm-kitty.terminfo}
+  '';
 }
