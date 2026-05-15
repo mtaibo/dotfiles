@@ -43,6 +43,7 @@ fi
 # ------------------------------------------------------------------
 log "Cloning dotfiles repo..."
 # ------------------------------------------------------------------
+cd /tmp
 rm -rf "$FLAKE_PATH"
 mkdir -p "$FLAKE_PATH"
 curl -fsSL "$REPO/archive/main.tar.gz" | tar xz -C "$FLAKE_PATH" --strip-components=1
