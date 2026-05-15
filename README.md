@@ -124,7 +124,7 @@ curl -fsSL https://raw.githubusercontent.com/mtaibo/dotfiles/main/install-rpi.sh
 This script:
 1. Sets hostname to `tphome`
 2. Installs **Nix** via Determinate Systems
-3. Clones this repo (via curl tarball, no git needed)
+3. Clones this repo (with git, installed automatically if missing)
 4. Installs **Home Manager** and deploys config (starship, zsh with autosuggestions, neovim, eza, bat, fastfetch, opencode)
 5. Installs **Docker** daemon
 6. Installs **Tailscale**
