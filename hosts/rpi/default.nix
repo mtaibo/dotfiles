@@ -2,7 +2,6 @@
   imports = [
     ./hardware-configuration.nix
     ../../modules/nixos/rpi/firmware.nix
-    nixos-raspberrypi.lib.inject-overlays
   ];
 
   networking.hostName = "tphome";
@@ -40,7 +39,13 @@
     size = 4096;
   }];
 
-  boot.kernelPackages = pkgs.linuxPackages_rpi5;
+  boot.kernelPackages = nixos-raspberrypi.packages.aarch64-linux.linuxPackages_rpi5;
+
+  nix.settings = {
+    substituters = [ "https://nixos-raspberrypi.cachix.org" ];
+    trusted-substituters = [ "https://nixos-raspberrypi.cachix.org" ];
+    trusted-public-keys = [ "nixos-raspberrypi.cachix.org-1:4iMO9LXa8BqhU+Rpg6LQKiGa2lsNh/j2oiYLNOQ5sPI=" ];
+  };
 
   programs.dconf.enable = true;
 
