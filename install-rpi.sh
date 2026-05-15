@@ -80,11 +80,22 @@ log "Deploying home-manager config..."
 nix run github:nix-community/home-manager -- switch --flake "$FLAKE_PATH#tphome"
 ok "Config deployed"
 
+# ------------------------------------------------------------------
+log "Setting default shell to zsh..."
+# ------------------------------------------------------------------
+ZSH_PATH="$(which zsh)"
+if [ "$SHELL" != "$ZSH_PATH" ]; then
+  sudo chsh -s "$ZSH_PATH" "$USER"
+  ok "Default shell changed to zsh (log out and back in)"
+else
+  ok "zsh is already the default shell"
+fi
+
 echo ""
 echo -e "${GREEN}RPi setup complete!${NC}"
 echo ""
 echo "  Next steps:"
-echo "    1. Log out and back in for docker group to take effect"
+echo "    1. Log out and back in for docker group + zsh to take effect"
 echo "    2. Run: tailscale up"
 echo "    3. Then, just run: dotfiles"
 echo ""
