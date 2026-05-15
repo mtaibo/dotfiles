@@ -22,6 +22,11 @@
         extraSpecialArgs = { inherit inputs; };
         modules = [ ./hosts/macbook/home.nix ];
       };
+      tphome = home-manager.lib.homeManagerConfiguration {
+        pkgs = nixpkgs.legacyPackages.aarch64-linux;
+        extraSpecialArgs = { inherit inputs; };
+        modules = [ ./hosts/tphome/home.nix ];
+      };
     };
     nixosConfigurations.desktop = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
