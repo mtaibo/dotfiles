@@ -44,7 +44,7 @@
 
   home.activation.setupSshKeys = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     mkdir -p "$HOME/.ssh"
-    $DRY_RUN_CMD curl -fsSL https://github.com/mtaibo.keys -o "$HOME/.ssh/authorized_keys"
+    $DRY_RUN_CMD ${pkgs.curl}/bin/curl -fsSL https://github.com/mtaibo.keys -o "$HOME/.ssh/authorized_keys"
     $DRY_RUN_CMD chmod 600 "$HOME/.ssh/authorized_keys"
   '';
 
