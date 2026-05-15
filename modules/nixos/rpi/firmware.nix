@@ -24,8 +24,9 @@
       echo 'kernel=rpi5-Image'
       echo 'initramfs rpi5-initrd followkernel'
       echo 'os_check=0'
+      echo "cmdline=${lib.concatStringsSep " " config.boot.kernelParams}"
     } > /boot/config.txt
 
-    echo "${lib.concatStringsSep " " config.boot.kernelParams}" > /boot/cmdline.txt
+    rm -f /boot/cmdline.txt
   '';
 }
