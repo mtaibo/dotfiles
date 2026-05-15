@@ -26,6 +26,7 @@
     pkgs.opencode
   ];
 
+  home.file.".ssh/authorized_keys".text = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBgGarRPxNYLOGMKaJlSZCCgeEIL8esXZbuYJRTomXwg";
   home.file.".hushlogin".text = "";
   home.file.".config/opencode/opencode.json".source = ../../assets/opencode/opencode.json;
   home.file.".config/starship.toml".source = ../../assets/starship/starship.toml;
