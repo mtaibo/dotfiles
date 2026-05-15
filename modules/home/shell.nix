@@ -12,6 +12,7 @@
         then "sudo darwin-rebuild switch --flake ~/Dotfiles#macbook"
         else "sudo nixos-rebuild switch --flake ~/Dotfiles#$(hostname)";
       close = "curl -s -X POST http://192.168.1.160/api/commands/B0301/down > /dev/null";
+      icloud = "cd ~/Library/Mobile\\ Documents/com\\~apple\\~CloudDocs/Universidad";
     };
 
     initContent = ''
