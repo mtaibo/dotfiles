@@ -65,7 +65,8 @@ All config files in `assets/` are deployed via Home Manager's `home.file` mechan
 - `pkgs.stdenv.hostPlatform.isLinux` and `isDarwin` are used for conditional config.
 - `pkgsUnstable` is passed as a specialArg from flake.nix for access to unstable packages.
 - `lib.mkForce` is used in macOS home.nix to override `homeDirectory` from the shared config.
-- `lib.hm.dag.entryAfter` schedules macOS activation scripts in the right phase.
+- `lib.hm.dag.entryAfter` schedules activation scripts in the right phase.
+- `hosts/tphome/home.nix` has a `setupDnsmasq` activation script that installs dnsmasq via Nix, writes config at `/etc/dnsmasq.d/tphome.conf`, creates a systemd service, and enables it — used for Tailscale split DNS so `tp.home` resolves to the Pi's Tailscale IP from outside.
 - wallpaper-grub.png was moved from `modules/nixos/` to `assets/grub/`.
 - The original `modules/home/dotfiles/` was flattened into `assets/`.
 - Nix modules were organized into subdirectories: `editors/`, `browsers/`.
