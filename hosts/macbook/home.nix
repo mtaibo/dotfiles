@@ -52,6 +52,11 @@
       "tphome" = {
         hostname = "tp.home";
         user = "migueltaibo";
+        identityFile = "~/.ssh/tphome";
+      };
+      "fic" = {
+        hostname = "10.11.28.50";
+        user = "miguel.taibo.perez@udc.es";
       };
     };
   };
