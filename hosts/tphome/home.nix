@@ -61,13 +61,38 @@
   '';
 
   home.activation.setupDnsmasq = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    SUDO=/usr/bin/sudo
-    $DRY_RUN_CMD $SUDO -n mkdir -p /etc/dnsmasq.d /run/dnsmasq
-    $DRY_RUN_CMD $SUDO -n ln -sf ${pkgs.dnsmasq}/bin/dnsmasq /usr/local/bin/dnsmasq
-    $DRY_RUN_CMD $SUDO -n bash -c 'printf "interface=tailscale0\nbind-interfaces\ndomain-needed\nbogus-priv\nno-hosts\nno-resolv\nserver=1.1.1.1\nserver=8.8.8.8\naddress=/tp.home/100.117.91.125\n" > /etc/dnsmasq.d/tphome.conf'
-    $DRY_RUN_CMD $SUDO -n bash -c 'printf "[Unit]\nDescription=dnsmasq DNS forwarder\nAfter=tailscaled.service network-online.target\nWants=network-online.target\n\n[Service]\nType=simple\nExecStartPre=/usr/local/bin/dnsmasq --test -C /etc/dnsmasq.d/tphome.conf\nExecStart=/usr/local/bin/dnsmasq -k -C /etc/dnsmasq.d/tphome.conf\nExecReload=/bin/kill -HUP $MAINPID\nRestart=on-failure\nRestartSec=5\n\n[Install]\nWantedBy=multi-user.target\n" > /etc/systemd/system/dnsmasq.service'
-    $DRY_RUN_CMD $SUDO -n systemctl daemon-reload
-    $DRY_RUN_CMD $SUDO -n systemctl enable dnsmasq
-    $DRY_RUN_CMD $SUDO -n systemctl restart dnsmasq
+    $DRY_RUN_CMD /usr/bin/sudo bash -c '
+    mkdir -p /etc/dnsmasq.d /run/dnsmasq
+    ln -sf ${pkgs.dnsmasq}/bin/dnsmasq /usr/local/bin/dnsmasq
+    printf "%s\n" \
+      "interface=tailscale0" \
+      "bind-interfaces" \
+      "domain-needed" \
+      "bogus-priv" \
+      "no-hosts" \
+      "no-resolv" \
+      "server=1.1.1.1" \
+      "server=8.8.8.8" \
+      "address=/tp.home/100.117.91.125" > /etc/dnsmasq.d/tphome.conf
+    printf "%s\n" \
+      "[Unit]" \
+      "Description=dnsmasq DNS forwarder" \
+      "After=tailscaled.service network-online.target" \
+      "Wants=network-online.target" \
+      "" \
+      "[Service]" \
+      "Type=simple" \
+      "ExecStartPre=/usr/local/bin/dnsmasq --test -C /etc/dnsmasq.d/tphome.conf" \
+      "ExecStart=/usr/local/bin/dnsmasq -k -C /etc/dnsmasq.d/tphome.conf" \
+      "ExecReload=/bin/kill -HUP \$MAINPID" \
+      "Restart=on-failure" \
+      "RestartSec=5" \
+      "" \
+      "[Install]" \
+      "WantedBy=multi-user.target" > /etc/systemd/system/dnsmasq.service
+    systemctl daemon-reload
+    systemctl enable dnsmasq
+    systemctl restart dnsmasq
+    '
   '';
 }
