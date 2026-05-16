@@ -61,12 +61,13 @@
   '';
 
   home.activation.setupDnsmasq = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    $DRY_RUN_CMD sudo -n mkdir -p /etc/dnsmasq.d /run/dnsmasq
-    $DRY_RUN_CMD sudo -n ln -sf ${pkgs.dnsmasq}/bin/dnsmasq /usr/local/bin/dnsmasq
-    $DRY_RUN_CMD sudo -n bash -c 'printf "interface=tailscale0\nbind-interfaces\ndomain-needed\nbogus-priv\nno-hosts\nno-resolv\nserver=1.1.1.1\nserver=8.8.8.8\naddress=/tp.home/100.117.91.125\n" > /etc/dnsmasq.d/tphome.conf'
-    $DRY_RUN_CMD sudo -n bash -c 'printf "[Unit]\nDescription=dnsmasq DNS forwarder\nAfter=tailscaled.service network-online.target\nWants=network-online.target\n\n[Service]\nType=simple\nExecStartPre=/usr/local/bin/dnsmasq --test -C /etc/dnsmasq.d/tphome.conf\nExecStart=/usr/local/bin/dnsmasq -k -C /etc/dnsmasq.d/tphome.conf\nExecReload=/bin/kill -HUP $MAINPID\nRestart=on-failure\nRestartSec=5\n\n[Install]\nWantedBy=multi-user.target\n" > /etc/systemd/system/dnsmasq.service'
-    $DRY_RUN_CMD sudo -n systemctl daemon-reload
-    $DRY_RUN_CMD sudo -n systemctl enable dnsmasq
-    $DRY_RUN_CMD sudo -n systemctl restart dnsmasq
+    SUDO=/usr/bin/sudo
+    $DRY_RUN_CMD $SUDO -n mkdir -p /etc/dnsmasq.d /run/dnsmasq
+    $DRY_RUN_CMD $SUDO -n ln -sf ${pkgs.dnsmasq}/bin/dnsmasq /usr/local/bin/dnsmasq
+    $DRY_RUN_CMD $SUDO -n bash -c 'printf "interface=tailscale0\nbind-interfaces\ndomain-needed\nbogus-priv\nno-hosts\nno-resolv\nserver=1.1.1.1\nserver=8.8.8.8\naddress=/tp.home/100.117.91.125\n" > /etc/dnsmasq.d/tphome.conf'
+    $DRY_RUN_CMD $SUDO -n bash -c 'printf "[Unit]\nDescription=dnsmasq DNS forwarder\nAfter=tailscaled.service network-online.target\nWants=network-online.target\n\n[Service]\nType=simple\nExecStartPre=/usr/local/bin/dnsmasq --test -C /etc/dnsmasq.d/tphome.conf\nExecStart=/usr/local/bin/dnsmasq -k -C /etc/dnsmasq.d/tphome.conf\nExecReload=/bin/kill -HUP $MAINPID\nRestart=on-failure\nRestartSec=5\n\n[Install]\nWantedBy=multi-user.target\n" > /etc/systemd/system/dnsmasq.service'
+    $DRY_RUN_CMD $SUDO -n systemctl daemon-reload
+    $DRY_RUN_CMD $SUDO -n systemctl enable dnsmasq
+    $DRY_RUN_CMD $SUDO -n systemctl restart dnsmasq
   '';
 }
