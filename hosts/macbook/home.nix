@@ -45,4 +45,14 @@
     $DRY_RUN_CMD sips -s format jpeg "$WALLPAPER_SRC" --out "$WALLPAPER_DIR/cyberpunk-wallpaper.jpg" 2>/dev/null || true
     $DRY_RUN_CMD osascript -e "tell application \"System Events\" to set picture of every desktop to POSIX file \"$WALLPAPER_DIR/cyberpunk-wallpaper.jpg\"" 2>/dev/null || true
   '';
+
+  programs.ssh = {
+    enable = true;
+    matchBlocks = {
+      "tphome" = {
+        hostname = "tp.home";
+        user = "migueltaibo";
+      };
+    };
+  };
 }
