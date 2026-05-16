@@ -23,7 +23,7 @@
     KITTY_DEST="/Users/migueltaibo/Applications/Kitty.app"
     if [ -d "$KITTY_SRC" ]; then
       $DRY_RUN_CMD rm -rf "$KITTY_DEST"
-      $DRY_RUN_CMD ditto "$KITTY_SRC" "$KITTY_DEST"
+      $DRY_RUN_CMD /usr/bin/ditto "$KITTY_SRC" "$KITTY_DEST"
     fi
   '';
   home.activation.setKittyIcon = lib.hm.dag.entryAfter [ "installKittyApp" ] ''
