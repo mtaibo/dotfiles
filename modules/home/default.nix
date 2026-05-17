@@ -34,6 +34,7 @@
   home.file.".config/opencode/opencode.json".source = ../../assets/opencode/opencode.json;
   home.file.".config/starship.toml".source = ../../assets/starship/starship.toml;
   home.file.".config/zsh/.zshrc".source = ../../assets/zsh/.zshrc;
+  home.file.".config/fastfetch/config.jsonc".source = ../../assets/fastfetch/config.jsonc;
   home.file.".config/hypr" = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
     source = ../../assets/hypr;
   };
