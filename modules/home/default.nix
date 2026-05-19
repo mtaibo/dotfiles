@@ -31,7 +31,12 @@
   home.file.".config/kitty".source = if pkgs.stdenv.hostPlatform.isLinux
     then ../../assets/kitty-linux
     else ../../assets/kitty;
-  home.file.".config/opencode/opencode.json".source = ../../assets/opencode/opencode.json;
+  home.file.".config/opencode/opencode.json" = {
+    source = if pkgs.stdenv.hostPlatform.isLinux
+      then ../../assets/opencode/opencode-linux.json
+      else ../../assets/opencode/opencode.json;
+    force = true;
+  };
   home.file.".config/starship.toml".source = ../../assets/starship/starship.toml;
   home.file.".config/zsh/.zshrc".source = ../../assets/zsh/.zshrc;
   home.file.".config/fastfetch/config.jsonc".source = ../../assets/fastfetch/config.jsonc;
