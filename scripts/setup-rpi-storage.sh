@@ -37,7 +37,7 @@ detect_disk() {
   log "Auto-detecting USB disk..."
   ROOT_DEV=$(findmnt -n -o SOURCE / | sed 's/[0-9]*$//')
 
-  CANDIDATES=$(lsblk -d -n -o NAME,SIZE,TYPE | awk '$3 == "disk" && $1 != "'"$(basename "$ROOT_DEV")"'" {print "/dev/" $1, $2}')
+  CANDIDATES=$(lsblk -d -n -o NAME,SIZE,TYPE | sed 's/[├└│─]//g' | awk '$3 == "disk" && $1 != "'"$(basename "$ROOT_DEV")"'" && $1 !~ /^zram/ {print "/dev/" $1, $2}')
 
   if [ -z "$CANDIDATES" ]; then
     err "No USB disk detected. Specify it manually:"
@@ -65,7 +65,7 @@ detect_disk() {
 # Detect partition and filesystem
 # ------------------------------------------------------------------
 detect_partition() {
-  PARTITION=$(lsblk -n -o NAME,TYPE "$DEVICE" | awk '$2 == "part" {print "/dev/" $1; exit}')
+  PARTITION=$(lsblk -n -o NAME,TYPE "$DEVICE" | sed 's/[├└│─]//g' | awk '$2 == "part" {print "/dev/" $1; exit}')
 
   if [ -z "$PARTITION" ]; then
     warn "No partition found on $DEVICE, using whole disk"
