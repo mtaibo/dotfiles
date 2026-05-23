@@ -65,11 +65,13 @@ detect_disk() {
 # Detect partition and filesystem
 # ------------------------------------------------------------------
 detect_partition() {
-  PARTITION=$(lsblk -n -o NAME,TYPE "$DEVICE" | sed 's/[├└│─]//g' | awk '$2 == "part" {print "/dev/" $1; exit}')
+  PARTITIONS=$(lsblk -n -o NAME,SIZE,TYPE "$DEVICE" | sed 's/[├└│─]//g' | awk '$2 == "part" {print "/dev/" $1, $2}')
 
-  if [ -z "$PARTITION" ]; then
+  if [ -z "$PARTITIONS" ]; then
     warn "No partition found on $DEVICE, using whole disk"
     PARTITION="$DEVICE"
+  else
+    PARTITION=$(echo "$PARTITIONS" | sort -k2 -h | tail -1 | awk '{print $1}')
   fi
 
   if ! blkid "$PARTITION" &>/dev/null; then
@@ -96,7 +98,25 @@ mount_disk() {
   fi
 
   log "Mounting $PARTITION -> $MOUNT_POINT"
-  mount "$PARTITION" "$MOUNT_POINT"
+
+  MOUNT_OPTS=""
+  case "$FS_TYPE" in
+    vfat|fat32)
+      MOUNT_OPTS="uid=1000,gid=1000,dmask=022,fmask=133"
+      ;;
+    exfat)
+      MOUNT_OPTS="uid=1000,gid=1000,dmask=022,fmask=133"
+      ;;
+    ntfs|ntfs3)
+      MOUNT_OPTS="uid=1000,gid=1000,dmask=022,fmask=133"
+      ;;
+  esac
+
+  if [ -n "$MOUNT_OPTS" ]; then
+    mount -o "$MOUNT_OPTS" "$PARTITION" "$MOUNT_POINT"
+  else
+    mount "$PARTITION" "$MOUNT_POINT"
+  fi
   ok "Disk mounted at $MOUNT_POINT"
 }
 
@@ -114,11 +134,11 @@ setup_fstab() {
   log "Adding fstab entry (UUID=$UUID)"
 
   MOUNT_OPTS="defaults"
-  if [ "$FS_TYPE" = "ntfs" ] || [ "$FS_TYPE" = "ntfs3" ]; then
-    MOUNT_OPTS="defaults,uid=1000,gid=1000,dmask=022,fmask=133"
-  elif [ "$FS_TYPE" = "exfat" ]; then
-    MOUNT_OPTS="defaults,uid=1000,gid=1000,dmask=022,fmask=133"
-  fi
+  case "$FS_TYPE" in
+    vfat|fat32|exfat|ntfs|ntfs3)
+      MOUNT_OPTS="defaults,uid=1000,gid=1000,dmask=022,fmask=133"
+      ;;
+  esac
 
   echo "UUID=$UUID  $MOUNT_POINT  $FS_TYPE  $MOUNT_OPTS  0  2" >> /etc/fstab
   ok "fstab entry added"
@@ -153,9 +173,16 @@ setup_user() {
 
   log "Setting directory permissions"
   chmod 755 "$MOUNT_POINT"
-  chmod 700 "$RICARDO_DIR"
-  chown "${USERNAME}:${USERNAME}" "$RICARDO_DIR"
-  ok "Permissions set — only $USERNAME can access $RICARDO_DIR"
+  case "$FS_TYPE" in
+    vfat|fat32|exfat|ntfs|ntfs3)
+      warn "Filesystem $FS_TYPE doesn't support Unix permissions — ownership set via mount options"
+      ;;
+    *)
+      chmod 700 "$RICARDO_DIR"
+      chown "${USERNAME}:${USERNAME}" "$RICARDO_DIR"
+      ok "Permissions set — only $USERNAME can access $RICARDO_DIR"
+      ;;
+  esac
 }
 
 # ------------------------------------------------------------------
