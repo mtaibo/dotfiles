@@ -65,7 +65,7 @@ detect_disk() {
 # Detect partition and filesystem
 # ------------------------------------------------------------------
 detect_partition() {
-  PARTITIONS=$(lsblk -l -n -o NAME,SIZE,TYPE "$DEVICE" | awk '$2 == "part" {print "/dev/" $1, $2}')
+  PARTITIONS=$(lsblk -l -n -o NAME,SIZE,TYPE "$DEVICE" | awk '$3 == "part" {print "/dev/" $1, $2}')
 
   if [ -z "$PARTITIONS" ]; then
     warn "No partition found on $DEVICE, falling back to /dev/disk/by-id"
