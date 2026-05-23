@@ -37,7 +37,7 @@ detect_disk() {
   log "Auto-detecting USB disk..."
   ROOT_DEV=$(findmnt -n -o SOURCE / | sed 's/[0-9]*$//')
 
-  CANDIDATES=$(lsblk -d -n -o NAME,SIZE,TYPE | sed 's/[├└│─]//g' | awk '$3 == "disk" && $1 != "'"$(basename "$ROOT_DEV")"'" && $1 !~ /^zram/ {print "/dev/" $1, $2}')
+  CANDIDATES=$(lsblk -d -n -o NAME,SIZE,TYPE | awk '$3 == "disk" && $1 != "'"$(basename "$ROOT_DEV")"'" && $1 !~ /^zram/ {print "/dev/" $1, $2}')
 
   if [ -z "$CANDIDATES" ]; then
     err "No USB disk detected. Specify it manually:"
@@ -65,11 +65,16 @@ detect_disk() {
 # Detect partition and filesystem
 # ------------------------------------------------------------------
 detect_partition() {
-  PARTITIONS=$(lsblk -n -o NAME,SIZE,TYPE "$DEVICE" | sed 's/[├└│─]//g' | awk '$2 == "part" {print "/dev/" $1, $2}')
+  PARTITIONS=$(lsblk -l -n -o NAME,SIZE,TYPE "$DEVICE" | awk '$2 == "part" {print "/dev/" $1, $2}')
 
   if [ -z "$PARTITIONS" ]; then
-    warn "No partition found on $DEVICE, using whole disk"
-    PARTITION="$DEVICE"
+    warn "No partition found on $DEVICE, falling back to /dev/disk/by-id"
+    PARTITION=$(ls -1 /dev/disk/by-id/ 2>/dev/null | grep -v part | grep "$(basename "$DEVICE")" | head -1)
+    if [ -n "$PARTITION" ]; then
+      PARTITION="/dev/disk/by-id/$PARTITION"
+    else
+      PARTITION="$DEVICE"
+    fi
   else
     PARTITION=$(echo "$PARTITIONS" | sort -k2 -h | tail -1 | awk '{print $1}')
   fi
@@ -77,7 +82,8 @@ detect_partition() {
   if ! blkid "$PARTITION" &>/dev/null; then
     err "Cannot read filesystem on $PARTITION"
     echo "  Make sure the disk has a partition with a filesystem."
-    echo "  To format as ext4: sudo mkfs.ext4 ${PARTITION}1"
+    echo "  Available partitions:"
+    lsblk -l -n -o NAME,SIZE,TYPE,FSTYPE "$DEVICE" 2>/dev/null || true
     exit 1
   fi
 
@@ -126,9 +132,11 @@ mount_disk() {
 setup_fstab() {
   UUID=$(blkid -s UUID -o value "$PARTITION")
 
-  if grep -q "$UUID" /etc/fstab 2>/dev/null; then
-    ok "fstab entry already exists for UUID=$UUID"
-    return
+  # Remove any existing entries for this mount point or UUID
+  if grep -q "$MOUNT_POINT\|$UUID" /etc/fstab 2>/dev/null; then
+    log "Cleaning stale fstab entries"
+    sed -i "\|$MOUNT_POINT|d" /etc/fstab
+    sed -i "\|$UUID|d" /etc/fstab
   fi
 
   log "Adding fstab entry (UUID=$UUID)"
@@ -196,6 +204,12 @@ echo ""
 
 detect_disk "${1:-}"
 detect_partition
+
+# Clean stale fstab entries for this mount point before adding new one
+if mountpoint -q "$MOUNT_POINT" 2>/dev/null; then
+  umount "$MOUNT_POINT" 2>/dev/null || true
+fi
+
 mount_disk
 setup_fstab
 setup_user
