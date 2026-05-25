@@ -15,7 +15,7 @@
       icloud = "cd ~/Library/Mobile\\ Documents/com\\~apple\\~CloudDocs/Universidad";
       mount-storage = if pkgs.stdenv.hostPlatform.isDarwin
         then "mkdir -p ~/Storage && mount_smbfs //tp.home/storage ~/Storage"
-        else "mkdir -p ~/storage && sudo mount.cifs //tp.home/storage ~/storage -o username=migueltaibo";
+        else "mkdir -p ~/storage && sudo mount.cifs //tp.home/storage ~/storage -o username=migueltaibo,uid=$(id -u),gid=$(id -g)";
     };
 
     initContent = ''
