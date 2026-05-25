@@ -63,6 +63,7 @@
     gh
     docker-client
     docker-compose
+    cifs-utils
   ];
 
   services.printing.enable = true;
