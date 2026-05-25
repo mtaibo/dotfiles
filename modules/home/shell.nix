@@ -14,7 +14,7 @@
       close = "curl -s -X POST http://192.168.1.160/api/commands/B0301/down > /dev/null";
       icloud = "cd ~/Library/Mobile\\ Documents/com\\~apple\\~CloudDocs/Universidad";
       mount-storage = if pkgs.stdenv.hostPlatform.isDarwin
-        then "open smb://tp.home/storage && sleep 2 && ln -sfn /Volumes/storage ~/Storage"
+        then "mkdir -p ~/Storage && mount_smbfs //tp.home/storage ~/Storage"
         else "mkdir -p ~/Storage && gio mount smb://migueltaibo@tp.home/storage";
     };
 
