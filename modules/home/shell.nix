@@ -16,7 +16,9 @@
       mount-storage = if pkgs.stdenv.hostPlatform.isDarwin
         then "mkdir -p ~/Storage && mount_smbfs //tp.home/storage ~/Storage"
         else "mkdir -p ~/storage && sudo mount.cifs //tp.home/storage ~/storage -o username=migueltaibo,uid=$(id -u),gid=$(id -g)";
-      open = "nohup xdg-open";
+      open = if pkgs.stdenv.hostPlatform.isDarwin
+        then "open"
+        else "setsid xdg-open";
     };
 
     initContent = ''
