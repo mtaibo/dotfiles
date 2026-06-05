@@ -12,7 +12,7 @@
     enable = true;
     settings = {
       user.name = "Miguel Taibo";
-      user.email = "miguel.taibo@icloud.com";
+      user.email = "dev@migueltaibo.com";
       init.defaultBranch = "main";
     };
   };
