@@ -12,7 +12,7 @@
         then "sudo darwin-rebuild switch --flake ~/Dotfiles#macbook"
         else "sudo nixos-rebuild switch --flake ~/dotfiles#desktop";
       close = "curl -s -X POST http://192.168.1.160/api/commands/B0301/down > /dev/null";
-      icloud = "cd ~/Library/Mobile\\ Documents/com\\~apple\\~CloudDocs/Universidad";
+      icloud = "cd ~/Library/Mobile\\ Documents/com\\~apple\\~CloudDocs";
       mount-storage = if pkgs.stdenv.hostPlatform.isDarwin
         then "mkdir -p ~/Storage && mount_smbfs //tp.home/storage ~/Storage"
         else "mkdir -p ~/storage && sudo mount.cifs //tp.home/storage ~/storage -o username=migueltaibo,uid=$(id -u),gid=$(id -g)";
