@@ -1,19 +1,19 @@
 :root {
-  --tn-bg: #1a1b26;
-  --tn-bg-alt: #16161e;
-  --tn-bg-surface: #24283b;
-  --tn-bg-hover: #2a2e3f;
-  --tn-fg: #a9b1d6;
-  --tn-fg-dim: #565f89;
-  --tn-fg-bright: #c0caf5;
-  --tn-blue: #7aa2f7;
-  --tn-cyan: #7dcfff;
-  --tn-green: #9ece6a;
-  --tn-purple: #bb9af7;
-  --tn-red: #f7768e;
-  --tn-yellow: #e0af68;
-  --tn-orange: #ff9e64;
-  --tn-teal: #73daca;
+  --tn-bg: #1e1e1e;
+  --tn-bg-alt: #181818;
+  --tn-bg-surface: #2a2a2a;
+  --tn-bg-hover: #333333;
+  --tn-fg: #d4d4d4;
+  --tn-fg-dim: #888888;
+  --tn-fg-bright: #ffffff;
+  --tn-blue: #5882c4;
+  --tn-cyan: #55afaf;
+  --tn-green: #6ea06e;
+  --tn-purple: #a872b2;
+  --tn-red: #c95555;
+  --tn-yellow: #c9a855;
+  --tn-orange: #c98755;
+  --tn-teal: #55aaaa;
 }
 
 #tabbrowser-tabpanels {
@@ -36,11 +36,11 @@
 
 .tabbrowser-tab .tab-background[selected="true"] {
   background-color: var(--tn-bg) !important;
-  border-bottom: 1px solid #1a2b4d !important;
+  border-bottom: 1px solid #333333 !important;
 }
 
 .tabbrowser-tab:hover .tab-background:not([selected="true"]) {
-  background-color: rgba(36, 40, 59, 0.5) !important;
+  background-color: rgba(42, 42, 42, 0.5) !important;
 }
 
 .tabbrowser-tab {
@@ -52,7 +52,7 @@
 }
 
 .tabbrowser-tab[selected="true"] .tab-label {
-  color: #c0caf5 !important;
+  color: var(--tn-fg-bright) !important;
 }
 
 .tabbrowser-tab:hover:not([selected="true"]) .tab-label {
@@ -217,15 +217,15 @@ menupopup > menu:hover {
   --toolbar-color: var(--tn-fg) !important;
   --lwt-tabs-bottom-color: transparent !important;
   --lwt-text-color: var(--tn-fg) !important;
-  --lwt-tab-text: #565f89 !important;
-  --lwt-tab-text-selected: #c0caf5 !important;
+  --lwt-tab-text: var(--tn-fg-dim) !important;
+  --lwt-tab-text-selected: var(--tn-fg-bright) !important;
 }
 
 :root:-moz-lwtheme-brighttext {
   --toolbar-bgcolor: var(--tn-bg-alt) !important;
   --toolbar-color: var(--tn-fg) !important;
-  --lwt-tab-text: #565f89 !important;
-  --lwt-tab-text-selected: #c0caf5 !important;
+  --lwt-tab-text: var(--tn-fg-dim) !important;
+  --lwt-tab-text-selected: var(--tn-fg-bright) !important;
 }
 
 .titlebar-color {
@@ -238,7 +238,7 @@ menupopup > menu:hover {
 }
 
 .tabbrowser-tab[selected] .tab-label {
-  color: #c0caf5 !important;
+  color: var(--tn-fg-bright) !important;
 }
 
 .tabbrowser-tab:hover:not([selected]) .tab-label {
@@ -246,16 +246,16 @@ menupopup > menu:hover {
 }
 
 .tab-line {
-  background-color: #1a2b4d !important;
+  background-color: #333333 !important;
   height: 2px !important;
 }
 
 #tabbrowser-tabs {
-  --tab-loading-fill: #1a2b4d !important;
+  --tab-loading-fill: #333333 !important;
 }
 
 #tabbrowser-tabs .tabbrowser-tab .tab-loading-burst:not(.complete) {
-  background-color: #1a2b4d !important;
+  background-color: #333333 !important;
 }
 
 #urlbar:not([focused]) #identity-box.verifiedIdentity > #identity-icon {

@@ -24,7 +24,7 @@
 
       require("lazy").setup({
         spec = {
-          { "folke/tokyonight.nvim", name = "tokyonight", lazy = false, priority = 1000 },
+          { "EdenEast/nightfox.nvim", lazy = false, priority = 1000 },
           { "nvim-lua/plenary.nvim" },
           { "nvim-tree/nvim-web-devicons" },
           {
@@ -47,7 +47,7 @@
           lazy = false,
           version = false,
         },
-        install = { colorscheme = { "tokyonight" } },
+        install = { colorscheme = { "carbonfox" } },
         checker = { enabled = true, notify = false },
         performance = {
           rtp = {
@@ -72,15 +72,17 @@
       vim.cmd([[highlight! NeoTreeNormalNC ctermbg=NONE guibg=NONE]])
       vim.cmd([[highlight! NeoTreeEndOfBuffer ctermbg=NONE guibg=NONE]])
 
-      -- TokyoNight
-      require("tokyonight").setup({
-        transparent = true,
-        styles = {
-          sidebars = "transparent",
-          floats = "transparent",
+      -- Carbonfox (monochrome)
+      require("nightfox").setup({
+        options = {
+          transparent = true,
+          styles = {
+            sidebars = "transparent",
+            floats = "transparent",
+          },
         },
       })
-      vim.cmd([[colorscheme tokyonight]])
+      vim.cmd([[colorscheme carbonfox]])
 
       -- General options
       vim.opt.number = true
@@ -168,7 +170,7 @@
       -- Lualine
       require("lualine").setup({
         options = {
-          theme = "tokyonight",
+          theme = "nightfox",
           component_separators = { left = "", right = "" },
           section_separators = { left = "", right = "" },
           disabled_filetypes = { "neo-tree", "TelescopePrompt" },

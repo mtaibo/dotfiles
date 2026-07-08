@@ -1,18 +1,18 @@
 :root {
-  --tn-bg: #1a1b26;
-  --tn-bg-alt: #16161e;
-  --tn-bg-surface: #24283b;
-  --tn-bg-hover: #2a2e3f;
-  --tn-fg: #a9b1d6;
-  --tn-fg-dim: #565f89;
-  --tn-fg-bright: #c0caf5;
-  --tn-blue: #7aa2f7;
-  --tn-cyan: #7dcfff;
-  --tn-green: #9ece6a;
-  --tn-purple: #bb9af7;
-  --tn-red: #f7768e;
-  --tn-yellow: #e0af68;
-  --tn-teal: #73daca;
+  --tn-bg: #1e1e1e;
+  --tn-bg-alt: #181818;
+  --tn-bg-surface: #2a2a2a;
+  --tn-bg-hover: #333333;
+  --tn-fg: #d4d4d4;
+  --tn-fg-dim: #888888;
+  --tn-fg-bright: #ffffff;
+  --tn-blue: #5882c4;
+  --tn-cyan: #55afaf;
+  --tn-green: #6ea06e;
+  --tn-purple: #a872b2;
+  --tn-red: #c95555;
+  --tn-yellow: #c9a855;
+  --tn-teal: #55aaaa;
 }
 
 @-moz-document url("about:newtab"), url("about:home"), url("about:blank") {
@@ -32,16 +32,16 @@
   }
 
   .search-handoff-button {
-    background-color: rgba(26, 27, 38, 0.75) !important;
+    background-color: rgba(30, 30, 30, 0.75) !important;
     backdrop-filter: blur(8px) !important;
     color: var(--tn-fg) !important;
-    border: 1px solid rgba(36, 40, 59, 0.6) !important;
+    border: 1px solid rgba(42, 42, 42, 0.6) !important;
     border-radius: 8px !important;
   }
 
   .search-handoff-button:hover {
     border-color: var(--tn-bg-hover) !important;
-    background-color: rgba(26, 27, 38, 0.9) !important;
+    background-color: rgba(30, 30, 30, 0.9) !important;
   }
 
   .fake-caret {

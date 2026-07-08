@@ -30,8 +30,8 @@ with lib;
           default_area = "menupanel";
           private_browsing = true;
         };
-        "{cebd391d-f568-473f-bb6e-698d08ec81ec}" = {
-          install_url = "https://addons.mozilla.org/firefox/downloads/latest/tokyo-night-dark-theme/latest.xpi";
+        "{73a6fe31-595d-460b-a920-fcc0f8843232}" = {
+          install_url = "https://addons.mozilla.org/firefox/downloads/latest/dark-theme/latest.xpi";
           installation_mode = "force_installed";
           default_area = "navbar";
         };
