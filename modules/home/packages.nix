@@ -5,6 +5,7 @@
     fastfetch
     pkgs.opencode
     pkgsUnstable.claude-code
+    nodejs_22
   ] ++ lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
     kitty
   ] ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [
