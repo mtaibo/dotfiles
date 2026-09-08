@@ -1,6 +1,8 @@
 { pkgs, ... }: {
   programs.starship.enable = true;
 
+  home.file.".hushlogin".text = "";
+
   programs.zsh = {
     enable = true;
     enableCompletion = true;
@@ -22,7 +24,7 @@
     };
 
     initContent = ''
-      # fastfetch --pipe false
+      fastfetch --pipe false
       source ~/.config/zsh/.zshrc
     '';
   };
