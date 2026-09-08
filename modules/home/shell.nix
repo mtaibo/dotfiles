@@ -22,7 +22,7 @@
     };
 
     initContent = ''
-      fastfetch --pipe false
+      # fastfetch --pipe false
       source ~/.config/zsh/.zshrc
     '';
   };
