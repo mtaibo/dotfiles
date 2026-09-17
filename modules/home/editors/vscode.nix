@@ -32,7 +32,7 @@
 
     profiles.default.userSettings = {
       "editor.fontSize" = 18;
-      "editor.fontFamily" = "Hack Nerd Font";
+      "editor.fontFamily" = "FiraCodeNFM-Reg";
       "editor.detectIndentation" = false;
 
       "workbench.colorTheme" = "One Dark Pro Night Flat";
