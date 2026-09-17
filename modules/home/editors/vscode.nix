@@ -35,7 +35,7 @@
       "editor.fontFamily" = "Hack Nerd Font";
       "editor.detectIndentation" = false;
 
-      "workbench.colorTheme" = "One Dark Pro";
+      "workbench.colorTheme" = "One Dark Pro Night Flat";
       "workbench.iconTheme" = "vscode-great-icons";
       "workbench.secondarySideBar.defaultVisibility" = "hidden";
       "workbench.settings.applyToAllProfiles" = [ "editor.fontFamily" ];
