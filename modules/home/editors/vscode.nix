@@ -7,7 +7,7 @@
       bradlc.vscode-tailwindcss
       donjayamanne.githistory
       emmanuelbeziat.vscode-great-icons
-      jdinhlife.gruvbox
+      zhuangtongfa.material-theme
       ms-azuretools.vscode-containers
       ms-python.python
       ms-python.debugpy
@@ -35,7 +35,7 @@
       "editor.fontFamily" = "Hack Nerd Font";
       "editor.detectIndentation" = false;
 
-      "workbench.colorTheme" = "Gruvbox Dark Soft";
+      "workbench.colorTheme" = "One Dark Pro";
       "workbench.iconTheme" = "vscode-great-icons";
       "workbench.secondarySideBar.defaultVisibility" = "hidden";
       "workbench.settings.applyToAllProfiles" = [ "editor.fontFamily" ];
