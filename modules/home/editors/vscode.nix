@@ -81,6 +81,11 @@
       };
       "liveServer.settings.donotShowInfoMsg" = true;
       "[toml]" = {};
+      "[ocaml]" = {
+        "editor.codeLens" = false;
+      };
+
+      "claudeCode.hideOnboarding" = true;
     };
   };
 }
