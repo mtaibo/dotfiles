@@ -86,6 +86,7 @@
       };
 
       "claudeCode.hideOnboarding" = true;
+      "claudeCode.preferredLocation" = "panel";
     };
   };
 }
