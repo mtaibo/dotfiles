@@ -24,7 +24,13 @@
       };
       tphome = home-manager.lib.homeManagerConfiguration {
         pkgs = nixpkgs.legacyPackages.aarch64-linux;
-        extraSpecialArgs = { inherit inputs; };
+        extraSpecialArgs = {
+          inherit inputs;
+          pkgsUnstable = import inputs.nixpkgs-unstable {
+            system = "aarch64-linux";
+            config.allowUnfree = true;
+          };
+        };
         modules = [ ./hosts/tphome/home.nix ];
       };
     };

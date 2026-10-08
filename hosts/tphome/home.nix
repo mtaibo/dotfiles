@@ -1,4 +1,4 @@
-{ pkgs, lib, ... }: {
+{ pkgs, lib, pkgsUnstable, ... }: {
   imports = [
     ../../modules/home/shell.nix
     ../../modules/home/editors/nvim.nix
@@ -26,6 +26,7 @@
     docker-compose
     pkgs.opencode
     pkgs.dnsmasq
+    pkgsUnstable.claude-code
   ];
 
   home.file.".hushlogin".text = "";
