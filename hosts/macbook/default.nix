@@ -22,6 +22,7 @@
     gh
     colima
     docker-client
+    xcodegen
   ];
 
 }
