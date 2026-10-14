@@ -54,4 +54,7 @@
     videos = "$HOME/downloads";
   };
   programs.home-manager.enable = true;
+  manual.html.enable = false;
+  manual.json.enable = false;
+  manual.manpages.enable = false;
 }
