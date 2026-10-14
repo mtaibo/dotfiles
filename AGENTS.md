@@ -33,7 +33,7 @@ flake.nix
 | `modules/home/packages.nix` | Always: kitty, eza, bat, fastfetch, opencode. Linux: bibata-cursors, grim, slurp |
 | `modules/home/shell.nix` | Starship prompt, Zsh (autosuggestions, syntax highlighting, update alias) |
 | `modules/home/editors/nvim.nix` | Neovim + lazy.nvim (tokyonight, neo-tree, lualine, bufferline, which-key, telescope, gitsigns, lspconfig) |
-| `modules/home/editors/vscode.nix` | VS Code extensions (Python, C++, Jupyter, Docker, Vim...) + settings (Gruvbox, Hack Nerd Font) |
+| `modules/home/editors/vscode.nix` | VS Code extensions (Python, C++, Jupyter, Docker, Vim...) + settings (One Dark Pro, Hack Nerd Font) |
 | `modules/home/browsers/firefox.nix` | Linux-only. Policies (telemetry off), uBlock + Tokyo Night theme, bookmarks, inline CSS from `assets/firefox/` |
 | `modules/nixos/boot.nix` | GRUB (EFI, vimix theme, quiet boot, splash image from `assets/grub/`) |
 | `modules/nixos/networking.nix` | Hostname nixos, NetworkManager |
