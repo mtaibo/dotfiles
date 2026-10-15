@@ -31,6 +31,12 @@
     ];
 
     profiles.default.userSettings = {
+      # Managed by Nix/home-manager; VS Code's own updater can't replace the
+      # Nix store binary, so disable it to stop the recurring update nags.
+      "update.mode" = "none";
+      "extensions.autoCheckUpdates" = false;
+      "extensions.autoUpdate" = false;
+
       "editor.fontSize" = 18;
       "editor.fontFamily" = "FiraCodeNFM-Reg";
       "editor.detectIndentation" = false;
