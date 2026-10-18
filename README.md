@@ -1,143 +1,137 @@
-# Dotfiles
+<div align="center">
 
-I'm a first-year computer engineering student and this repo contains all the configuration files I use to set up my machines exactly how I like them for programming, studying, and my personal projects.
+# ❄️ Dotfiles
 
-## How it started
+**One flake for every machine I use.**
 
-I wanted a single place to configure **all my devices** — my MacBook, my NixOS desktop, and my Raspberry Pi — so they all share the same terminal, the same editor setup, the same shortcuts, and the same look & feel. If a machine breaks or I get a new one, I can reproduce my whole environment with a single command.
+<br/>
 
-Everything here is:
-- **Reproducible** — one command and your machine is set up
-- **Portable** — share the same config across different machines
-- **Easy to edit** — all config files are in one place, plain text
-- **Understandable** — organized so even future-me can figure it out
+![Status](https://img.shields.io/badge/status-active-brightgreen)
+![Nix](https://img.shields.io/badge/nix-flakes-5277C3?logo=nixos&logoColor=white)
+![Machines](https://img.shields.io/badge/machines-macOS%20%7C%20NixOS%20%7C%20Raspberry%20Pi-lightgrey)
 
-## What's managed here
+</div>
 
-| What | Details |
+---
+
+These are the dotfiles behind my MacBook, my NixOS desktop and the Raspberry Pi that runs my home server. Everything is declared with Nix flakes and Home Manager, so the three machines share the same shell, the same editors and the same tools, and any of them can be rebuilt from scratch with a single command.
+
+## Why Nix
+
+I used to set up every machine by hand, and every one ended up slightly different. With Nix the whole environment is code:
+
+- **Reproducible** — a new or wiped machine is back to exactly how I like it with one command
+- **Shared** — one set of modules for the shell, editors and packages, reused on every machine
+- **Versioned** — `flake.lock` pins every dependency, and every change is a commit I can roll back
+- **One command** — `update` rebuilds whatever machine I'm on, whether it's macOS, NixOS or the Pi
+
+## The machines
+
+<table>
+<tr>
+<td width="33%" valign="top">
+
+### 💻 `macbook`
+My daily laptop. **nix-darwin** + Home Manager on Apple Silicon: Nerd Fonts, Kitty with a custom icon and a `Cmd+K` shortcut to open it fullscreen, Docker through Colima, and the tooling for my Swift work.
+
+**macOS · aarch64**
+
+</td>
+<td width="33%" valign="top">
+
+### 🖥️ `desktop`
+My PC. Full **NixOS** with Hyprland on Wayland, SDDM, a themed GRUB, NVIDIA drivers and PipeWire, plus the same Home Manager setup as the laptop.
+
+**NixOS · x86_64**
+
+</td>
+<td width="33%" valign="top">
+
+### 🍓 `tphome`
+The Raspberry Pi 5 that hosts [tphome](https://github.com/mtaibo/tphome) and my [personal cloud](https://github.com/mtaibo/tpcloud). Raspberry Pi OS with standalone Home Manager for the shell and Neovim, plus Docker, Tailscale, a local DNS and a Samba share.
+
+**Raspberry Pi OS · aarch64**
+
+</td>
+</tr>
+</table>
+
+## What's inside
+
+| Area | What I use |
 |---|---|
-| **Shell** | Zsh with Starship prompt, autosuggestions, syntax highlighting |
-| **Terminal** | Kitty with Tokyo Night theme and FiraCode Nerd Font |
-| **Editor** | Neovim (Lazy.nvim, Telescope, LSP, GitSigns) + VS Code |
-| **Browser** | Firefox with Tokyo Night CSS, uBlock Origin |
-| **AI tools** | OpenCode |
-| **System (Linux)** | Hyprland WM, SDDM, GRUB, NVIDIA, PipeWire audio |
-| **System (macOS)** | Custom Kitty icon, fullscreen shortcut (Cmd+K), wallpaper |
+| **Shell** | Zsh with autosuggestions and syntax highlighting, Starship prompt, fastfetch on start |
+| **Terminal** | Kitty with FiraCode Nerd Font |
+| **Editors** | Neovim (lazy.nvim, Telescope, Neo-tree, LSP, GitSigns) and VS Code (One Dark Pro, extensions declared in Nix) |
+| **CLI tools** | eza, bat, git, GitHub CLI |
+| **AI** | Claude Code and OpenCode |
+| **Languages** | Node.js, Java 21 + Maven, OCaml + opam |
+| **Desktop (Linux)** | Hyprland, SDDM, GRUB theme, NVIDIA, Firefox with a Tokyo Night theme and uBlock Origin |
+| **macOS extras** | Fonts, Kitty icon, Automator fullscreen shortcut, Colima + Docker, XcodeGen |
+| **Home server** | Docker, Tailscale, dnsmasq for `tp.home`, Samba storage, SSH keys pulled from GitHub |
 
-## Machines
-
-| Hostname | OS | Architecture | Role |
-|---|---|---|---|
-| `nixos` | NixOS 25.11 | x86_64 | Desktop PC (Intel + NVIDIA) |
-| `macbook` | macOS (nix-darwin) | aarch64 (Apple Silicon) | Daily laptop |
-| `tphome` | Raspberry Pi OS | aarch64 | Home server (RPi 5) |
-
-## How it's organized
+## How it's organised
 
 ```
 dotfiles/
-├── flake.nix              # Entry point — defines all machines
-├── flake.lock             # Pins all dependency versions
-├── hosts/                 # Per-machine config
-│   ├── desktop/           # NixOS desktop (GRUB, hardware, locale)
-│   ├── macbook/           # macOS laptop (fonts, services, wallpaper)
-│   └── tphome/            # RPi OS (Home Manager standalone)
-├── modules/               # Shared logic (Nix expressions)
-│   ├── home/              # Home Manager — user-level config
-│   │   ├── default.nix    # Hub: imports everything below
-│   │   ├── packages.nix   # CLI tools I always install
-│   │   ├── shell.nix      # Zsh + Starship
-│   │   ├── editors/       # Neovim + VS Code
-│   │   └── browsers/      # Firefox policies & bookmarks
-│   └── nixos/             # System-level config (Linux only)
-│       ├── boot.nix       # GRUB, quiet boot, splash image
-│       ├── networking.nix # Hostname, NetworkManager
-│       └── desktop/       # Hyprland + NVIDIA drivers
-└── assets/                # Raw config files & static assets
-    ├── kitty/             # Kitty terminal config
-    ├── hypr/              # Hyprland WM + wallpaper
-    ├── zsh/               # Zsh aliases (eza, bat shortcuts)
-    ├── starship/          # Starship prompt icons
-    ├── opencode/          # OpenCode AI config
-    ├── firefox/           # Tokyo Night Firefox CSS theme
-    ├── grub/              # GRUB boot splash image
-    └── macos/             # Kitty icon + Automator workflow
+├── flake.nix              # Entry point: defines every machine
+├── flake.lock             # Pinned versions of every input
+├── hosts/
+│   ├── macbook/           # nix-darwin system + Home Manager overrides
+│   ├── desktop/           # NixOS system and hardware config
+│   └── tphome/            # Standalone Home Manager for the Pi
+├── modules/
+│   ├── home/              # Shared user config: shell, packages, editors, browsers
+│   └── nixos/             # Linux system config: boot, networking, Hyprland, NVIDIA
+├── assets/                # Plain config files that Home Manager links into place
+│                          # (zsh, kitty, starship, hypr, firefox, fastfetch, opencode…)
+├── scripts/               # Pi helpers: SSH keys, Samba storage, Docker shortcuts
+└── install-rpi.sh         # One-shot bootstrap for a fresh Raspberry Pi
 ```
 
 ## How it works
 
-This repo uses **Nix flakes** + **Home Manager** to declare everything:
+```
+flake.nix
+├── darwinConfigurations.macbook  → hosts/macbook   ─┐
+├── nixosConfigurations.desktop   → hosts/desktop   ─┼─▶ modules/home  (shared)
+└── homeConfigurations.tphome     → hosts/tphome    ─┘   shell + nvim subset
+```
 
-1. **`flake.nix`** is the brain — it takes inputs (nixpkgs, home-manager, nix-darwin) and builds all machine configurations.
-2. **`hosts/desktop/`** (NixOS), **`hosts/macbook/`** (macOS), and **`hosts/tphome/`** (RPi OS standalone) define what makes each machine unique.
-3. **`modules/home/`** is the shared core — the NixOS and macOS machines import the full hub. The RPi imports a subset (shell, neovim) without desktop apps.
-4. **`assets/`** holds the plain config files (`.zshrc`, `kitty.conf`, CSS themes, etc.). Home Manager symlinks them into place at `~/.config/`.
+Each host defines what makes that machine unique, and pulls in the shared Home Manager modules. The Mac and the desktop import the whole `modules/home` hub; the Pi only takes the shell and Neovim, since it doesn't need any desktop apps. Plain config files live in `assets/` and Home Manager symlinks them into `~/.config`, so they can still be edited as normal files.
 
-For example, when I run `darwin-rebuild switch` on my MacBook, Nix:
-- Reads `flake.nix` → finds `darwinConfigurations.macbook`
-- Builds the system config from `hosts/macbook/default.nix`
-- Imports my shared home config from `modules/home/`
-- Symlinks all config files from `assets/` into `~/.config/`
-- Runs activation scripts (sets wallpaper, replaces Kitty icon, registers the `Cmd+K` shortcut)
+Running `update` on any machine calls the right rebuild:
 
-On my NixOS desktop it's the same but with `nixos-rebuild switch`, however, `update` command works on every machine as an alias for the proper command.
-
-## Tools I use daily
-
-| Tool | What for |
+| Machine | `update` runs |
 |---|---|
-| **Kitty** | Terminal emulator (fast, GPU-accelerated) |
-| **Zsh** | Shell with autosuggestions and syntax highlighting |
-| **Starship** | Prompt — shows git status, versions, etc. |
-| **Neovim** | Main editor with LSP, fuzzy finder, file tree |
-| **VS Code** | When I need a GUI editor |
-| **Firefox** | Browser with Tokyo Night theme |
-| **eza** | Modern `ls` replacement with icons + git status |
-| **bat** | `cat` with syntax highlighting |
-| **fastfetch** | System info on terminal start |
-| **OpenCode** | AI coding assistant in the terminal |
-| **Git / GitHub CLI** | Version control |
+| `macbook` | `sudo darwin-rebuild switch --flake ~/Dotfiles#macbook` |
+| `desktop` | `sudo nixos-rebuild switch --flake ~/dotfiles#desktop` |
+| `tphome` | `home-manager switch --flake ~/dotfiles#tphome` |
+
+On the Mac, the activation step also swaps Kitty's icon and registers the `Cmd+K` shortcut. On the Pi it installs Kitty's terminfo, pulls my SSH public keys from GitHub and sets up the local DNS for `tp.home` over Tailscale.
 
 ## How to use
 
-You'll need **Nix** with flakes enabled:
+You'll need [Nix](https://nixos.org/download) with flakes enabled. Then, depending on the machine:
 
 ```bash
-# On macOS (standalone home-manager)
-nix run home-manager/release-25.11 -- switch --flake ~/dotfiles
+git clone https://github.com/mtaibo/dotfiles ~/dotfiles
 
-# On macOS (nix-darwin)
+# macOS
 sudo darwin-rebuild switch --flake ~/dotfiles#macbook
 
-# On NixOS
-sudo nixos-rebuild switch --flake ~/dotfiles#nixos
+# NixOS
+sudo nixos-rebuild switch --flake ~/dotfiles#desktop
 ```
 
-### On Raspberry Pi (Raspberry Pi OS)
+### Raspberry Pi from scratch
 
-Fresh install — boot, plug in, and run:
+On a fresh Raspberry Pi OS install, one line sets everything up:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/mtaibo/dotfiles/main/install-rpi.sh | bash
 ```
 
-This script:
-1. Sets hostname to `tphome`
-2. Installs **Nix** via Determinate Systems
-3. Fetches this repo via curl tarball (git not installed yet)
-4. Installs **Docker** daemon and **Tailscale**
-5. Deploys **Home Manager** (zsh, starship, neovim, eza, bat, fastfetch, opencode)
-6. Re-clones the repo with **git** (for proper version control)
-7. Sets **zsh** as the default shell
+It sets the hostname, installs Nix, Docker and Tailscale, applies the `tphome` Home Manager config, clones this repo with git and makes zsh the default shell. After that, `scripts/setup-ssh-tphome.sh` (run from the laptop) creates an SSH key and uploads it to GitHub, so the Pi picks it up on its next `update`.
 
-### SSH access to the RPi
-
-After the RPi is set up, run this **on your local machine** (MacBook / desktop) to generate an SSH key and upload it to GitHub:
-
-```bash
-bash scripts/setup-ssh-tphome.sh
-```
-
-Then on the RPi run `update` to download the key from GitHub and enable passwordless SSH.
-
-> **Note:** This is **my** personal config — hardware paths, usernames, and programs are tailored to my machines. But feel free to fork it and adapt it to you.
+> This is my personal setup: usernames, hostnames and hardware are tailored to my machines. Feel free to fork it and adapt it to yours.
