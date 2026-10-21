@@ -1,16 +1,19 @@
-{ ... }: {
+{ pkgs, ... }: {
   boot.loader = {
     systemd-boot = {
       enable = true;
       configurationLimit = 2;
       extraInstallCommands = ''
-        default=$(awk '/^default/ { print $2 }' /boot/loader/loader.conf)
+        default=""
+        while read -r key val; do
+          [ "$key" = "default" ] && default=$val
+        done < /boot/loader/loader.conf
         for f in /boot/loader/entries/nixos-generation-*.conf; do
           [ -e "$f" ] || continue
-          if [ "$(basename "$f")" = "$default" ]; then
-            sed -i 's/^title .*/title NixOS/' "$f"
+          if [ "''${f##*/}" = "$default" ]; then
+            ${pkgs.gnused}/bin/sed -i 's/^title .*/title NixOS/' "$f"
           else
-            sed -i 's/^title .*/title NixOS-Backup/' "$f"
+            ${pkgs.gnused}/bin/sed -i 's/^title .*/title NixOS-Backup/' "$f"
           fi
         done
       '';
