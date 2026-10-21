@@ -1,10 +1,11 @@
-{ config, pkgs, ... }: {
+{ config, pkgs, inputs, ... }: {
   imports = [
     ./hardware-configuration.nix
     ../../modules/nixos/boot.nix
     ../../modules/nixos/networking.nix
     ../../modules/nixos/desktop/hyprland.nix
     ../../modules/nixos/desktop/nvidia.nix
+    inputs.lanzaboote.nixosModules.lanzaboote
   ];
 
   system.stateVersion = "25.11";
