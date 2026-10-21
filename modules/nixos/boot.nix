@@ -1,24 +1,16 @@
-{ lib, ... }: {
+{ ... }: {
   boot.loader = {
+    systemd-boot = {
+      enable = true;
+      configurationLimit = 10;
+    };
     efi = {
       canTouchEfiVariables = true;
       efiSysMountPoint = "/boot";
     };
-    grub = {
-      enable = true;
-      device = "nodev";
-      efiSupport = true;
-      useOSProber = true;
-      splashImage = lib.mkForce ../../assets/grub/wallpaper-grub.png;
-    };
   };
 
-  boot.loader.grub2-theme = {
-    enable = true;
-    theme = "vimix";
-    footer = true;
-    customResolution = "2560x1440";
-  };
+  time.hardwareClockInLocalTime = true;
 
   boot.consoleLogLevel = 0;
   boot.initrd.verbose = false;

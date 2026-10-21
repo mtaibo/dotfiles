@@ -11,11 +11,9 @@
       url = "github:LnL7/nix-darwin/nix-darwin-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    grub2-themes.url = "github:vinceliuice/grub2-themes";
-    grub2-themes.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = inputs@{ self, nixpkgs, home-manager, nix-darwin, grub2-themes, ... }: {
+  outputs = inputs@{ self, nixpkgs, home-manager, nix-darwin, ... }: {
     homeConfigurations = {
       migueltaibo = home-manager.lib.homeManagerConfiguration {
         pkgs = nixpkgs.legacyPackages.aarch64-darwin;
@@ -39,7 +37,6 @@
       specialArgs = { inherit inputs; };
       modules = [
         ./hosts/desktop/default.nix
-        grub2-themes.nixosModules.default
         home-manager.nixosModules.home-manager
         {
           home-manager.useGlobalPkgs = true;
