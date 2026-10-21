@@ -10,7 +10,10 @@
   boot.lanzaboote = {
     enable = true;
     pkiBundle = "/var/lib/sbctl";
+    configurationLimit = 2;
   };
+
+  system.nixos.label = "";
 
   environment.systemPackages = [ pkgs.sbctl ];
 
