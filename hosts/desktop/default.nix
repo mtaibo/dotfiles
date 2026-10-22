@@ -54,6 +54,13 @@
 
   virtualisation.docker.enable = true;
 
+  # NTFS "Storage" partition on the Windows dual-boot disk (sda1)
+  fileSystems."/mnt/shared" = {
+    device = "/dev/disk/by-uuid/342030672030326A";
+    fsType = "ntfs3";
+    options = [ "rw" "uid=1000" "gid=100" "nofail" ];
+  };
+
   fonts.packages = with pkgs; [
     nerd-fonts.fira-code
   ];
