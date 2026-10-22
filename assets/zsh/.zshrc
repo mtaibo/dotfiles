@@ -8,4 +8,6 @@ alias cat='bat'
 alias gl='git log --oneline --graph --all'
 
 # Add Xcode SDK man pages (e.g. system call manuals)
-export MANPATH="$(xcrun --show-sdk-path)/usr/share/man:$MANPATH"
+if command -v xcrun &>/dev/null; then
+  export MANPATH="$(xcrun --show-sdk-path)/usr/share/man:$MANPATH"
+fi

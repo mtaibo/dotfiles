@@ -26,7 +26,9 @@
     initContent = ''
       fastfetch --pipe false
       source ~/.config/zsh/.zshrc
-      eval $(opam env)
+      if command -v opam &>/dev/null && [ -f "$HOME/.opam/config" ]; then
+        eval $(opam env)
+      fi
     '';
   };
 }
