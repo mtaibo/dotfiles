@@ -3,6 +3,7 @@
     enable = true;
     profiles.default.extensions = with pkgs.vscode-extensions; [
       adpyke.codesnap
+      anthropic.claude-code
       bbenoist.nix
       bradlc.vscode-tailwindcss
       donjayamanne.githistory
