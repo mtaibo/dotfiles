@@ -15,6 +15,9 @@
     # would show up a second time at the bottom of the menu alongside the
     # static entry added below.
     settings.auto-entries = false;
+    # Boot Windows automatically when the menu times out, instead of the
+    # latest NixOS generation (lanzaboote's own default is "nixos-*").
+    settings.default = "windows";
   };
 
   # Lanzaboote has no equivalent of systemd-boot's `extraEntries`, so add a
