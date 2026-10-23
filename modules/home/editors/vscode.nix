@@ -1,4 +1,83 @@
-{ pkgs, ... }: {
+{ pkgs, lib, ... }:
+let
+  # VS Code rewrites its own User/settings.json at runtime (migrations, UI
+  # changes, Settings Sync). If home-manager manages it as `userSettings`, it
+  # becomes a read-only symlink into the Nix store, and every one of those
+  # writes fails with EACCES - which in turn can leave the config service in
+  # a broken state where the theme/icon theme/extensions don't load. Instead
+  # we render the same JSON below and deploy it as a plain, writable file via
+  # an activation script, so it still comes from this file but VS Code can
+  # write to it between rebuilds.
+  userSettings = {
+    # Managed by Nix/home-manager; VS Code's own updater can't replace the
+    # Nix store binary, so disable it to stop the recurring update nags.
+    "update.mode" = "none";
+    "extensions.autoCheckUpdates" = false;
+    "extensions.autoUpdate" = false;
+
+    "editor.fontSize" = 18;
+    "editor.fontFamily" = "FiraCodeNFM-Reg";
+    "editor.detectIndentation" = false;
+
+    "workbench.colorTheme" = "One Dark Pro Night Flat";
+    "workbench.iconTheme" = "vscode-great-icons";
+    "workbench.secondarySideBar.defaultVisibility" = "hidden";
+    "workbench.settings.applyToAllProfiles" = [ "editor.fontFamily" ];
+    "workbench.editor.empty.hint" = "hidden";
+
+    "terminal.integrated.fontFamily" = "Hack Nerd Font Mono";
+    "terminal.integrated.fontSize" = 12;
+
+    "explorer.confirmDelete" = false;
+    "explorer.confirmDragAndDrop" = false;
+
+    "git.openRepositoryInParentFolders" = "always";
+
+    "codesnap.backgroundColor" = "0";
+    "codesnap.boxShadow" = "0";
+
+    "github.copilot.enable" = {
+      "*" = false;
+      "plaintext" = false;
+      "markdown" = false;
+      "scminput" = false;
+      "c" = false;
+    };
+
+    "python.defaultInterpreterPath" = "/Users/migueltaibo/workspace/test/venv";
+
+    "jupyter.askForKernelRestart" = false;
+
+    "C_Cpp.clang_format_fallbackStyle" = "{ BasedOnStyle: Google, IndentWidth: 4, ColumnLimit: 0 }";
+
+    "cmake.configureOnOpen" = false;
+
+    "makefile.configureOnOpen" = true;
+
+    "http.systemCertificatesNode" = true;
+
+    "sqldeveloper.sqlHistory.historyLimit" = 500;
+    "sqldeveloper.telemetry.enabled" = false;
+    "sqldeveloper.datagrid.fontFamily" = "Menlo, Monaco, 'Courier New', monospace";
+
+    "files.associations" = {
+      "Caddyfile" = "plaintext";
+    };
+    "liveServer.settings.donotShowInfoMsg" = true;
+    "[toml]" = {};
+    "[ocaml]" = {
+      "editor.codeLens" = false;
+    };
+
+    "claudeCode.hideOnboarding" = true;
+    "claudeCode.preferredLocation" = "panel";
+  };
+  settingsJson = pkgs.writeText "vscode-user-settings.json" (builtins.toJSON userSettings);
+  settingsRelPath =
+    if pkgs.stdenv.hostPlatform.isDarwin
+    then "Library/Application Support/Code/User/settings.json"
+    else ".config/Code/User/settings.json";
+in {
   programs.vscode = {
     enable = true;
     profiles.default.extensions = with pkgs.vscode-extensions; [
@@ -30,70 +109,24 @@
       vue.volar
       yzhang.markdown-all-in-one
     ];
-
-    profiles.default.userSettings = {
-      # Managed by Nix/home-manager; VS Code's own updater can't replace the
-      # Nix store binary, so disable it to stop the recurring update nags.
-      "update.mode" = "none";
-      "extensions.autoCheckUpdates" = false;
-      "extensions.autoUpdate" = false;
-
-      "editor.fontSize" = 18;
-      "editor.fontFamily" = "FiraCodeNFM-Reg";
-      "editor.detectIndentation" = false;
-
-      "workbench.colorTheme" = "One Dark Pro Night Flat";
-      "workbench.iconTheme" = "vscode-great-icons";
-      "workbench.secondarySideBar.defaultVisibility" = "hidden";
-      "workbench.settings.applyToAllProfiles" = [ "editor.fontFamily" ];
-      "workbench.editor.empty.hint" = "hidden";
-
-      "terminal.integrated.fontFamily" = "Hack Nerd Font Mono";
-      "terminal.integrated.fontSize" = 12;
-
-      "explorer.confirmDelete" = false;
-      "explorer.confirmDragAndDrop" = false;
-
-      "git.openRepositoryInParentFolders" = "always";
-
-      "codesnap.backgroundColor" = "0";
-      "codesnap.boxShadow" = "0";
-
-      "github.copilot.enable" = {
-        "*" = false;
-        "plaintext" = false;
-        "markdown" = false;
-        "scminput" = false;
-        "c" = false;
-      };
-
-      "python.defaultInterpreterPath" = "/Users/migueltaibo/workspace/test/venv";
-
-      "jupyter.askForKernelRestart" = false;
-
-      "C_Cpp.clang_format_fallbackStyle" = "{ BasedOnStyle: Google, IndentWidth: 4, ColumnLimit: 0 }";
-
-      "cmake.configureOnOpen" = false;
-
-      "makefile.configureOnOpen" = true;
-
-      "http.systemCertificatesNode" = true;
-
-      "sqldeveloper.sqlHistory.historyLimit" = 500;
-      "sqldeveloper.telemetry.enabled" = false;
-      "sqldeveloper.datagrid.fontFamily" = "Menlo, Monaco, 'Courier New', monospace";
-
-      "files.associations" = {
-        "Caddyfile" = "plaintext";
-      };
-      "liveServer.settings.donotShowInfoMsg" = true;
-      "[toml]" = {};
-      "[ocaml]" = {
-        "editor.codeLens" = false;
-      };
-
-      "claudeCode.hideOnboarding" = true;
-      "claudeCode.preferredLocation" = "panel";
-    };
   };
+
+  # Deploy settings.json as a real, writable copy instead of the read-only
+  # Nix-store symlink `profiles.default.userSettings` would otherwise create.
+  home.activation.vscodeUserSettings = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    settingsFile="$HOME/${settingsRelPath}"
+    run mkdir -p "$(dirname "$settingsFile")"
+    run install -m 644 ${settingsJson} "$settingsFile"
+  '';
+
+  # home-manager's extension symlinking runs on every switch and can mark
+  # extensions as obsolete in VS Code's own `.obsolete`/extensions.json cache
+  # (e.g. when an extension's id changes case upstream in nixpkgs), which
+  # makes VS Code hide otherwise perfectly-installed, Nix-managed extensions.
+  # Drop those two caches on every activation so VS Code always rebuilds them
+  # from a fresh disk scan on next launch instead of trusting a stale cache.
+  home.activation.vscodeExtensionsCacheReset = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    extensionsDir="$HOME/.vscode/extensions"
+    run rm -f "$extensionsDir/.obsolete" "$extensionsDir/extensions.json"
+  '';
 }
