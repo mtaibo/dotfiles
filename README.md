@@ -40,7 +40,7 @@ My daily laptop. **nix-darwin** + Home Manager on Apple Silicon: Nerd Fonts, Kit
 <td width="33%" valign="top">
 
 ### 🖥️ `desktop`
-My PC. Full **NixOS** with Hyprland on Wayland, themed system-wide by **Stylix** with a glassy, macOS-like look: Waybar on top, hyprlock and dunst to match, a ReGreet login screen, Secure Boot through lanzaboote (dual-booting Windows 11), NVIDIA drivers and PipeWire, plus the same Home Manager setup as the laptop.
+My PC. Full **NixOS** with Hyprland on Wayland, themed system-wide by **Stylix** with a glassy, macOS-like look: Waybar on top, hyprlock and dunst to match, a ReGreet login screen, Secure Boot through lanzaboote (dual-booting Windows 11), NVIDIA drivers and PipeWire, plus the same Home Manager setup as the laptop. The full tour of the look is in [RICE.md](RICE.md).
 
 **NixOS · x86_64**
 
