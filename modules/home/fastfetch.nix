@@ -47,8 +47,6 @@ in {
         { type = "memory"; key = mid "" "Memoria"; format = "{used} / {total}"; }
         { type = "disk"; key = mid "" "Disco"; folders = "/"; format = "{size-used} / {size-total}"; }
         { type = "display"; key = last "󰍹" "Pantalla"; format = "{width}x{height} @ {refresh-rate} Hz"; }
-        "break"
-        { type = "colors"; symbol = "circle"; }
       ];
     };
   };
