@@ -1,6 +1,32 @@
 { pkgs, ... }: {
   programs.starship.enable = true;
 
+  home.packages = [
+    pkgs.tmux
+    (pkgs.writeShellScriptBin "crc" ''
+      set -euo pipefail
+
+      if [ "''${1:-}" = "--close" ]; then
+        sessions=$(tmux list-sessions -F '#{session_name}' 2>/dev/null | grep '^crc-' || true)
+        if [ -z "$sessions" ]; then
+          echo "crc: no background sessions running"
+          exit 0
+        fi
+        echo "$sessions" | while IFS= read -r session; do
+          tmux kill-session -t "$session"
+          echo "crc: closed $session"
+        done
+        exit 0
+      fi
+
+      session="crc-$(date +%s)-$$"
+      tmux new-session -d -s "$session" -- claude "$@"
+      echo "crc: running in background (tmux session: $session)"
+      echo "crc: attach with: tmux attach -t $session"
+      echo "crc: close all with: crc --close"
+    '')
+  ];
+
   home.file.".hushlogin".text = "";
 
   programs.zsh = {
