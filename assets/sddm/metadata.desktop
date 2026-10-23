@@ -1,0 +1,7 @@
+[SddmGreeterTheme]
+Name=Glass
+Description=Login screen that matches the hyprlock lock screen
+Type=sddm-theme
+Version=1.0
+MainScript=Main.qml
+QtVersion=6

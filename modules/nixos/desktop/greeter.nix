@@ -1,60 +1,53 @@
-{ config, ... }:
+{ config, pkgs, ... }:
 let
   c = config.lib.stylix.colors;
-  rgb = name: "${c."${name}-rgb-r"}, ${c."${name}-rgb-g"}, ${c."${name}-rgb-b"}";
+  user = "migueltaibo";
+
+  # The same design hyprlock uses (modules/lockscreen.nix), plus what only the
+  # login screen needs. Written as a QML object: JSON is valid JavaScript.
+  design = import ../../lockscreen.nix {
+    colors = c;
+    font = config.stylix.fonts.sansSerif.name;
+  };
+  style = pkgs.writeText "Style.qml" ''
+    import QtQuick
+
+    QtObject {
+        readonly property var s: ${builtins.toJSON (design // {
+          background = design.background // { color = c.base00; };
+          wallpaper = "${config.stylix.image}";
+          inherit user;
+          realName = config.users.users.${user}.description;
+        })}
+    }
+  '';
+
+  theme = pkgs.runCommandLocal "sddm-theme-glass" { } ''
+    dir=$out/share/sddm/themes/glass
+    mkdir -p $dir
+    cp ${../../../assets/sddm/Main.qml} $dir/Main.qml
+    cp ${../../../assets/sddm/metadata.desktop} $dir/metadata.desktop
+    cp ${style} $dir/Style.qml
+  '';
 in {
-  # Login screen: greetd + ReGreet (GTK4, runs inside cage). Stylix sets the
-  # wallpaper, colours, font and cursor; the CSS below adds the same frosted
-  # panels and pill inputs as the bar and hyprlock.
-  programs.regreet = {
-    enable = true;
-    settings = {
-      appearance.greeting_msg = "Bienvenido";
-      widget.clock = {
-        format = "%H:%M";
-        label_width = 150;
+  # Login screen: SDDM with a custom QML theme that reproduces the hyprlock
+  # lock screen (Stylix has no SDDM target, so colours come in through
+  # Style.qml). User and session are picked automatically.
+  services.displayManager = {
+    defaultSession = "hyprland";
+    sddm = {
+      enable = true;
+      wayland.enable = true;
+      theme = "glass";
+      settings.Theme = {
+        CursorTheme = config.stylix.cursor.name;
+        CursorSize = config.stylix.cursor.size;
       };
     };
   };
 
-  systemd.services.greetd.environment = {
-    # cage ignores the console keymap; without this the password is typed in US layout.
-    XKB_DEFAULT_LAYOUT = "es";
-    # cage is wlroots-based; hardware cursors can come out invisible on NVIDIA.
-    WLR_NO_HARDWARE_CURSORS = "1";
-  };
+  # The greeter's compositor (weston) takes its keymap from here.
+  services.xserver.xkb.layout = "es";
 
-  stylix.targets.regreet.extraCss = ''
-    frame {
-      background-color: rgba(${rgb "base00"}, 0.55);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 18px;
-      padding: 12px;
-    }
-
-    entry,
-    combobox button,
-    dropdown button {
-      border-radius: 999px;
-      background-color: rgba(255, 255, 255, 0.10);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      color: ${c.withHashtag.base07};
-      min-height: 36px;
-      padding: 0 14px;
-      box-shadow: none;
-    }
-
-    button {
-      border-radius: 10px;
-    }
-
-    button.suggested-action {
-      background-color: rgba(255, 255, 255, 0.18);
-      color: ${c.withHashtag.base07};
-    }
-
-    button.suggested-action:hover {
-      background-color: rgba(255, 255, 255, 0.26);
-    }
-  '';
+  environment.systemPackages = [ theme config.stylix.cursor.package ];
 }

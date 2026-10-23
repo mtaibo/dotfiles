@@ -24,7 +24,8 @@ I wanted my PC to feel as calm as a Mac: dark greys, frosted glass, one accent c
 | Part | Tool | Module |
 |---|---|---|
 | Theme engine | Stylix | [`modules/nixos/desktop/stylix.nix`](modules/nixos/desktop/stylix.nix) |
-| Login screen | greetd + ReGreet | [`modules/nixos/desktop/greeter.nix`](modules/nixos/desktop/greeter.nix) |
+| Login screen | SDDM + custom QML theme | [`modules/nixos/desktop/greeter.nix`](modules/nixos/desktop/greeter.nix), [`assets/sddm/`](assets/sddm/) |
+| Lock + login design | Shared Nix attrset | [`modules/lockscreen.nix`](modules/lockscreen.nix) |
 | Window manager | Hyprland | [`modules/home/desktop/hyprland.nix`](modules/home/desktop/hyprland.nix) |
 | Wallpaper | hyprpaper (driven by Stylix) | [`assets/wallpaper.jpg`](assets/wallpaper.jpg) |
 | Top bar | Waybar | [`modules/home/desktop/waybar.nix`](modules/home/desktop/waybar.nix) |
@@ -47,7 +48,7 @@ The desktop-only Home Manager modules sit in `modules/home/desktop/` and are imp
   systemd-boot (signed by lanzaboote, Secure Boot on)
      │
      ▼
-  greetd ──▶ cage ──▶ ReGreet            login screen, themed by Stylix
+  SDDM (weston) ──▶ glass theme          login screen, identical to the lock screen
      │
      ▼  password OK
   Hyprland
@@ -93,7 +94,7 @@ The accents are deliberately muted versions of Apple's system colours, so even s
 | **UI font** | Inter | The closest thing to San Francisco in nixpkgs |
 | **Monospace** | FiraCode Nerd Font Mono | Ligatures plus every icon the bar and prompt use |
 | **Cursor** | Bibata Modern Classic, 24 px | Clean and sharp, with a macOS-like shape |
-| **Opacity** | terminal 0.85 · popups 0.85 · desktop 0.6 | Enough to see the wallpaper, not so much that text suffers |
+| **Opacity** | terminal 0.7 · popups 0.85 · desktop 0.6 | Enough to see the wallpaper, not so much that text suffers |
 
 ## 🧊 How the glass works
 
@@ -114,16 +115,29 @@ layerrule = [
 
 `ignorezero` stops Hyprland from blurring the fully transparent gaps between the bar's pills, so only the pills themselves are frosted. Three passes with a bit of noise and vibrancy keep the blur smooth and stop the wallpaper's greens and blues from going muddy.
 
-The one place this can't work is the login screen. ReGreet runs inside `cage`, which has no blur, so its panel is translucent but not frosted (see [Known limits](#known-limits)).
+The login screen does its own blur in Qt (see below), since it runs before Hyprland exists.
 
-## 🔑 Login screen — greetd + ReGreet
+## 🔑 Login screen — SDDM with a custom theme
 
-The first thing after boot. [greetd](https://sr.ht/~kennylevinsen/greetd/) is a tiny login daemon, and ReGreet is its GTK4 front-end, running fullscreen inside the `cage` kiosk compositor. I replaced SDDM with it because Stylix can theme ReGreet but not SDDM.
+The first thing after boot looks exactly like the lock screen: same date, clock, name, password pill and blurred wallpaper (see [hyprlock](#-lock-screen--hyprlock) below). No user list, no session picker, no buttons. Booting and unlocking feel like the same thing, as on a Mac.
 
-- **From Stylix:** the wallpaper as background (scaled to cover), the dark `adw-gtk3` theme with the palette, Inter and the Bibata cursor.
-- **My CSS on top:** the central panel is `base00` at 55 % with a 1 px white edge and 18 px corners. The username and session fields are pill-shaped (`border-radius: 999px`) with a white 10 % fill, and the login button is translucent grey instead of the theme's blue.
-- **Extras:** a `HH:MM` clock and a "Bienvenido" greeting. ReGreet remembers the last user and session, so normally I only type the password.
-- **Two fixes in greetd's environment:** `XKB_DEFAULT_LAYOUT=es`, because cage ignores the console keymap and the password would otherwise be typed on a US layout; and `WLR_NO_HARDWARE_CURSORS=1`, because wlroots' hardware cursor can come out invisible on NVIDIA.
+It's SDDM running a theme I wrote in QML ([`assets/sddm/Main.qml`](assets/sddm/Main.qml)). I first tried greetd + ReGreet because Stylix themes it, but ReGreet always shows a user and a session selector. A custom SDDM theme gives full control.
+
+### One design, two screens
+
+The layout isn't copied between the two: it's defined once in [`modules/lockscreen.nix`](modules/lockscreen.nix) (positions, font sizes and weights, colours from Stylix, blur, texts, fade time). `hyprlock.nix` turns it into hyprlock's config, and `greeter.nix` writes the same values into a generated `Style.qml` (JSON, which is valid JavaScript) that the theme reads. Move the clock or change a colour there and both screens follow.
+
+`Main.qml` then draws it with hyprlock's rules:
+
+- **Positions** are offsets from the screen centre with y pointing up, and **font sizes** are points at 96 dpi (`px = pt × 4/3`), the way hyprlock renders them.
+- **Background:** the wallpaper through Qt's `MultiEffect` blur, then a black layer at 30 % opacity. That layer multiplies every colour by 0.7, which is exactly what hyprlock's `brightness = 0.7` does. Vibrancy becomes a small saturation boost. The wallpaper is decoded at 480 px wide and upscaled smoothly before blurring, because a full-resolution source makes `MultiEffect` leave a blocky pattern. It's also drawn 96 px larger than the screen, so the blur's dark fringe stays off the edges.
+- **Input:** the same 260 × 44 pill showing centred dots (25 % of the height, spaced at 30 % of a dot) instead of characters. The edge turns yellow while PAM checks the password, and on a wrong one it turns red and shows "Contraseña incorrecta" for 2 s.
+- The cursor is hidden and everything fades in over 400 ms.
+
+### Under the hood
+
+- **No choices to make:** there's one user and one session, so the theme logs in as SDDM's last user (falling back to `migueltaibo`) into the last session, which is always Hyprland (`defaultSession = "hyprland"`). The name under the clock is my account's description, like hyprlock's `$DESC`.
+- **Keyboard and cursor:** `services.xserver.xkb.layout = "es"` gives SDDM's compositor (weston) the Spanish layout, so the password types the same as in the session. The cursor is Stylix's Bibata.
 
 > Switching display managers can't be done live: use `nixos-rebuild boot` and reboot, not `switch`.
 
@@ -169,7 +183,7 @@ The workspace bindings are generated with a small `lib.concatMap` over `1..9` in
 
 ## 🖼️ Wallpaper
 
-[`assets/wallpaper.jpg`](assets/wallpaper.jpg) is set once, as `stylix.image`. From there Stylix feeds it to hyprpaper for the desktop, hyprlock for the lock screen and ReGreet for the login screen. Swapping the wallpaper is one file.
+[`assets/wallpaper.jpg`](assets/wallpaper.jpg) is set once, as `stylix.image`. From there Stylix feeds it to hyprpaper for the desktop, hyprlock for the lock screen and the SDDM theme for the login screen. Swapping the wallpaper is one file.
 
 ## 📊 Top bar — Waybar
 
@@ -234,14 +248,16 @@ It's `services.dunst` in Home Manager, D-Bus activated, so there's nothing to st
 
 - **Background:** the wallpaper with 3 blur passes, darkened to 70 % brightness, plus a little vibrancy.
 - **Type:** the date in Spanish at 22 pt, the clock at 110 pt bold and my name at 15 pt semibold, all in white at 87–93 % opacity.
-- **Input:** a 260 × 44 pill with a translucent white 10 % fill and a 15 % outline, which I force over Stylix's solid fill. The text and the check/fail colours (yellow while checking, red on a wrong password) come from Stylix.
+- **Input:** a 260 × 44 pill with a translucent white 10 % fill and a 15 % outline, which I force over Stylix's solid fill. The dots and the check/fail colours (yellow while checking, red on a wrong password, with "Contraseña incorrecta" for 2 s) come from the palette.
 - A 400 ms fade in and out. The cursor is hidden, and pressing Enter with an empty field does nothing.
+
+All of these values come from [`modules/lockscreen.nix`](modules/lockscreen.nix), shared with the login screen so the two always match.
 
 There's no hypridle on purpose: the screen never turns off or locks by itself.
 
 ## 🐱 Terminal — kitty
 
-`programs.kitty` in Home Manager. Stylix sets the font (FiraCode Nerd Font Mono, 15 pt), the full base16 colour table and the 0.85 background opacity. What I set by hand is only the feel: 15 px padding, no window decorations, ligatures always on and no confirm-on-close. The Mac keeps its own kitty config in `assets/kitty`.
+`programs.kitty` in Home Manager. Stylix sets the font (FiraCode Nerd Font Mono, 15 pt), the full base16 colour table and the 0.7 background opacity, so Hyprland's blur shows through like the rest of the glass. What I set by hand is only the feel: 15 px padding, no window decorations, ligatures always on and no confirm-on-close. The Mac keeps its own kitty config in `assets/kitty`.
 
 ## ❯ Prompt — Starship
 
@@ -322,6 +338,7 @@ Firefox uses [firefox-gnome-theme](https://github.com/rafaelmardojai/firefox-gno
 | Change the wallpaper | Replace `assets/wallpaper.jpg` |
 | Make glass more or less see-through | `stylix.opacity` for Stylix-themed apps; the `rgba(…, 0.45)` values in `waybar.nix` and `dunst.nix` |
 | Change the blur | `decoration.blur` in `hyprland.nix` |
+| Restyle the lock and login screens | `modules/lockscreen.nix` (both follow) |
 | Change fonts | `stylix.fonts` |
 | Add a keybinding | `bind` in `hyprland.nix` |
 | Add a bar module | `modules-right` and its block in `waybar.nix`, plus a selector in its CSS |
@@ -331,7 +348,7 @@ Then `update` (an alias for `sudo nixos-rebuild switch --flake ~/dotfiles#deskto
 
 ## Known limits
 
-- **No blur on the login screen.** GTK4 has no backdrop blur and cage can't blur, so ReGreet's panel is only translucent.
+- **The login theme is hand-written QML.** It only uses stock QtQuick, Controls and Effects, but a big SDDM or Qt update could still need small tweaks to `Main.qml`.
 - **Neovim and VS Code aren't on the palette**, on purpose (see above).
 - **firefox-gnome-theme tracks Firefox versions.** A major Firefox update without a tag bump can leave parts of the UI slightly off until the tag catches up.
 - **The fastfetch image logo is kitty-only.** Everywhere else you get the small text logo.

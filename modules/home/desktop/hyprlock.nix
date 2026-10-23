@@ -1,10 +1,24 @@
 { config, lib, ... }:
 let
-  c = config.lib.stylix.colors;
-  font = config.stylix.fonts.sansSerif.name;
+  # Shared with the SDDM login theme so both screens look the same.
+  s = import ../../lockscreen.nix {
+    colors = config.lib.stylix.colors;
+    font = config.stylix.fonts.sansSerif.name;
+  };
+  family = weight: if weight == "Regular" then s.font else "${s.font} ${weight}";
+  pos = y: "0, ${toString y}";
+  label = item: text: {
+    inherit text;
+    font_family = family item.weight;
+    font_size = item.size;
+    color = "rgba(${item.color})";
+    position = pos item.y;
+    halign = "center";
+    valign = "center";
+  };
 in {
-  # Wallpaper and base colours come from Stylix; this adds a macOS-like
-  # layout: date + big clock on top, name and a glass pill input below.
+  # Wallpaper comes from Stylix; layout and colours from modules/lockscreen.nix:
+  # date + big clock on top, name and a glass pill input below.
   programs.hyprlock = {
     enable = true;
     settings = {
@@ -16,59 +30,40 @@ in {
       animations = {
         enabled = true;
         bezier = [ "ease, 0.25, 0.1, 0.25, 1" ];
-        animation = [ "fade, 1, 4, ease" ];
+        # hyprlock counts animation speed in tenths of a second.
+        animation = [ "fade, 1, ${toString (s.fadeMs / 100)}, ease" ];
       };
 
       background = {
-        blur_passes = 3;
-        blur_size = 8;
-        brightness = 0.7;
-        vibrancy = 0.2;
+        blur_passes = s.background.blurPasses;
+        blur_size = s.background.blurSize;
+        inherit (s.background) brightness vibrancy;
       };
 
       label = [
-        {
-          text = ''cmd[update:60000] date +"%A, %e de %B"'';
-          font_family = font;
-          font_size = 22;
-          color = "rgba(${c.base07}dd)";
-          position = "0, 330";
-          halign = "center";
-          valign = "center";
-        }
-        {
-          text = "$TIME";
-          font_family = "${font} Bold";
-          font_size = 110;
-          color = "rgba(${c.base07}ee)";
-          position = "0, 220";
-          halign = "center";
-          valign = "center";
-        }
-        {
-          text = "$DESC";
-          font_family = "${font} SemiBold";
-          font_size = 15;
-          color = "rgba(${c.base07}ee)";
-          position = "0, -160";
-          halign = "center";
-          valign = "center";
-        }
+        (label s.date ''cmd[update:60000] date +"${s.date.strftime}"'')
+        (label s.clock "$TIME")
+        (label s.name "$DESC")
       ];
 
       input-field = {
-        size = "260, 44";
+        size = "${toString s.input.width}, ${toString s.input.height}";
         rounding = -1;
         outline_thickness = 1;
-        # Translucent glass instead of Stylix's solid fill.
-        inner_color = lib.mkForce "rgba(ffffff1a)";
-        outer_color = lib.mkForce "rgba(ffffff26)";
-        dots_size = 0.25;
-        dots_spacing = 0.3;
+        inner_color = lib.mkForce "rgba(${s.input.fill})";
+        outer_color = lib.mkForce "rgba(${s.input.outline})";
+        font_color = lib.mkForce "rgb(${s.input.textColor})";
+        check_color = lib.mkForce "rgb(${s.input.checkColor})";
+        fail_color = lib.mkForce "rgb(${s.input.failColor})";
+        dots_size = s.input.dotsSize;
+        dots_spacing = s.input.dotsSpacing;
+        dots_center = true;
         fade_on_empty = false;
-        placeholder_text = ''<span foreground="##${c.base07}99">Contraseña</span>'';
-        font_family = font;
-        position = "0, -215";
+        placeholder_text = ''<span foreground="##${s.input.placeholderColor}">${s.input.placeholder}</span>'';
+        fail_text = s.input.failText;
+        fail_timeout = s.input.failTimeoutMs;
+        font_family = s.font;
+        position = pos s.input.y;
         halign = "center";
         valign = "center";
       };
