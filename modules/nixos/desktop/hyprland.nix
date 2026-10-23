@@ -4,6 +4,9 @@
     xwayland.enable = true;
   };
 
+  # Installs hyprlock and its PAM service so it can check the password.
+  programs.hyprlock.enable = true;
+
   services.displayManager.sddm = {
     enable = true;
     wayland.enable = true;
@@ -18,10 +21,7 @@
 
   environment.systemPackages = with pkgs; [
     wofi
-    dunst
     libnotify
     wl-clipboard
-    hyprpaper
-    kitty
   ];
 }

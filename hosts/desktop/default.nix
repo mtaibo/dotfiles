@@ -5,6 +5,7 @@
     ../../modules/nixos/networking.nix
     ../../modules/nixos/desktop/hyprland.nix
     ../../modules/nixos/desktop/nvidia.nix
+    ../../modules/nixos/desktop/stylix.nix
     inputs.lanzaboote.nixosModules.lanzaboote
   ];
 
@@ -14,6 +15,8 @@
   nixpkgs.config.allowUnfree = true;
 
   programs.claude-desktop.enable = true;
+
+  home-manager.users.migueltaibo.imports = [ ../../modules/home/desktop ];
 
   # Lets dynamically linked binaries built for generic Linux run as-is
   # (e.g. the native helper VS Code extensions like Claude Code ship).
@@ -81,6 +84,7 @@
   ];
 
   hardware.bluetooth.enable = true;
+  services.blueman.enable = true;
 
   services.printing.enable = true;
   services.pulseaudio.enable = false;

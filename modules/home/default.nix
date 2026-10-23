@@ -21,16 +21,9 @@
     enable = true;
   };
   xdg.configFile."gh/config.yml".force = true;
-  gtk = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
-    enable = true;
-    theme = {
-      name = "Adwaita-dark";
-      package = pkgs.gnome-themes-extra;
-    };
+  home.file.".config/kitty" = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
+    source = ../../assets/kitty;
   };
-  home.file.".config/kitty".source = if pkgs.stdenv.hostPlatform.isLinux
-    then ../../assets/kitty-linux
-    else ../../assets/kitty;
   home.file.".config/opencode/opencode.json" = {
     source = ../../assets/opencode/opencode.json;
     force = true;
@@ -38,9 +31,6 @@
   home.file.".config/starship.toml".source = ../../assets/starship/starship.toml;
   home.file.".config/zsh/.zshrc".source = ../../assets/zsh/.zshrc;
   home.file.".config/fastfetch/config.jsonc".source = ../../assets/fastfetch/config.jsonc;
-  home.file.".config/hypr" = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
-    source = ../../assets/hypr;
-  };
   xdg.userDirs = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
     enable = true;
     createDirectories = true;
