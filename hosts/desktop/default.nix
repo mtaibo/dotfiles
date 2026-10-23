@@ -13,6 +13,8 @@
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   nixpkgs.config.allowUnfree = true;
 
+  programs.claude-desktop.enable = true;
+
   # Lets dynamically linked binaries built for generic Linux run as-is
   # (e.g. the native helper VS Code extensions like Claude Code ship).
   programs.nix-ld.enable = true;

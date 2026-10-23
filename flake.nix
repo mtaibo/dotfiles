@@ -15,6 +15,10 @@
       url = "github:nix-community/lanzaboote/v1.2.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    claude-desktop = {
+      url = "github:poeck/claude-desktop-nix-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = inputs@{ self, nixpkgs, home-manager, nix-darwin, ... }: {
@@ -41,6 +45,7 @@
       specialArgs = { inherit inputs; };
       modules = [
         ./hosts/desktop/default.nix
+        inputs.claude-desktop.nixosModules.default
         home-manager.nixosModules.home-manager
         {
           home-manager.useGlobalPkgs = true;
