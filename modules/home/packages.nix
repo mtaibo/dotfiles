@@ -2,7 +2,6 @@
   home.packages = with pkgs; [
     eza
     bat
-    fastfetch
     pkgs.opencode
     pkgsUnstable.claude-code
     nodejs_22

@@ -50,7 +50,14 @@
     };
 
     initContent = ''
-      fastfetch --pipe false
+      # The image logo only works in kitty itself, not through tmux or SSH.
+      if [ "$TERM" = xterm-kitty ] && [ -z "$TMUX" ] && [ -z "$SSH_CONNECTION" ]; then
+        fastfetch --pipe false
+      else
+        fastfetch --pipe false --logo-type builtin --logo ${if pkgs.stdenv.hostPlatform.isDarwin
+          then "macos_small"
+          else ''"$([ -e /etc/NIXOS ] && echo NixOS_small || echo raspbian_small)"''}
+      fi
       source ~/.config/zsh/.zshrc
       if command -v opam &>/dev/null && [ -f "$HOME/.opam/config" ]; then
         eval $(opam env)

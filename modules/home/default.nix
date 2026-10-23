@@ -2,6 +2,7 @@
   imports = [
     ./shell.nix
     ./packages.nix
+    ./fastfetch.nix
     ./editors/nvim.nix
     ./editors/vscode.nix
     ./browsers/firefox.nix
@@ -30,7 +31,6 @@
   };
   home.file.".config/starship.toml".source = ../../assets/starship/starship.toml;
   home.file.".config/zsh/.zshrc".source = ../../assets/zsh/.zshrc;
-  home.file.".config/fastfetch/config.jsonc".source = ../../assets/fastfetch/config.jsonc;
   xdg.userDirs = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
     enable = true;
     createDirectories = true;

@@ -2,6 +2,7 @@
   imports = [
     ../../modules/home/shell.nix
     ../../modules/home/editors/nvim.nix
+    ../../modules/home/fastfetch.nix
   ];
 
   home.username = "migueltaibo";
@@ -22,7 +23,6 @@
   home.packages = with pkgs; [
     eza
     bat
-    fastfetch
     docker-compose
     pkgs.opencode
     pkgs.dnsmasq
@@ -33,7 +33,6 @@
   home.file.".config/opencode/opencode.json".source = ../../assets/opencode/opencode.json;
   home.file.".config/starship.toml".source = ../../assets/starship/starship.toml;
   home.file.".config/zsh/.zshrc".source = ../../assets/zsh/.zshrc;
-  home.file.".config/fastfetch/config.jsonc".source = ../../assets/fastfetch/config.jsonc;
 
   programs.zsh.shellAliases = {
     update       = lib.mkForce "home-manager switch --flake ~/dotfiles#tphome";
