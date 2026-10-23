@@ -117,11 +117,12 @@ let
           --transition-duration 1.2 --transition-fps 144
       }
 
-      # Writes the accent colours for kitty and rofi, then makes every open
-      # kitty window reload its config so they change right away.
+      # Writes the accent colours for kitty, rofi and the bar, then makes every
+      # open kitty and waybar reload so they change right away.
       recolour() {
         matugen image "$1" --quiet
         pkill -USR1 -x .kitty-wrapped || true
+        pkill -USR2 -x .waybar-wrapped || true
       }
 
       set_wallpaper() {
@@ -210,8 +211,9 @@ in {
   # matugen turns the wallpaper into a Material You palette; only its accent
   # tones are used. They replace the terminal's blue, magenta and cyan (so
   # `ls`, the prompt and fastfetch take the wallpaper's colour) and give the
-  # picker its accent. Red, green and yellow keep their meaning (errors,
-  # git diff, warnings) and the greys stay Stylix's so text stays readable.
+  # picker and the bar their accent. Red, green and yellow keep their meaning
+  # (errors, git diff, warnings) and the greys stay Stylix's so text stays
+  # readable.
   xdg.configFile = {
     "matugen/config.toml".source = (pkgs.formats.toml { }).generate "matugen.toml" {
       config = { };
@@ -223,6 +225,10 @@ in {
         rofi = {
           input_path = "${config.xdg.configHome}/matugen/templates/rofi.rasi";
           output_path = "${config.xdg.configHome}/rofi/matugen-colors.rasi";
+        };
+        waybar = {
+          input_path = "${config.xdg.configHome}/matugen/templates/waybar.css";
+          output_path = "${config.xdg.configHome}/waybar/matugen-colors.css";
         };
       };
     };
@@ -237,6 +243,9 @@ in {
     '';
     "matugen/templates/rofi.rasi".text = ''
       * { accent: {{colors.primary.default.hex}}; }
+    '';
+    "matugen/templates/waybar.css".text = ''
+      @define-color accent {{colors.primary.default.hex}};
     '';
   };
 

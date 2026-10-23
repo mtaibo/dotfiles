@@ -209,6 +209,7 @@ The theme is generated in Nix with the same glass as the bar (`base00` at 60 %, 
 Every time the wallpaper changes, [matugen](https://github.com/InioX/matugen) reads it and builds a Material You palette, and the script makes every open kitty reload (`SIGUSR1`). Only the accent tones are used, which keeps the "one accent" idea: the accent simply becomes the wallpaper's colour.
 
 - **Terminal:** matugen's primary, tertiary and secondary tones replace the terminal's blue, magenta and cyan (and their bright versions). The prompt uses them for git status and a nix shell, and fastfetch for its icons. Mountain turns them sky blue, the forest green, curvy lavender.
+- **Bar:** the chips, icons, active workspace and clock in Waybar use the same accent (see [Top bar](#-top-bar--waybar)).
 - **`ls` / `l` (eza):** eza's default theme paints most columns red, yellow and green, which would never change. `EZA_COLORS` (set in `shell.nix`, starting with `reset` to drop its per-extension colours) redraws it with only the three accent tones and greys: folders and your user in the accent, permission bits `r` / `w` / `x` in the three tones, sizes white with grey units, links, dates, dashes and the header grey. A matching minimal `LS_COLORS` replaces the one NixOS's `dircolors` sets. Red is kept only for broken links and deleted or conflicted files in git.
 - **Kept fixed on purpose:** the terminal's red, green and yellow keep their meaning for other programs (errors, `git diff`, warnings), and the greys, background and foreground stay Stylix's so text stays readable on the glass.
 - **Why matugen and not wallust** (which Hyprlust uses): wallust takes colours straight from the picture, and on dark wallpapers several of them came out dark grey, unreadable on a dark terminal. Material You tones have a guaranteed lightness for dark themes, so every wallpaper gives a readable accent.
@@ -231,27 +232,34 @@ Every time the wallpaper changes, [matugen](https://github.com/InioX/matugen) re
 
 ## 📊 Top bar — Waybar
 
-A floating bar 8 px from the top and 10 px from each side, built from separate glass pills instead of one solid strip:
+Modelled on the bar from [Hyprlust](https://github.com/NischalDawadi/Hyprlust): one floating glass bar, 1500 px wide and centred 8 px from the top, with chips inside tinted by the wallpaper's accent.
 
 ```
-╭────╮╭─────────────╮╭──────────╮                ╭────────────────────────────────────╮
-│    ││  1  2  3    ││  kitty   │                │  ⋯  󰈀  󰂯  󰕾   jue 23 oct  14:32   │
-╰────╯╰─────────────╯╰──────────╯                ╰────────────────────────────────────╯
- logo   workspaces     active app                   tray · network · bt · volume · clock
+╭─────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ [] [kitty] [󰁔 󰘚 1% 󰍛 1.9G  34°]      [    ]      [⋯] [󰈀 󰂯 󰕾] [󰂚 1] [21:27] │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────╯
+  logo  window  stats drawer (hover the arrow)    workspaces       tray connection notifications clock
 ```
 
 | Module | Shows | Click |
 |---|---|---|
-| Logo | Nix snowflake | Opens Vicinae |
-| Workspaces | Numbers, sorted. The active one is white on a 14 % white highlight, the others grey | Switches workspace |
-| Active window | The app's class in semibold, or "Escritorio" when no window is focused, and the pill hides itself when empty | — |
+| Logo | Nix snowflake in the accent | Left: Vicinae · right: wallpaper picker |
+| Active window | The app's class, or "Escritorio" (dimmed) on an empty workspace | — |
+| Stats drawer | An arrow; hovering it slides out CPU usage, used RAM and the CPU package temperature (red from 85 °C) | — |
+| Workspaces | Always five dots:  active in the accent,  has windows,  empty | Switches workspace |
 | Tray | App tray icons at 16 px | App menu |
-| Network | 󰈀 ethernet · 󰖩 wifi · 󰈂 disconnected (dimmed) | Tooltip with interface and IP |
-| Bluetooth | 󰂯 on · 󰂱 connected · 󰂲 off (dimmed) | blueman; the tooltip lists connected devices |
-| Volume | 󰕿 󰖀 󰕾 by level · 󰝟 muted (dimmed) | Left: pavucontrol · right: mute · scroll: ±5 % |
-| Clock | `jue 23 oct  14:32` in Spanish, semibold white | Tooltip with a month calendar |
+| Connection | 󰈀 ethernet · 󰖩 wifi · 󰈂 disconnected, 󰂯 / 󰂱 / 󰂲 bluetooth, 󰕿 󰖀 󰕾 / 󰝟 volume, in the accent and dimmed when off | Bluetooth: blueman · volume: pavucontrol, right-click mutes, scroll ±5 % |
+| Notifications | 󰂚 with dunst's history count, 󱅫 when there are some, 󰂛 grey with the queued count in "do not disturb" | Left: toggle do not disturb · right: show the last one again · middle: clear |
+| Clock | `21:27` in the accent; click for `viernes, 23 de octubre  21:27` | Tooltip with a month calendar |
 
-The CSS is hand-written. Stylix's Waybar target is turned off because it can't do the pill layout, but every colour comes from `config.lib.stylix.colors`, so the bar still follows the palette. It runs as a systemd user service.
+How it's built:
+
+- **Colours.** The chips are `alpha(@accent, 0.12)` with accent icons, where `@accent` is matugen's primary tone from the wallpaper. matugen writes it to `~/.config/waybar/matugen-colors.css`, the style `@import`s it, and the `wallpaper` script sends waybar `SIGUSR2` so it reloads on every wallpaper change. Before the first wallpaper is set, an activation step writes Stylix's blue there so the import never fails.
+- **Isolated from GTK.** The style starts with `* { all: unset; }`, as Hyprlust does, so the GTK theme can't leak paddings or backgrounds into the bar.
+- **Spanish dates.** Waybar only localises day and month names when the format has chrono's `L` flag (`{:L%A}`); without it the clock showed "Fri 23 Oct" even with `locale = "es_ES.UTF-8"`.
+- **Custom modules need `exec`.** A `custom/*` module with only a `format` is never drawn, which is why the logo used to be missing; the logo and the arrow `echo` their icon once.
+- **Notifications.** dunst has no notification centre, so a small `waybar-notifications` script asks `dunstctl` once a second (paused or not, history and waiting counts) and returns JSON for the module.
+- The temperature reads `/sys/devices/platform/coretemp.0/hwmon` + `temp1_input` (the CPU package sensor) instead of a `hwmonN` number, which can change between boots. Stylix's Waybar target is off; the CSS is hand-written with Stylix's greys and the matugen accent. It runs as a systemd user service.
 
 ## 🔍 Launcher — Vicinae
 
@@ -316,10 +324,10 @@ A two-line prompt that stays out of the way:
 
 | Part | Style |
 |---|---|
-| OS icon | White. `` NixOS, `` macOS, `` Raspberry Pi OS |
-| Hostname | Grey, and only over SSH, with a `` prefix |
+| OS icon | White. `` NixOS, `` macOS, `` Raspberry Pi OS |
+| Hostname | Grey, and only over SSH, with a `` prefix |
 | Directory | Bold white, the last 3 levels or from the repo root, with a `󰌾` in red if read-only |
-| Git branch | Grey, with a `` prefix |
+| Git branch | Grey, with a `` prefix |
 | Git state | Yellow, only during a rebase/merge/cherry-pick, with progress |
 | Git status | Blue — the accent marks "you have changes" |
 
