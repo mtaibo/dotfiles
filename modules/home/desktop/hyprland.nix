@@ -12,7 +12,7 @@
 
       "$terminal" = "kitty";
       "$browser" = "firefox";
-      "$menu" = "wofi --show drun";
+      "$menu" = "vicinae toggle";
 
       bind = [
         "SUPER, Q, exec, $terminal"
@@ -84,12 +84,14 @@
         };
       };
 
-      # Frosted glass behind the bar and notifications
+      # Frosted glass behind the bar, notifications and launcher
       layerrule = [
         "blur, waybar"
         "ignorezero, waybar"
         "blur, notifications"
         "ignorezero, notifications"
+        "blur, vicinae"
+        "ignorealpha 0, vicinae"
       ];
 
       animations = {

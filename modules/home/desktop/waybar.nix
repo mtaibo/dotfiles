@@ -26,7 +26,7 @@ in {
       "custom/logo" = {
         format = "";
         tooltip = false;
-        on-click = "wofi --show drun";
+        on-click = "vicinae toggle";
       };
 
       "hyprland/workspaces" = {

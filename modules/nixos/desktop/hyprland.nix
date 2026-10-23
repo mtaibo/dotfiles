@@ -20,7 +20,6 @@
   };
 
   environment.systemPackages = with pkgs; [
-    wofi
     libnotify
     wl-clipboard
   ];
