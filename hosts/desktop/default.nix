@@ -6,6 +6,7 @@
     ../../modules/nixos/desktop/hyprland.nix
     ../../modules/nixos/desktop/nvidia.nix
     ../../modules/nixos/desktop/stylix.nix
+    ../../modules/nixos/desktop/greeter.nix
     inputs.lanzaboote.nixosModules.lanzaboote
   ];
 

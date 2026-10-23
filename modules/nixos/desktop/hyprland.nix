@@ -7,11 +7,6 @@
   # Installs hyprlock and its PAM service so it can check the password.
   programs.hyprlock.enable = true;
 
-  services.displayManager.sddm = {
-    enable = true;
-    wayland.enable = true;
-  };
-
   environment.sessionVariables = {
     NIXOS_OZONE_WL = "1";
     MOZ_ENABLE_WAYLAND = "1";

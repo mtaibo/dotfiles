@@ -40,7 +40,7 @@ My daily laptop. **nix-darwin** + Home Manager on Apple Silicon: Nerd Fonts, Kit
 <td width="33%" valign="top">
 
 ### 🖥️ `desktop`
-My PC. Full **NixOS** with Hyprland on Wayland, themed system-wide by **Stylix** with a glassy, macOS-like look: Waybar on top, hyprlock and dunst to match, SDDM, Secure Boot through lanzaboote (dual-booting Windows 11), NVIDIA drivers and PipeWire, plus the same Home Manager setup as the laptop.
+My PC. Full **NixOS** with Hyprland on Wayland, themed system-wide by **Stylix** with a glassy, macOS-like look: Waybar on top, hyprlock and dunst to match, a ReGreet login screen, Secure Boot through lanzaboote (dual-booting Windows 11), NVIDIA drivers and PipeWire, plus the same Home Manager setup as the laptop.
 
 **NixOS · x86_64**
 
@@ -66,7 +66,7 @@ The Raspberry Pi 5 that hosts [tphome](https://github.com/mtaibo/tphome) and my 
 | **CLI tools** | eza, bat, git, GitHub CLI |
 | **AI** | Claude Code and OpenCode |
 | **Languages** | Node.js, Java 21 + Maven, OCaml + opam |
-| **Desktop (Linux)** | Hyprland, Stylix, Waybar, hyprlock, dunst, SDDM, Secure Boot (lanzaboote), NVIDIA, Firefox with the GNOME theme coloured by Stylix and uBlock Origin |
+| **Desktop (Linux)** | Hyprland, Stylix, Waybar, hyprlock, dunst, greetd + ReGreet, Secure Boot (lanzaboote), NVIDIA, Firefox with the GNOME theme coloured by Stylix and uBlock Origin |
 | **macOS extras** | Fonts, Kitty icon, Automator fullscreen shortcut, Colima + Docker, XcodeGen |
 | **Home server** | Docker, Tailscale, dnsmasq for `tp.home`, Samba storage, SSH keys pulled from GitHub |
 
