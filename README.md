@@ -66,7 +66,7 @@ The Raspberry Pi 5 that hosts [tphome](https://github.com/mtaibo/tphome) and my 
 | **CLI tools** | eza, bat, git, GitHub CLI |
 | **AI** | Claude Code and OpenCode |
 | **Languages** | Node.js, Java 21 + Maven, OCaml + opam |
-| **Desktop (Linux)** | Hyprland, Stylix, Waybar, hyprlock, dunst, SDDM, Secure Boot (lanzaboote), NVIDIA, Firefox with a Tokyo Night theme and uBlock Origin |
+| **Desktop (Linux)** | Hyprland, Stylix, Waybar, hyprlock, dunst, SDDM, Secure Boot (lanzaboote), NVIDIA, Firefox with the GNOME theme coloured by Stylix and uBlock Origin |
 | **macOS extras** | Fonts, Kitty icon, Automator fullscreen shortcut, Colima + Docker, XcodeGen |
 | **Home server** | Docker, Tailscale, dnsmasq for `tp.home`, Samba storage, SSH keys pulled from GitHub |
 
@@ -85,7 +85,7 @@ dotfiles/
 │   │   └── desktop/       # Linux desktop: Hyprland, kitty, Waybar, hyprlock, dunst
 │   └── nixos/             # Linux system config: boot, networking, Hyprland, NVIDIA, Stylix
 ├── assets/                # Plain config files that Home Manager links into place
-│                          # (zsh, kitty, starship, firefox, fastfetch, opencode, wallpaper…)
+│                          # (zsh, kitty, starship, fastfetch, opencode, wallpaper…)
 ├── scripts/               # Pi helpers: SSH keys, Samba storage, Docker shortcuts
 └── install-rpi.sh         # One-shot bootstrap for a fresh Raspberry Pi
 ```

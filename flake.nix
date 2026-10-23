@@ -22,6 +22,12 @@
     stylix = {
       url = "github:nix-community/stylix/release-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.firefox-gnome-theme.follows = "firefox-gnome-theme";
+    };
+    # Tagged per Firefox release; bump the tag when Firefox's major version changes.
+    firefox-gnome-theme = {
+      url = "github:rafaelmardojai/firefox-gnome-theme/v150";
+      flake = false;
     };
   };
 

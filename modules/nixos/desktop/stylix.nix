@@ -1,4 +1,4 @@
-{ pkgs, inputs, ... }: {
+{ lib, pkgs, inputs, ... }: {
   imports = [ inputs.stylix.nixosModules.stylix ];
 
   stylix = {
@@ -62,12 +62,22 @@
   };
 
   home-manager.users.migueltaibo.stylix.targets = {
+    # Firefox looks like a native GTK app (firefox-gnome-theme) in our colours.
+    firefox = {
+      profileNames = [ "default" ];
+      firefoxGnomeTheme.enable = true;
+    };
     # These apps keep their own hand-picked themes.
-    firefox.enable = false;
     neovim.enable = false;
     starship.enable = false;
     vscode.enable = false;
     # The bar is styled by hand in modules/home/desktop/waybar.nix.
     waybar.enable = false;
   };
+
+  # Hyprland has no use for the minimise/maximise/close buttons the theme draws.
+  # mkAfter keeps this below the theme's @import lines.
+  home-manager.users.migueltaibo.programs.firefox.profiles.default.userChrome = lib.mkAfter ''
+    .titlebar-buttonbox-container { display: none !important; }
+  '';
 }

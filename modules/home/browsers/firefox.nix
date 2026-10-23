@@ -30,11 +30,8 @@ with lib;
           default_area = "menupanel";
           private_browsing = true;
         };
-        "{73a6fe31-595d-460b-a920-fcc0f8843232}" = {
-          install_url = "https://addons.mozilla.org/firefox/downloads/latest/dark-theme/latest.xpi";
-          installation_mode = "force_installed";
-          default_area = "navbar";
-        };
+        # Old theme add-on; blocked so Firefox removes it and Stylix's theme shows.
+        "{73a6fe31-595d-460b-a920-fcc0f8843232}".installation_mode = "blocked";
       };
     };
 
@@ -45,14 +42,10 @@ with lib;
 
       settings = {
         "ui.systemUsesDarkTheme" = 1;
-        "widget.content.gtk-theme-override" = "Adwaita:dark";
         "browser.aboutConfig.showWarning" = false;
         "media.ffmpeg.vaapi.enabled" = true;
         "extensions.pocket.enabled" = false;
-        "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
         "layout.css.devPixelsPerPx" = "1.2";
-        "browser.tabs.allowTransparentBrowser" = true;
-        "widget.allow-background-blur" = true;
         "browser.toolbars.bookmarks.visibility" = "always";
         "browser.newtabpage.enabled" = false;
         "browser.newtabpage.activity-stream.showSearch" = false;
@@ -93,9 +86,6 @@ with lib;
           }
         ];
       };
-
-      userChrome = builtins.readFile ../../../assets/firefox/userChrome.css;
-      userContent = builtins.readFile ../../../assets/firefox/userContent.css;
     };
   };
 }
