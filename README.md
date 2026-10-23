@@ -40,7 +40,7 @@ My daily laptop. **nix-darwin** + Home Manager on Apple Silicon: Nerd Fonts, Kit
 <td width="33%" valign="top">
 
 ### 🖥️ `desktop`
-My PC. Full **NixOS** with Hyprland on Wayland, SDDM, a themed GRUB, NVIDIA drivers and PipeWire, plus the same Home Manager setup as the laptop.
+My PC. Full **NixOS** with Hyprland on Wayland, themed system-wide by **Stylix** with a glassy, macOS-like look: Waybar on top, hyprlock and dunst to match, SDDM, a themed GRUB, NVIDIA drivers and PipeWire, plus the same Home Manager setup as the laptop.
 
 **NixOS · x86_64**
 
@@ -61,12 +61,12 @@ The Raspberry Pi 5 that hosts [tphome](https://github.com/mtaibo/tphome) and my 
 | Area | What I use |
 |---|---|
 | **Shell** | Zsh with autosuggestions and syntax highlighting, Starship prompt, fastfetch on start |
-| **Terminal** | Kitty with FiraCode Nerd Font |
+| **Terminal** | Kitty with FiraCode Nerd Font (themed by Stylix on Linux) |
 | **Editors** | Neovim (lazy.nvim, Telescope, Neo-tree, LSP, GitSigns) and VS Code (One Dark Pro, extensions declared in Nix) |
 | **CLI tools** | eza, bat, git, GitHub CLI |
 | **AI** | Claude Code and OpenCode |
 | **Languages** | Node.js, Java 21 + Maven, OCaml + opam |
-| **Desktop (Linux)** | Hyprland, SDDM, GRUB theme, NVIDIA, Firefox with a Tokyo Night theme and uBlock Origin |
+| **Desktop (Linux)** | Hyprland, Stylix, Waybar, hyprlock, dunst, SDDM, GRUB theme, NVIDIA, Firefox with a Tokyo Night theme and uBlock Origin |
 | **macOS extras** | Fonts, Kitty icon, Automator fullscreen shortcut, Colima + Docker, XcodeGen |
 | **Home server** | Docker, Tailscale, dnsmasq for `tp.home`, Samba storage, SSH keys pulled from GitHub |
 
@@ -82,9 +82,10 @@ dotfiles/
 │   └── tphome/            # Standalone Home Manager for the Pi
 ├── modules/
 │   ├── home/              # Shared user config: shell, packages, editors, browsers
-│   └── nixos/             # Linux system config: boot, networking, Hyprland, NVIDIA
+│   │   └── desktop/       # Linux desktop: Hyprland, kitty, Waybar, hyprlock, dunst
+│   └── nixos/             # Linux system config: boot, networking, Hyprland, NVIDIA, Stylix
 ├── assets/                # Plain config files that Home Manager links into place
-│                          # (zsh, kitty, starship, hypr, firefox, fastfetch, opencode…)
+│                          # (zsh, kitty, starship, firefox, fastfetch, opencode, wallpaper…)
 ├── scripts/               # Pi helpers: SSH keys, Samba storage, Docker shortcuts
 └── install-rpi.sh         # One-shot bootstrap for a fresh Raspberry Pi
 ```
@@ -98,7 +99,7 @@ flake.nix
 └── homeConfigurations.tphome     → hosts/tphome    ─┘   shell + nvim subset
 ```
 
-Each host defines what makes that machine unique, and pulls in the shared Home Manager modules. The Mac and the desktop import the whole `modules/home` hub; the Pi only takes the shell and Neovim, since it doesn't need any desktop apps. Plain config files live in `assets/` and Home Manager symlinks them into `~/.config`, so they can still be edited as normal files.
+Each host defines what makes that machine unique, and pulls in the shared Home Manager modules. The Mac and the desktop import the whole `modules/home` hub; the Pi only takes the shell and Neovim, since it doesn't need any desktop apps. Plain config files live in `assets/` and Home Manager symlinks them into `~/.config`, so they can still be edited as normal files. The desktop also imports `modules/home/desktop`, where Hyprland and its companions are written as Home Manager modules so Stylix can colour them from one palette.
 
 Running `update` on any machine calls the right rebuild:
 
