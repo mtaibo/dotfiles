@@ -305,7 +305,7 @@ It's `services.dunst` in Home Manager, D-Bus activated, so there's nothing to st
 
 All of these values come from [`modules/lockscreen.nix`](modules/lockscreen.nix), shared with the login screen so the two always match.
 
-There's no hypridle on purpose: the screen never turns off or locks by itself.
+There's no hypridle on purpose: the screen never turns off or locks by itself. NixOS's `programs.hyprlock` switches hypridle on by default, so it's forced off with `lib.mkForce`.
 
 ## 🐱 Terminal — kitty
 
