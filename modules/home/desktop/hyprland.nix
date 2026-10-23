@@ -75,12 +75,17 @@
 
       decoration = {
         rounding = 10;
+        # Light blur that also darkens what's behind: shapes still show through
+        # glass (terminal, bar, popups) while text on it stays readable, even
+        # over a bright wallpaper.
         blur = {
           enabled = true;
-          size = 8;
-          passes = 3;
+          size = 5;
+          passes = 2;
+          brightness = 0.7;
+          contrast = 1.0;
           noise = 0.02;
-          vibrancy = 0.2;
+          vibrancy = 0.1;
         };
       };
 
