@@ -1,6 +1,4 @@
 { pkgs, ... }: {
-  programs.starship.enable = true;
-
   home.packages = [
     pkgs.tmux
     (pkgs.writeShellScriptBin "crc" ''

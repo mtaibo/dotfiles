@@ -85,7 +85,7 @@ dotfiles/
 │   │   └── desktop/       # Linux desktop: Hyprland, kitty, Waybar, hyprlock, dunst
 │   └── nixos/             # Linux system config: boot, networking, Hyprland, NVIDIA, Stylix
 ├── assets/                # Plain config files that Home Manager links into place
-│                          # (zsh, kitty, starship, opencode, wallpaper…)
+│                          # (zsh, kitty, opencode, wallpaper…)
 ├── scripts/               # Pi helpers: SSH keys, Samba storage, Docker shortcuts
 └── install-rpi.sh         # One-shot bootstrap for a fresh Raspberry Pi
 ```

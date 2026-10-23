@@ -69,7 +69,6 @@
     };
     # These apps keep their own hand-picked themes.
     neovim.enable = false;
-    starship.enable = false;
     vscode.enable = false;
     # The bar is styled by hand in modules/home/desktop/waybar.nix.
     waybar.enable = false;

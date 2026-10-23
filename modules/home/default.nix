@@ -1,6 +1,7 @@
 { pkgs, lib, ... }: {
   imports = [
     ./shell.nix
+    ./starship.nix
     ./packages.nix
     ./fastfetch.nix
     ./editors/nvim.nix
@@ -29,7 +30,6 @@
     source = ../../assets/opencode/opencode.json;
     force = true;
   };
-  home.file.".config/starship.toml".source = ../../assets/starship/starship.toml;
   home.file.".config/zsh/.zshrc".source = ../../assets/zsh/.zshrc;
   xdg.userDirs = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
     enable = true;

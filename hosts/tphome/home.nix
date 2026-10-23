@@ -1,6 +1,7 @@
 { pkgs, lib, pkgsUnstable, ... }: {
   imports = [
     ../../modules/home/shell.nix
+    ../../modules/home/starship.nix
     ../../modules/home/editors/nvim.nix
     ../../modules/home/fastfetch.nix
   ];
@@ -31,7 +32,6 @@
 
   home.file.".hushlogin".text = "";
   home.file.".config/opencode/opencode.json".source = ../../assets/opencode/opencode.json;
-  home.file.".config/starship.toml".source = ../../assets/starship/starship.toml;
   home.file.".config/zsh/.zshrc".source = ../../assets/zsh/.zshrc;
 
   programs.zsh.shellAliases = {
