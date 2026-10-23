@@ -208,8 +208,9 @@ The theme is generated in Nix with the same glass as the bar (`base00` at 60 %, 
 
 Every time the wallpaper changes, [matugen](https://github.com/InioX/matugen) reads it and builds a Material You palette, and the script makes every open kitty reload (`SIGUSR1`). Only the accent tones are used, which keeps the "one accent" idea: the accent simply becomes the wallpaper's colour.
 
-- **Terminal:** matugen's primary, tertiary and secondary tones replace the terminal's blue, magenta and cyan (and their bright versions). That's what `ls`/`l` use for folders and dates, what the prompt uses for git status and a nix shell, and what fastfetch uses for its icons. Mountain turns them sky blue, the forest turns them green.
-- **Kept fixed on purpose:** red, green and yellow keep their meaning (errors, `git diff`, warnings), and the greys, background and foreground stay Stylix's so text stays readable on the glass.
+- **Terminal:** matugen's primary, tertiary and secondary tones replace the terminal's blue, magenta and cyan (and their bright versions). The prompt uses them for git status and a nix shell, and fastfetch for its icons. Mountain turns them sky blue, the forest green, curvy lavender.
+- **`ls` / `l` (eza):** eza's default theme paints most columns red, yellow and green, which would never change. `EZA_COLORS` (set in `shell.nix`, starting with `reset` to drop its per-extension colours) redraws it with only the three accent tones and greys: folders and your user in the accent, permission bits `r` / `w` / `x` in the three tones, sizes white with grey units, links, dates, dashes and the header grey. A matching minimal `LS_COLORS` replaces the one NixOS's `dircolors` sets. Red is kept only for broken links and deleted or conflicted files in git.
+- **Kept fixed on purpose:** the terminal's red, green and yellow keep their meaning for other programs (errors, `git diff`, warnings), and the greys, background and foreground stay Stylix's so text stays readable on the glass.
 - **Why matugen and not wallust** (which Hyprlust uses): wallust takes colours straight from the picture, and on dark wallpapers several of them came out dark grey, unreadable on a dark terminal. Material You tones have a guaranteed lightness for dark themes, so every wallpaper gives a readable accent.
 - kitty loads the result with `globinclude matugen-colors.conf` after Stylix's colours; `eza` no longer uses `--color-scale=size`, whose fixed RGB greens ignored the palette.
 
@@ -349,8 +350,6 @@ Every new shell opens with an "About This Mac"-style summary:
              │   Memoria     4.15 GiB / 15.38 GiB
              │   Disco       28.80 GiB / 195.80 GiB
              ╰  󰍹 Pantalla    2560x1440 @ 144 Hz
-
-             ● ● ● ● ● ● ● ●
 ```
 
 - **The logo is a real image**: the white NixOS snowflake PNG, drawn with kitty's graphics protocol (`kitty-direct`). Images don't survive tmux or SSH, so the shell checks for kitty, no `$TMUX` and no `$SSH_CONNECTION` first, and otherwise falls back to a small text logo (`NixOS_small`, `raspbian_small` or `macos_small`). The Mac uses the built-in Apple logo.

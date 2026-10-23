@@ -1,4 +1,4 @@
-{ pkgs, ... }: {
+{ pkgs, lib, ... }: {
   home.packages = [
     pkgs.tmux
     (pkgs.writeShellScriptBin "crc" ''
@@ -47,7 +47,34 @@
         else "setsid xdg-open";
     };
 
-    initContent = ''
+    initContent = let
+      # eza and ls in the terminal's accent colours only: ANSI blue, magenta and
+      # cyan (which follow the wallpaper on the desktop, see wallpaper.nix) plus
+      # greys. Red is left for the exceptional cases: broken links and deleted
+      # or conflicted files in git. `reset` drops eza's built-in per-extension
+      # colours; exported here because NixOS's /etc/zshrc runs dircolors first.
+      lsColors = "di=1;34:ln=36:or=31:ex=1;35:pi=35:so=35:bd=35:cd=35";
+      ezaColors = lib.concatStringsSep ":" [
+        "reset"
+        lsColors
+        "fi=0:mp=1;34:sp=35:lp=36:cc=36"
+        # permissions: read / write / execute in the three accent tones
+        "ur=34:uw=35:ux=36:ue=36:gr=34:gw=35:gx=36:tr=34:tw=35:tx=36"
+        "su=35:sf=35:xa=90:oc=34"
+        # size in white with grey units, then owner, links, dates, chrome
+        "sn=37:sb=90:df=37:ds=90"
+        "uu=34:uR=35:un=90:gu=34:gR=35:gn=90"
+        "lc=90:lm=36:da=90:xx=90:hd=4;90"
+        # git column and branch
+        "ga=36:gm=34:gd=31:gv=35:gt=35:gi=90:gc=31"
+        "Gm=34:Go=35:Gc=36:Gd=35"
+        # file kinds
+        "im=35:vi=35:mu=35:lo=35:cr=36:do=37:co=35:tm=90:cm=90:bu=1;36:sc=0"
+      ];
+    in ''
+      export LS_COLORS='${lsColors}'
+      export EZA_COLORS='${ezaColors}'
+
       # The image logo only works in kitty itself, not through tmux or SSH.
       if [ "$TERM" = xterm-kitty ] && [ -z "$TMUX" ] && [ -z "$SSH_CONNECTION" ]; then
         fastfetch --pipe false
