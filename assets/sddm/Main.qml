@@ -33,7 +33,9 @@ Rectangle {
         // Bigger than the screen so the blur's dark fringe at the edges stays off-screen.
         anchors.fill: parent
         anchors.margins: -96
+        // The wallpaper picked with SUPER+W; Stylix's if that link is broken.
         source: s.wallpaper
+        onStatusChanged: if (status === Image.Error) source = s.fallbackWallpaper
         fillMode: Image.PreserveAspectCrop
         // Decoding small and letting it upscale smoothly gives an even blur
         // instead of MultiEffect's blocky pattern at full resolution.

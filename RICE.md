@@ -27,7 +27,7 @@ I wanted my PC to feel as calm as a Mac: dark greys, frosted glass, one accent c
 | Login screen | SDDM + custom QML theme | [`modules/nixos/desktop/greeter.nix`](modules/nixos/desktop/greeter.nix), [`assets/sddm/`](assets/sddm/) |
 | Lock + login design | Shared Nix attrset | [`modules/lockscreen.nix`](modules/lockscreen.nix) |
 | Window manager | Hyprland | [`modules/home/desktop/hyprland.nix`](modules/home/desktop/hyprland.nix) |
-| Wallpaper | hyprpaper (driven by Stylix) | [`assets/wallpaper.jpg`](assets/wallpaper.jpg) |
+| Wallpapers | swww, a rofi picker and matugen accents, on SUPER+W | [`modules/wallpapers.nix`](modules/wallpapers.nix), [`modules/home/desktop/wallpaper.nix`](modules/home/desktop/wallpaper.nix) |
 | Top bar | Waybar | [`modules/home/desktop/waybar.nix`](modules/home/desktop/waybar.nix) |
 | Launcher | Vicinae | [`modules/home/desktop/vicinae.nix`](modules/home/desktop/vicinae.nix) |
 | Notifications | dunst | [`modules/home/desktop/dunst.nix`](modules/home/desktop/dunst.nix) |
@@ -56,7 +56,7 @@ The desktop-only Home Manager modules sit in `modules/home/desktop/` and are imp
      ▼
   hyprland-session.target ──▶ graphical-session.target
      │
-     ├──▶ hyprpaper    wallpaper
+     ├──▶ swww         wallpaper daemon, then the last wallpaper is restored
      ├──▶ waybar       top bar
      ├──▶ dunst        notifications (D-Bus activated)
      └──▶ vicinae      launcher daemon, so SUPER+Space opens instantly
@@ -73,8 +73,8 @@ Stylix doesn't ship a scheme I liked for this, so the palette is my own base16 s
 | `base00` | `#1c1c1e` | Background |
 | `base01` | `#2c2c2e` | Raised surfaces |
 | `base02` | `#3a3a3c` | Selection |
-| `base03` | `#636366` | Comments, muted text, inactive things |
-| `base04` | `#8e8e93` | Secondary text |
+| `base03` | `#8e8e93` | Comments, muted text, inactive things (bright enough to read on glass) |
+| `base04` | `#aeaeb2` | Secondary text |
 | `base05` | `#e5e5ea` | Foreground |
 | `base06` | `#f2f2f7` | Light foreground |
 | `base07` | `#ffffff` | Brightest text (clock, active workspace) |
@@ -104,7 +104,7 @@ Every glass surface is two layers:
 2. **The blur** — Hyprland blurs whatever is behind specific layer-shell surfaces, picked by namespace:
 
 ```nix
-decoration.blur = { enabled = true; size = 8; passes = 3; noise = 0.02; vibrancy = 0.2; };
+decoration.blur = { enabled = true; size = 5; passes = 2; brightness = 0.7; contrast = 1.0; noise = 0.02; vibrancy = 0.1; };
 
 layerrule = [
   "blur, waybar"        "ignorezero, waybar"
@@ -113,7 +113,7 @@ layerrule = [
 ];
 ```
 
-`ignorezero` stops Hyprland from blurring the fully transparent gaps between the bar's pills, so only the pills themselves are frosted. Three passes with a bit of noise and vibrancy keep the blur smooth and stop the wallpaper's greens and blues from going muddy.
+`ignorezero` stops Hyprland from blurring the fully transparent gaps between the bar's pills, so only the pills themselves are frosted. The blur is deliberately light (2 passes of size 5), so the shapes of the wallpaper still show through, and `brightness = 0.7` darkens whatever is behind the glass. That is what keeps grey text in a 70 % transparent terminal readable even over a bright wallpaper; a heavier, undarkened blur turned bright skies into a milky haze.
 
 The login screen does its own blur in Qt (see below), since it runs before Hyprland exists.
 
@@ -138,6 +138,7 @@ The layout isn't copied between the two: it's defined once in [`modules/lockscre
 
 - **No choices to make:** there's one user and one session, so the theme logs in as SDDM's last user (falling back to `migueltaibo`) into the last session, which is always Hyprland (`defaultSession = "hyprland"`). The name under the clock is my account's description, like hyprlock's `$DESC`.
 - **Keyboard and cursor:** `services.xserver.xkb.layout = "es"` gives SDDM's compositor (weston) the Spanish layout, so the password types the same as in the session. The cursor is Stylix's Bibata.
+- **A content hash in the theme's name** (e.g. `glass-467c1cfb`): Qt caches compiled QML by file path and modification time, and every file in the Nix store has the same 1970 mtime. Under a fixed path like `themes/glass/Main.qml`, the greeter kept running the very first compiled version after the theme changed. Hashing `Main.qml` and `Style.qml` into the name gives each version its own path, so the cache can never serve a stale one.
 
 > Switching display managers can't be done live: use `nixos-rebuild boot` and reboot, not `switch`.
 
@@ -169,6 +170,8 @@ Stylix wants to paint the active border in the blue accent. I override it with `
 | `SUPER` + `Shift` + `F` | Fullscreen |
 | `SUPER` + `V` | Toggle floating |
 | `SUPER` + `L` | Lock screen |
+| `SUPER` + `W` | Next wallpaper |
+| `SUPER` + `Shift` + `W` | Pick a wallpaper (with previews) |
 | `SUPER` + `M` | Exit Hyprland |
 | `SUPER` + `h` `j` `k` `l` | Move focus |
 | `SUPER` + `Shift` + `h` `j` `k` `l` | Resize window |
@@ -181,9 +184,49 @@ Stylix wants to paint the active border in the blue accent. I override it with `
 
 The workspace bindings are generated with a small `lib.concatMap` over `1..9` instead of 18 hand-written lines.
 
-## 🖼️ Wallpaper
+## 🖼️ Wallpapers
 
-[`assets/wallpaper.jpg`](assets/wallpaper.jpg) is set once, as `stylix.image`. From there Stylix feeds it to hyprpaper for the desktop, hyprlock for the lock screen and the SDDM theme for the login screen. Swapping the wallpaper is one file.
+`SUPER + W` switches to the next wallpaper with a circle that grows out from the cursor, and `SUPER + Shift + W` opens the picker. [swww](https://github.com/LGFae/swww) draws them; a small `wallpaper` script (`next`, `prev`, `random`, `pick`, `set FILE`) drives it.
+
+### The picker
+
+Modelled on the rofi wallpaper menu from [Hyprlust](https://github.com/NischalDawadi/Hyprlust): a glass window 75 % of the screen wide with one row of five large square previews and the name under each, plus a ". random" card first (its preview is the wallpaper it will pick). Type to filter, arrows or the mouse to choose, Enter or click to apply.
+
+```
+╭──────────────────────────────────────────────────────────────────────╮
+│  ( Buscar fondo…                                                  )  │
+│  ┏━━━━━━━━━┓ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐         │
+│  ┃  ▓▓▓▓▓  ┃ │  ▓▓▓▓▓  │ │  ▓▓▓▓▓  │ │  ▓▓▓▓▓  │ │  ▓▓▓▓▓  │         │
+│  ┃ . random┃ │  curvy  │ │ darkest │ │ forest  │ │  lake   │         │
+│  ┗━━━━━━━━━┛ └─────────┘ └─────────┘ └─────────┘ └─────────┘         │
+╰──────────────────────────────────────────────────────────────────────╯
+```
+
+The theme is generated in Nix with the same glass as the bar (`base00` at 60 %, faint white edge, blurred by a `rofi` layer rule). The selected card's border is the wallpaper's accent colour. The previews are 400 × 400 thumbnails made once at build time, so the menu opens instantly instead of decoding 5K images.
+
+### Colours that follow the wallpaper
+
+Every time the wallpaper changes, [matugen](https://github.com/InioX/matugen) reads it and builds a Material You palette, and the script makes every open kitty reload (`SIGUSR1`). Only the accent tones are used, which keeps the "one accent" idea: the accent simply becomes the wallpaper's colour.
+
+- **Terminal:** matugen's primary, tertiary and secondary tones replace the terminal's blue, magenta and cyan (and their bright versions). That's what `ls`/`l` use for folders and dates, what the prompt uses for git status and a nix shell, and what fastfetch uses for its icons. Mountain turns them sky blue, the forest turns them green.
+- **Kept fixed on purpose:** red, green and yellow keep their meaning (errors, `git diff`, warnings), and the greys, background and foreground stay Stylix's so text stays readable on the glass.
+- **Why matugen and not wallust** (which Hyprlust uses): wallust takes colours straight from the picture, and on dark wallpapers several of them came out dark grey, unreadable on a dark terminal. Material You tones have a guaranteed lightness for dark themes, so every wallpaper gives a readable accent.
+- kitty loads the result with `globinclude matugen-colors.conf` after Stylix's colours; `eza` no longer uses `--color-scale=size`, whose fixed RGB greens ignored the palette.
+
+**The collection** ([`modules/wallpapers.nix`](modules/wallpapers.nix)) is mostly dark, low-colour pictures that already ship in nixpkgs under free licences, so nothing is downloaded from random sites and the set is reproducible:
+
+| File | From | |
+|---|---|---|
+| `mountain.png` | KDE Plasma "Mountain" (dark variant) | **Default.** Snowy peaks against a grey night sky |
+| `darkest-hour.jpg` | KDE Plasma "Darkest Hour" | A misty lake at blue hour |
+| `forest-path.jpg` | KDE Plasma "Path" | A path through a dark pine forest |
+| `curvy.png` | GNOME "curvy" (dark) | Grey curves; converted from JPEG XL at build time, since swww can't read it |
+| `nineish-dark-gray.png` | NixOS artwork | The NixOS logo on dark grey |
+| `lake.jpg` | [`assets/wallpapers/`](assets/wallpapers/) | My original sunny lake |
+
+**One wallpaper everywhere.** The choice is stored as a symlink, `/var/lib/wallpaper/current`, and three things read it: swww restores it when the session starts, hyprlock uses it as the lock-screen background, and the SDDM theme uses it on the login screen, which keeps login and lock identical. It lives outside `$HOME` because my home is `0700` and the greeter runs as the `sddm` user. `systemd.tmpfiles` creates the directory (owned by me, readable by everyone) and the first link to the default; the `L` rule never overwrites an existing link, so the choice survives rebuilds. If the link ever breaks, the login screen falls back to Stylix's image.
+
+`stylix.image` is the default wallpaper too, but Stylix's hyprpaper is turned off in favour of swww, and Hyprland's own mascot wallpaper is disabled so nothing flashes before swww draws.
 
 ## 📊 Top bar — Waybar
 
@@ -246,7 +289,7 @@ It's `services.dunst` in Home Manager, D-Bus activated, so there's nothing to st
                     ╰──────────────────────╯
 ```
 
-- **Background:** the wallpaper with 3 blur passes, darkened to 70 % brightness, plus a little vibrancy.
+- **Background:** the current wallpaper (whatever SUPER+W last picked) with 3 blur passes, darkened to 70 % brightness, plus a little vibrancy.
 - **Type:** the date in Spanish at 22 pt, the clock at 110 pt bold and my name at 15 pt semibold, all in white at 87–93 % opacity.
 - **Input:** a 260 × 44 pill with a translucent white 10 % fill and a 15 % outline, which I force over Stylix's solid fill. The dots and the check/fail colours (yellow while checking, red on a wrong password, with "Contraseña incorrecta" for 2 s) come from the palette.
 - A 400 ms fade in and out. The cursor is hidden, and pressing Enter with an empty field does nothing.
@@ -257,7 +300,7 @@ There's no hypridle on purpose: the screen never turns off or locks by itself.
 
 ## 🐱 Terminal — kitty
 
-`programs.kitty` in Home Manager. Stylix sets the font (FiraCode Nerd Font Mono, 15 pt), the full base16 colour table and the 0.7 background opacity, so Hyprland's blur shows through like the rest of the glass. What I set by hand is only the feel: 15 px padding, no window decorations, ligatures always on and no confirm-on-close. The Mac keeps its own kitty config in `assets/kitty`.
+`programs.kitty` in Home Manager. Stylix sets the font (FiraCode Nerd Font Mono, 15 pt), the base16 colour table and the 0.7 background opacity, so Hyprland's blur shows through like the rest of the glass. The blue, magenta and cyan are then overridden by the wallpaper's accent (see [Colours that follow the wallpaper](#colours-that-follow-the-wallpaper)). What I set by hand is only the feel: 15 px padding, no window decorations, ligatures always on and no confirm-on-close. The Mac keeps its own kitty config in `assets/kitty`.
 
 ## ❯ Prompt — Starship
 
@@ -283,7 +326,7 @@ A two-line prompt that stays out of the way:
 
 **Line two:** just `❯`, white when the last command succeeded and red when it failed. In vi mode it flips to `❮`.
 
-The colours are named terminal colours (`blue`, `bright-black`, …). On the desktop, Stylix's Starship target maps those names to the exact palette, so the prompt matches even in a terminal Stylix doesn't theme (like VS Code's). On the Mac and the Pi they come from the terminal's own theme. It's one module for all three machines.
+The colours are named terminal colours (`blue`, `bright-black`, …), so they come from the terminal's palette. On the desktop that means the blue accent follows the wallpaper with kitty's; Stylix's Starship target is turned off because it would pin the names to fixed hex values. On the Mac and the Pi they come from the terminal's own theme. It's one module for all three machines.
 
 ## 💻 System info — fastfetch
 
@@ -335,7 +378,9 @@ Firefox uses [firefox-gnome-theme](https://github.com/rafaelmardojai/firefox-gno
 | I want to… | Edit |
 |---|---|
 | Change the whole colour scheme | `base16Scheme` in `stylix.nix` (or point it at any scheme from `base16-schemes`) |
-| Change the wallpaper | Replace `assets/wallpaper.jpg` |
+| Add a wallpaper | Drop it in `assets/wallpapers/` and add it to `modules/wallpapers.nix` |
+| Change which terminal colours follow the wallpaper | The matugen templates in `modules/home/desktop/wallpaper.nix` |
+| Change the default wallpaper | `default` in `modules/wallpapers.nix` |
 | Make glass more or less see-through | `stylix.opacity` for Stylix-themed apps; the `rgba(…, 0.45)` values in `waybar.nix` and `dunst.nix` |
 | Change the blur | `decoration.blur` in `hyprland.nix` |
 | Restyle the lock and login screens | `modules/lockscreen.nix` (both follow) |

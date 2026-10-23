@@ -5,6 +5,7 @@
     ./hyprlock.nix
     ./kitty.nix
     ./vicinae.nix
+    ./wallpaper.nix
     ./waybar.nix
   ];
 }
