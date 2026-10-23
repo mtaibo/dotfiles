@@ -8,47 +8,47 @@ let
     format = "[$symbol($version)]($style) ";
   };
   languages = lib.mapAttrs (_: quiet) {
-    aws = " ";
-    buf = " ";
-    bun = " ";
-    c = " ";
-    cpp = " ";
-    cmake = " ";
-    conda = " ";
-    crystal = " ";
-    dart = " ";
-    deno = " ";
-    docker_context = " ";
-    elixir = " ";
-    elm = " ";
-    fennel = " ";
-    fortran = " ";
-    gcloud = " ";
-    golang = " ";
-    gradle = " ";
-    guix_shell = " ";
-    haskell = " ";
-    haxe = " ";
-    java = " ";
-    julia = " ";
-    kotlin = " ";
-    lua = " ";
+    aws = " ";
+    buf = " ";
+    bun = " ";
+    c = " ";
+    cpp = " ";
+    cmake = " ";
+    conda = " ";
+    crystal = " ";
+    dart = " ";
+    deno = " ";
+    docker_context = " ";
+    elixir = " ";
+    elm = " ";
+    fennel = " ";
+    fortran = " ";
+    gcloud = " ";
+    golang = " ";
+    gradle = " ";
+    guix_shell = " ";
+    haskell = " ";
+    haxe = " ";
+    java = " ";
+    julia = " ";
+    kotlin = " ";
+    lua = " ";
     meson = "󰔷 ";
     nim = "󰆥 ";
-    nodejs = " ";
-    ocaml = " ";
+    nodejs = " ";
+    ocaml = " ";
     package = "󰏗 ";
-    perl = " ";
-    php = " ";
+    perl = " ";
+    php = " ";
     pixi = "󰏗 ";
-    python = " ";
+    python = " ";
     rlang = "󰟔 ";
-    ruby = " ";
+    ruby = " ";
     rust = "󱘗 ";
-    scala = " ";
-    swift = " ";
-    xmake = " ";
-    zig = " ";
+    scala = " ";
+    swift = " ";
+    xmake = " ";
+    zig = " ";
   };
 in {
   # Uses the terminal's named colours; on the desktop Stylix maps them to its
@@ -82,17 +82,17 @@ in {
         style = "white";
         format = "[$symbol]($style)";
         symbols = {
-          NixOS = " ";
-          Macos = " ";
-          Raspbian = " ";
-          Debian = " ";
-          Linux = " ";
-          Unknown = " ";
+          NixOS = " ";
+          Macos = " ";
+          Raspbian = " ";
+          Debian = " ";
+          Linux = " ";
+          Unknown = " ";
         };
       };
 
       hostname = {
-        ssh_symbol = " ";
+        ssh_symbol = " ";
         style = "bright-black";
         format = "[$ssh_symbol$hostname]($style) ";
       };
@@ -107,12 +107,12 @@ in {
       };
 
       git_branch = {
-        symbol = " ";
+        symbol = " ";
         style = "bright-black";
         format = "[$symbol$branch]($style) ";
       };
 
-      git_commit.tag_symbol = "  ";
+      git_commit.tag_symbol = "  ";
 
       git_state = {
         style = "yellow";
@@ -125,7 +125,7 @@ in {
       };
 
       nix_shell = {
-        symbol = " ";
+        symbol = " ";
         style = "blue";
         format = "[$symbol$state]($style) ";
       };
@@ -142,11 +142,11 @@ in {
         vimcmd_symbol = "[❮](white)";
       };
 
-      fossil_branch.symbol = " ";
-      hg_branch.symbol = " ";
-      pijul_channel.symbol = " ";
+      fossil_branch.symbol = " ";
+      hg_branch.symbol = " ";
+      pijul_channel.symbol = " ";
       memory_usage.symbol = "󰍛 ";
-      status.symbol = " ";
+      status.symbol = " ";
     };
   };
 }

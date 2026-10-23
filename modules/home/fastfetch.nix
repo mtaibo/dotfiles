@@ -32,20 +32,20 @@ in {
         { type = "title"; format = "{#1}{user-name}{#}{#bright_black}@{#}{#1}{host-name}"; }
         "break"
         (header "Sistema")
-        { type = "os"; key = mid "" "OS"; format = "{pretty-name}"; }
-        { type = "kernel"; key = mid "" "Kernel"; format = "{release}"; }
+        { type = "os"; key = mid "" "OS"; format = "{pretty-name}"; }
+        { type = "kernel"; key = mid "" "Kernel"; format = "{release}"; }
         { type = "packages"; key = mid "󰏖" "Paquetes"; format = "{all}"; }
-        { type = "wm"; key = mid "" "Ventanas"; format = "{pretty-name}"; }
-        { type = "terminal"; key = mid "" "Terminal"; format = "{pretty-name}"; }
-        { type = "shell"; key = mid "" "Shell"; format = "{pretty-name}"; }
+        { type = "wm"; key = mid "" "Ventanas"; format = "{pretty-name}"; }
+        { type = "terminal"; key = mid "" "Terminal"; format = "{pretty-name}"; }
+        { type = "shell"; key = mid "" "Shell"; format = "{pretty-name}"; }
         { type = "uptime"; key = last "󰅐" "Encendido"; format = "{?days}{days}d {?}{hours}h {minutes}m"; }
         "break"
         (header "Hardware")
         { type = "host"; key = mid "󰌢" "Equipo"; }
-        { type = "cpu"; key = mid "" "CPU"; format = "{name}"; }
+        { type = "cpu"; key = mid "" "CPU"; format = "{name}"; }
         { type = "gpu"; key = mid "󰢮" "GPU"; format = "{name}"; hideType = "integrated"; }
-        { type = "memory"; key = mid "" "Memoria"; format = "{used} / {total}"; }
-        { type = "disk"; key = mid "" "Disco"; folders = "/"; format = "{size-used} / {size-total}"; }
+        { type = "memory"; key = mid "" "Memoria"; format = "{used} / {total}"; }
+        { type = "disk"; key = mid "" "Disco"; folders = "/"; format = "{size-used} / {size-total}"; }
         { type = "display"; key = last "󰍹" "Pantalla"; format = "{width}x{height} @ {refresh-rate} Hz"; }
       ];
     };
