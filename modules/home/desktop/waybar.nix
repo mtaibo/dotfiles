@@ -91,7 +91,8 @@ in {
   # "islands" style): no bar background, every module is its own dark
   # rounded island tinted by the wallpaper. Clock and the music player on the
   # left, the workspaces in the middle (instead of the original's focused
-  # window), connections, notifications and audio on the right; no power button.
+  # window), background apps, keyboard layout, notifications and audio on the
+  # right; no power button.
   # SUPER+N hides and shows the bar.
   wayland.windowManager.hyprland.settings.bindd = [
     "SUPER, N, Mostrar u ocultar la barra, exec, pkill -USR1 -x .waybar-wrapped"
@@ -112,7 +113,7 @@ in {
 
       modules-left = [ "custom/clock" "custom/media" ];
       modules-center = [ "hyprland/workspaces" ];
-      modules-right = [ "group/connection" "custom/notifications" "group/audio" ];
+      modules-right = [ "tray" "hyprland/language" "custom/notifications" "group/audio" ];
 
       "custom/clock" = {
         exec = "${clock}/bin/waybar-clock";
@@ -132,28 +133,17 @@ in {
         on-click-right = "playerctl next";
       };
 
-      "group/connection" = {
-        orientation = "inherit";
-        modules = [ "tray" "network" "bluetooth" ];
-      };
+      # Only apps running in the background (Claude, Cider…).
       tray = {
         icon-size = 20;
         spacing = 8;
       };
-      network = {
-        format-ethernet = "󰈀";
-        format-wifi = "󰖩";
-        format-disconnected = "󰈂";
-        tooltip-format = "{ifname} · {ipaddr}";
-      };
-      bluetooth = {
-        format = "󰂯";
-        format-disabled = "󰂲";
-        format-off = "󰂲";
-        format-connected = "󰂱";
-        tooltip-format-connected = "{device_enumerate}";
-        tooltip-format-enumerate-connected = "{device_alias}";
-        on-click = "blueman-manager";
+
+      # Keyboard layout, ES or EN; a click switches to the other one.
+      "hyprland/language" = {
+        format-es = "ES";
+        format-en = "EN";
+        on-click = "hyprctl switchxkblayout all next";
       };
 
       "hyprland/workspaces" = {
@@ -233,7 +223,8 @@ in {
 
       /* Islands: one dark, wallpaper-tinted pill per module. */
       #custom-clock,
-      #connection,
+      #tray,
+      #language,
       #workspaces,
       #custom-notifications,
       #audio,
@@ -246,18 +237,6 @@ in {
 
       #custom-clock {
         margin-left: 0;
-      }
-
-      #tray,
-      #network,
-      #bluetooth {
-        padding: 0 5px;
-      }
-
-      #network.disconnected,
-      #bluetooth.disabled,
-      #bluetooth.off {
-        color: @muted;
       }
 
       #workspaces {

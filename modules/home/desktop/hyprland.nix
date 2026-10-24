@@ -112,7 +112,7 @@
       };
 
       input = {
-        kb_layout = "es";
+        kb_layout = "es,us";
         follow_mouse = 1;
       };
     };
