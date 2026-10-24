@@ -1,282 +1,203 @@
-{ pkgs, ... }: {
-  programs.neovim = {
-    enable = true;
-    defaultEditor = true;
-    vimAlias = true;
+{ config, lib, pkgs, ... }:
+let
+  cfg = config.dotfiles.nvim;
 
-    extraLuaConfig = ''
-      -- Bootstrap lazy.nvim
-      local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-      if not (vim.uv or vim.loop).fs_stat(lazypath) then
-        local lazyrepo = "https://github.com/folke/lazy.nvim.git"
-        local out = vim.fn.system({ "git", "clone", "--filter=blob:none", "--branch=stable", lazyrepo, lazypath })
-        if vim.v.shell_error ~= 0 then
-          vim.api.nvim_echo({
-            { "Failed to clone lazy.nvim:\n", "ErrorMsg" },
-            { out, "WarningMsg" },
-            { "\nPress any key to exit..." },
-          }, true, {})
-          vim.fn.getchar()
-          os.exit(1)
+  # LazyVim extras that turn it into an IDE (C/C++, CMake, Java, debugger,
+  # tests). Off on the Pi, where only the editor is wanted.
+  ideExtras = lib.optionals cfg.ide [
+    "lang.clangd"
+    "lang.cmake"
+    "lang.java"
+    "dap.core"
+    "test.core"
+  ];
+  extras = [ "editor.neo-tree" ] ++ ideExtras;
+  importExtras = lib.concatMapStrings (e: ''
+        { import = "lazyvim.plugins.extras.${e}" },
+  '') extras;
+in {
+  options.dotfiles.nvim.ide = lib.mkOption {
+    type = lib.types.bool;
+    default = true;
+    description = "C/C++ and Java tooling (LSPs, debugger, tests) in Neovim.";
+  };
+
+  config = {
+    programs.neovim = {
+      enable = true;
+      defaultEditor = true;
+      vimAlias = true;
+
+      # On Neovim's PATH only. LazyVim's tools: pickers (ripgrep, fd), git,
+      # lazygit, and what Mason and nvim-treesitter need to build and unpack.
+      # clangd and jdtls come from Nix rather than Mason: Mason's clangd doesn't
+      # find the system headers on NixOS (the nixpkgs wrapper does), and Mason
+      # installs a jdtls snapshot that already needs Java 25. The Java debug
+      # adapter and test runner are plain jars, so Mason installs those, and
+      # codelldb too (NixOS runs it through nix-ld, see hosts/desktop).
+      extraPackages = with pkgs; [
+        ripgrep
+        fd
+        git
+        lazygit
+        gcc
+        gnumake
+        tree-sitter
+        unzip
+        curl
+        wget
+        python3
+        nodejs_22
+      ] ++ lib.optionals cfg.ide [
+        clang-tools
+        jdt-language-server
+        cmake
+        jdk21
+        maven
+        gradle
+      ];
+
+      extraLuaConfig = ''
+        require("config.lazy")
+      '';
+    };
+
+    xdg.configFile = {
+      "nvim/lua/config/lazy.lua".text = ''
+        -- Bootstrap lazy.nvim, then load LazyVim with its extras and the
+        -- overrides in lua/plugins.
+        local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+        if not (vim.uv or vim.loop).fs_stat(lazypath) then
+          local out = vim.fn.system({ "git", "clone", "--filter=blob:none", "--branch=stable",
+            "https://github.com/folke/lazy.nvim.git", lazypath })
+          if vim.v.shell_error ~= 0 then
+            vim.api.nvim_echo({ { "Failed to clone lazy.nvim:\n", "ErrorMsg" }, { out, "WarningMsg" } }, true, {})
+            vim.fn.getchar()
+            os.exit(1)
+          end
         end
-      end
-      vim.opt.rtp:prepend(lazypath)
+        vim.opt.rtp:prepend(lazypath)
 
-      require("lazy").setup({
-        spec = {
-          { "EdenEast/nightfox.nvim", lazy = false, priority = 1000 },
-          { "nvim-lua/plenary.nvim" },
-          { "nvim-tree/nvim-web-devicons" },
+        require("lazy").setup({
+          spec = {
+            { "LazyVim/LazyVim", import = "lazyvim.plugins", opts = { colorscheme = "carbonfox" } },
+        ${importExtras}    { import = "plugins" },
+          },
+          defaults = { lazy = false, version = false },
+          install = { colorscheme = { "carbonfox", "habamax" } },
+          checker = { enabled = true, notify = false },
+          rocks = { enabled = false },
+          performance = {
+            rtp = {
+              disabled_plugins = { "gzip", "tarPlugin", "tohtml", "tutor", "zipPlugin" },
+            },
+          },
+        })
+      '';
+
+      "nvim/lua/config/options.lua".text = ''
+        vim.opt.tabstop = 2
+        vim.opt.shiftwidth = 2
+        vim.opt.relativenumber = true
+        vim.opt.mouse = "a"
+        vim.opt.clipboard = "unnamedplus"
+      '';
+
+      # VS Code's shortcuts on top of LazyVim's (Space is the leader; press it
+      # and which-key lists everything).
+      "nvim/lua/config/keymaps.lua".text = ''
+        local map = vim.keymap.set
+
+        map({ "n", "i", "v" }, "<C-p>", function() Snacks.picker.files() end, { desc = "Go to file" })
+        map({ "n", "i", "v" }, "<C-S-p>", function() Snacks.picker.commands() end, { desc = "Command palette" })
+        map({ "n", "i", "v" }, "<C-S-f>", function() Snacks.picker.grep() end, { desc = "Search in files" })
+        map({ "n", "i", "v" }, "<C-b>", "<cmd>Neotree toggle<cr>", { desc = "Explorer" })
+        map({ "n", "i", "t" }, "<C-`>", function() Snacks.terminal() end, { desc = "Terminal" })
+        map("n", "<C-Tab>", "<cmd>bnext<cr>", { desc = "Next tab" })
+        map("n", "<C-S-Tab>", "<cmd>bprevious<cr>", { desc = "Previous tab" })
+
+        -- Ctrl+/ comments, as in VS Code (LazyVim puts the terminal there;
+        -- terminals send it as Ctrl+_).
+        for _, key in ipairs({ "<C-/>", "<C-_>" }) do
+          pcall(vim.keymap.del, { "n", "t" }, key)
+          map("n", key, "gcc", { remap = true, desc = "Toggle comment" })
+          map("v", key, "gc", { remap = true, desc = "Toggle comment" })
+          map("i", key, "<C-o>gcc", { remap = true, desc = "Toggle comment" })
+        end
+
+        -- Move lines with Alt+arrows (LazyVim already has Alt+j/k).
+        map({ "n", "i", "v" }, "<A-Up>", "<A-k>", { remap = true, desc = "Move up" })
+        map({ "n", "i", "v" }, "<A-Down>", "<A-j>", { remap = true, desc = "Move down" })
+
+        -- Code
+        map("n", "<F12>", function() Snacks.picker.lsp_definitions() end, { desc = "Go to definition" })
+        map("n", "<S-F12>", function() Snacks.picker.lsp_references() end, { desc = "Go to references" })
+        map("n", "<F2>", vim.lsp.buf.rename, { desc = "Rename symbol" })
+        map({ "n", "i", "v" }, "<C-.>", vim.lsp.buf.code_action, { desc = "Quick fix" })
+      '' + lib.optionalString cfg.ide ''
+
+        -- Debugging
+        map("n", "<F5>", function() require("dap").continue() end, { desc = "Start / continue debugging" })
+        map("n", "<S-F5>", function() require("dap").terminate() end, { desc = "Stop debugging" })
+        map("n", "<F9>", function() require("dap").toggle_breakpoint() end, { desc = "Toggle breakpoint" })
+        map("n", "<F10>", function() require("dap").step_over() end, { desc = "Step over" })
+        map("n", "<F11>", function() require("dap").step_into() end, { desc = "Step into" })
+        map("n", "<S-F11>", function() require("dap").step_out() end, { desc = "Step out" })
+      '';
+
+      # Carbonfox, monochrome, on kitty's glass (transparent background).
+      "nvim/lua/plugins/theme.lua".text = ''
+        return {
+          {
+            "EdenEast/nightfox.nvim",
+            lazy = false,
+            priority = 1000,
+            opts = {
+              options = {
+                transparent = true,
+                styles = { sidebars = "transparent", floats = "transparent" },
+              },
+            },
+          },
+        }
+      '';
+
+      # The explorer opens files with a single click, like VS Code's.
+      "nvim/lua/plugins/explorer.lua".text = ''
+        return {
           {
             "nvim-neo-tree/neo-tree.nvim",
-            dependencies = {
-              "nvim-lua/plenary.nvim",
-              "nvim-tree/nvim-web-devicons",
-              "MunifTanjim/nui.nvim",
-            },
-            cmd = "Neotree",
-          },
-          { "nvim-lualine/lualine.nvim", dependencies = { "nvim-tree/nvim-web-devicons" } },
-          { "akinsho/bufferline.nvim", dependencies = { "nvim-tree/nvim-web-devicons" } },
-          { "folke/which-key.nvim", lazy = false, priority = 500 },
-          { "nvim-telescope/telescope.nvim", dependencies = { "nvim-lua/plenary.nvim" } },
-          { "lewis6991/gitsigns.nvim" },
-          { "neovim/nvim-lspconfig" },
-        },
-        defaults = {
-          lazy = false,
-          version = false,
-        },
-        install = { colorscheme = { "carbonfox" } },
-        checker = { enabled = true, notify = false },
-        performance = {
-          rtp = {
-            disabled_plugins = {
-              "gzip",
-              "tarPlugin",
-              "tohtml",
-              "tutor",
-              "zipPlugin",
+            opts = {
+              window = { mappings = { ["<LeftRelease>"] = "open" } },
+              filesystem = {
+                filtered_items = { hide_dotfiles = false, hide_gitignored = false },
+              },
             },
           },
-        },
-      })
-
-      -- Transparent background
-      vim.cmd([[highlight Normal ctermbg=NONE guibg=NONE]])
-      vim.cmd([[highlight NonText ctermbg=NONE guibg=NONE]])
-      vim.cmd([[highlight NormalFloat ctermbg=NONE guibg=NONE]])
-      vim.cmd([[highlight LineNr ctermbg=NONE guibg=NONE]])
-      vim.cmd([[highlight SignColumn ctermbg=NONE guibg=NONE]])
-      vim.cmd([[highlight! NeoTreeNormal ctermbg=NONE guibg=NONE]])
-      vim.cmd([[highlight! NeoTreeNormalNC ctermbg=NONE guibg=NONE]])
-      vim.cmd([[highlight! NeoTreeEndOfBuffer ctermbg=NONE guibg=NONE]])
-
-      -- Carbonfox (monochrome)
-      require("nightfox").setup({
-        options = {
-          transparent = true,
-          styles = {
-            sidebars = "transparent",
-            floats = "transparent",
+        }
+      '';
+    } // lib.optionalAttrs cfg.ide {
+      # clangd and jdtls from Nix (see extraPackages), so Mason doesn't install
+      # its own. LazyVim only adds Lombok to jdtls from Mason's copy, so the
+      # command line is set here with nixpkgs' jar.
+      "nvim/lua/plugins/nix.lua".text = ''
+        return {
+          {
+            "neovim/nvim-lspconfig",
+            opts = { servers = { clangd = { mason = false }, jdtls = { mason = false } } },
           },
-        },
-      })
-      vim.cmd([[colorscheme carbonfox]])
-
-      -- General options
-      vim.opt.number = true
-      vim.opt.relativenumber = true
-      vim.opt.tabstop = 2
-      vim.opt.shiftwidth = 2
-      vim.opt.expandtab = true
-      vim.opt.mouse = "a"
-      vim.opt.termguicolors = true
-      vim.opt.clipboard = "unnamedplus"
-      vim.opt.ignorecase = true
-      vim.opt.smartcase = true
-      vim.opt.splitright = true
-      vim.opt.splitbelow = true
-      vim.opt.hidden = true
-      vim.opt.updatetime = 300
-      vim.opt.timeoutlen = 500
-
-      vim.g.mapleader = " "
-
-      -- Which-key
-      require("which-key").setup({})
-
-      -- Neo-tree
-      local use_file_watcher = true
-      if vim.fn.has("mac") == 1 then
-        use_file_watcher = false
-      end
-      require("neo-tree").setup({
-        close_if_last_window = true,
-        window = {
-          position = "left",
-          width = 35,
-          mappings = {
-            ["<space>"] = "toggle_node",
-            ["<cr>"] = "open",
-            ["<esc>"] = "revert_preview",
-            ["P"] = { "toggle_preview", config = { use_float = true } },
-            ["l"] = "focus_preview",
-            ["S"] = "open_split",
-            ["s"] = "open_vsplit",
-            ["t"] = "open_tabnew",
-            ["w"] = "open_with_window_picker",
-            ["C"] = "close_node",
-            ["z"] = "close_all_nodes",
-            ["R"] = "refresh",
-            ["a"] = "add",
-            ["d"] = "delete",
-            ["r"] = "rename",
-            ["y"] = "copy_to_clipboard",
-            ["x"] = "cut_to_clipboard",
-            ["p"] = "paste_from_clipboard",
-            ["c"] = "copy",
-            ["m"] = "move",
-            ["q"] = "close_window",
+          {
+            "mfussenegger/nvim-jdtls",
+            opts = function(_, opts)
+              opts.cmd = {
+                vim.fn.exepath("jdtls"),
+                "--jvm-arg=-javaagent:${pkgs.lombok}/share/java/lombok.jar",
+              }
+              return opts
+            end,
           },
-        },
-        filesystem = {
-          filtered_items = {
-            visible = false,
-            hide_dotfiles = false,
-            hide_gitignored = false,
-            hide_by_name = {
-              ".DS_Store",
-              "thumbs.db",
-              "node_modules",
-            },
-          },
-          follow_current_file = { enabled = true },
-          use_libuv_file_watcher = use_file_watcher,
-        },
-        buffers = { follow_current_file = { enabled = true } },
-        git_status = { window = { position = "float" } },
-        default_component_configs = {
-          icon = {
-            folder_closed = "\u{f115}",
-            folder_open = "\u{f114}",
-            folder_empty = "\u{f114}",
-            default = "\u{f016}",
-          },
-          indent = { padding = 1, with_markers = true },
-        },
-      })
-
-      -- Lualine
-      require("lualine").setup({
-        options = {
-          theme = "nightfox",
-          component_separators = { left = "", right = "" },
-          section_separators = { left = "", right = "" },
-          disabled_filetypes = { "neo-tree", "TelescopePrompt" },
-          always_divide_middle = true,
-        },
-        sections = {
-          lualine_a = { "mode" },
-          lualine_b = { "branch", "diff", "diagnostics" },
-          lualine_c = { { "filename", path = 1 } },
-          lualine_x = { "encoding", "fileformat", "filetype" },
-          lualine_y = { "progress" },
-          lualine_z = { "location" },
-        },
-      })
-
-      -- Bufferline
-      require("bufferline").setup({
-        options = {
-          numbers = "none",
-          close_command = "bdelete! %d",
-          right_mouse_command = "bdelete! %d",
-          indicator = { style = "underline" },
-          buffer_close_icon = "",
-          modified_icon = "●",
-          left_trunc_marker = "",
-          right_trunc_marker = "",
-          max_name_length = 18,
-          max_prefix_length = 15,
-          tab_size = 18,
-          show_buffer_close_icons = true,
-          get_element_icon = function(element)
-            local icon, color = require("nvim-web-devicons").get_icon(element.path, element.extension, { default = false })
-            if icon then return icon, color end
-            return "", nil
-          end,
-          diagnostics = "nvim_lsp",
-          diagnostics_indicator = function(count)
-            return "(" .. count .. ")"
-          end,
-          offsets = {
-            {
-              filetype = "neo-tree",
-              text = "󰙅  Explorer",
-              highlight = "Directory",
-              text_align = "left",
-            },
-          },
-          separator_style = "thin",
-          always_show_bufferline = true,
-          sort_by = "insert_at_end",
-        },
-      })
-
-      -- Telescope
-      require("telescope").setup({
-        defaults = {
-          prompt_prefix = "   ",
-          selection_caret = "  ",
-          layout_strategy = "horizontal",
-          layout_config = {
-            horizontal = { prompt_position = "top", preview_width = 0.5 },
-            vertical = { mirror = false },
-            width = 0.85,
-            height = 0.80,
-          },
-          file_ignore_patterns = { "node_modules", ".git" },
-        },
-        pickers = {
-          find_files = { hidden = true },
-          live_grep = { additional_args = { "--hidden" } },
-        },
-      })
-
-      -- Gitsigns
-      require("gitsigns").setup({
-        signs = {
-          add = { text = "│" },
-          change = { text = "│" },
-          delete = { text = "_" },
-          topdelete = { text = "‾" },
-          changedelete = { text = "~" },
-          untracked = { text = "┆" },
-        },
-        current_line_blame = true,
-        current_line_blame_opts = { delay = 500 },
-      })
-
-      -- Keymaps
-      local keymap = vim.keymap.set
-      local opts = { noremap = true, silent = true }
-
-      keymap("n", "<C-h>", "<C-w>h", opts)
-      keymap("n", "<C-j>", "<C-w>j", opts)
-      keymap("n", "<C-k>", "<C-w>k", opts)
-      keymap("n", "<C-l>", "<C-w>l", opts)
-
-      keymap("n", "<leader>e", ":Neotree toggle<CR>", opts)
-
-      keymap("n", "<leader>ff", "<cmd>Telescope find_files<CR>", opts)
-      keymap("n", "<leader>fg", "<cmd>Telescope live_grep<CR>", opts)
-      keymap("n", "<leader>fb", "<cmd>Telescope buffers<CR>", opts)
-      keymap("n", "<leader>fh", "<cmd>Telescope help_tags<CR>", opts)
-
-      keymap("n", "<Tab>", ":bnext<CR>", opts)
-      keymap("n", "<S-Tab>", ":bprevious<CR>", opts)
-      keymap("n", "<leader>x", ":bdelete<CR>", opts)
-    '';
+        }
+      '';
+    };
   };
 }

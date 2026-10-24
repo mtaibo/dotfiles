@@ -11,6 +11,8 @@
     };
     # Stylix maps bright black (what eza, ls and the starship branch use for
     # greys) to base02, almost the background; the muted-text grey reads.
-    extraConfig = lib.mkAfter "color8 ${config.lib.stylix.colors.withHashtag.base03}";
+    extraConfig = lib.mkAfter (''
+      color8 ${config.lib.stylix.colors.withHashtag.base03}
+    '' + builtins.readFile ../../../assets/kitty/unmap.conf);
   };
 }

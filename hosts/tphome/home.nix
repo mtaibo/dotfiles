@@ -21,6 +21,9 @@
 
   programs.gh.enable = true;
 
+  # Neovim as an editor only: no C/C++ or Java tooling on the Pi.
+  dotfiles.nvim.ide = false;
+
   # fastfetch shows a white Raspberry Pi logo instead of the NixOS snowflake,
   # drawn from the Nerd Font glyph so it matches the snowflake's style.
   programs.fastfetch.settings.logo.source = lib.mkForce (pkgs.runCommand "raspberry-pi-logo.png"
