@@ -208,7 +208,7 @@ Saving a `.c` or `.h` file runs `code-style c` (`assets/nvim/code-style.py`, the
 
 ## Java
 
-jdtls takes a few seconds to index a project the first time; Maven and Gradle projects are picked up from `pom.xml` / `build.gradle`.
+jdtls takes a few seconds to index a project the first time; Maven and Gradle projects are picked up from `pom.xml` / `build.gradle`. It rebuilds the project on every save (so errors in other files stay up to date) without showing its *Building* progress; the messages while it starts still show.
 
 | Keys | Action |
 |---|---|

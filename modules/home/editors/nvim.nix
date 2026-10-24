@@ -576,6 +576,29 @@ in {
               },
             },
           },
+          -- jdtls rebuilds the project on every save (for cross-file errors);
+          -- its progress messages for that are hidden. The ones while it
+          -- starts (importing, indexing) still show.
+          {
+            "folke/noice.nvim",
+            opts = function(_, opts)
+              opts.routes = opts.routes or {}
+              table.insert(opts.routes, {
+                filter = {
+                  event = "lsp",
+                  kind = "progress",
+                  cond = function(message)
+                    local p = message.opts.progress or {}
+                    local title = (p.title or "") .. " " .. (p.message or "")
+                    return p.client == "jdtls"
+                      and (title:find("Building") or title:find("Validate documents")
+                        or title:find("Publish Diagnostics")) ~= nil
+                  end,
+                },
+                opts = { skip = true },
+              })
+            end,
+          },
           {
             "mfussenegger/nvim-jdtls",
             opts = function(_, opts)
