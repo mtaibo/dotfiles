@@ -132,6 +132,11 @@ def outer(code):
     return "".join(out)
 
 
+def code_lines(u):
+    """Lines of code, not counting a wrapped trailing comment."""
+    return len(u.code.split("\n"))
+
+
 def is_typedef(u):
     return u.kind == "code" and re.match(r"\s*typedef\b", u.code)
 
@@ -204,14 +209,14 @@ def sort_types(singles, multis):
     placed, left = [], sorted(down, key=lambda u: order[id(u)])
     while left:
         ready = [u for u in left if not deps(u, left)] or left[:1]
-        pick = max(ready, key=lambda u: (len(u.lines), -order[id(u)]))
+        pick = max(ready, key=lambda u: (code_lines(u), -order[id(u)]))
         placed.append(pick)
         left.remove(pick)
     return top, placed
 
 
 def is_one_line_function(u):
-    return is_function(u) and len(u.lines) == 1
+    return is_function(u) and code_lines(u) == 1
 
 
 def lines_of(u):
@@ -224,6 +229,11 @@ def format_c(text):
     # Comments directly above a unit travel with it.
     merged = []
     for u in units:
+        # The aligned rest of a wrapped trailing comment stays with its line.
+        if u.kind == "comment" and u.lines[0].startswith(" ") and merged \
+                and merged[-1].kind != "blank":
+            merged[-1].lines += u.lines
+            continue
         if u.kind != "blank" and u.kind != "comment" and merged \
                 and merged[-1].kind == "comment":
             u.comments = [merged.pop()]
@@ -268,7 +278,7 @@ def format_c(text):
                 defines.append(u)
             else:
                 rest.append((u, blank))
-        elif hoist and is_typedef(u) and len(u.lines) == 1:
+        elif hoist and is_typedef(u) and code_lines(u) == 1:
             singles.append(u)
         elif hoist and (is_typedef(u) or is_record(u)):
             multis.append(u)

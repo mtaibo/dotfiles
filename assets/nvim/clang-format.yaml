@@ -26,3 +26,6 @@ SpaceBeforeParensOptions:
 # Wrapped lines go two spaces further in, not under the opening bracket.
 AlignAfterOpenBracket: DontAlign
 ContinuationIndentWidth: 2
+# A trailing comment past column 80 is wrapped onto aligned // lines rather
+# than the code being split.
+PenaltyBreakComment: 10
