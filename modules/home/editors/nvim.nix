@@ -18,7 +18,9 @@ let
 
   # Markdown preview like VS Code's: an HTML page, live, scroll-synced
   # (markdown-preview.nvim), styled with the rice's colours.
-  c = config.lib.stylix.colors.withHashtag;
+  # Stylix only runs on the desktop; elsewhere use the same palette directly.
+  c = config.lib.stylix.colors.withHashtag
+    or (lib.mapAttrs (_: v: "#${v}") (import ../../palette.nix));
   previewCss = pkgs.writeText "markdown-preview.css" ''
     html, body, #page-ctn, .markdown-body {
       background: ${c.base00} !important;
