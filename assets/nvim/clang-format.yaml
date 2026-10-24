@@ -23,3 +23,6 @@ SpaceBeforeParensOptions:
   AfterIfMacros: true
   AfterFunctionDeclarationName: true
   AfterFunctionDefinitionName: true
+# Wrapped lines go two spaces further in, not under the opening bracket.
+AlignAfterOpenBracket: DontAlign
+ContinuationIndentWidth: 2

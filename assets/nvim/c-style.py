@@ -7,6 +7,9 @@ express. Reads the file on stdin, writes it to stdout.
   `if (x) { printf("..."); return 1; }`, stay on one line (clang-format always
   splits them): their bodies are swapped for a placeholder of the same length
   while clang-format runs.
+- A call, prototype or function header that doesn't fit in 80 columns keeps
+  its first argument on the first line and packs the rest together below,
+  two spaces further in (clang-format fills the first line instead).
 - Includes, #defines and typedefs are hoisted to the top of the file (not out
   of #if blocks), each group a blank line apart:
   - system includes, then a blank line and the project's ("..."), each from
@@ -405,6 +408,86 @@ def restore(text, bodies):
     return "\n".join(out)
 
 
+LIMIT = 80
+CALL = re.compile(r"(?P<prefix>[^()]*?)(?P<name>[A-Za-z_][\w.]*(?:->[\w.]+)*)"
+                  r"(?P<space> ?)\((?P<args>.*)\)(?P<end>;| \{)$")
+
+
+def split_args(args):
+    """Top-level comma-separated arguments, or None if they can't be split."""
+    masked, out, depth, start = mask(args), [], 0, 0
+    for i, c in enumerate(masked):
+        if c in "([{":
+            depth += 1
+        elif c in ")]}":
+            depth -= 1
+            if depth < 0:
+                return None
+        elif c == "," and depth == 0:
+            out.append(args[start:i].strip())
+            start = i + 1
+    out.append(args[start:].strip())
+    return out if depth == 0 and all(out) else None
+
+
+def pack(indent, joined):
+    """The statement laid out as described above, or None to leave it."""
+    m = CALL.match(joined)
+    if not m or m.group("name") in ("if", "for", "while", "switch", "return"):
+        return None
+    args = split_args(m.group("args"))
+    if not args or len(args) < 2:
+        return None
+    head = indent + m.group("prefix") + m.group("name") + m.group("space") + "("
+    tail = ")" + m.group("end")
+    if len(head + args[0] + ",") <= LIMIT:
+        lines, rest = [head + args[0] + ","], args[1:]
+    elif len(head) <= LIMIT:
+        lines, rest = [head], args
+    else:
+        return None
+    cont, line = indent + "  ", None
+    for n, arg in enumerate(rest):
+        end = tail if n == len(rest) - 1 else ","
+        if line is not None and len(line + " " + arg + end) <= LIMIT:
+            line += " " + arg + end
+            continue
+        if line is not None:
+            lines.append(line)
+        line = cont + arg + end
+        if len(line) > LIMIT:
+            return None
+    lines.append(line)
+    return lines
+
+
+def repack_calls(text):
+    lines, out, i = text.split("\n"), [], 0
+    while i < len(lines):
+        first = mask(lines[i]).rstrip()
+        j = i
+        if first.strip() and not first.lstrip().startswith(("#", "//", "/*")) \
+                and first.endswith((",", "(", "=")):
+            indent = lines[i][:len(lines[i]) - len(lines[i].lstrip())]
+            while j + 1 < len(lines) and lines[j + 1].startswith(indent + " ") \
+                    and not mask(lines[j]).rstrip().endswith((";", "{")):
+                j += 1
+        if j > i and mask(lines[j]).rstrip().endswith((";", "{")):
+            joined = ""
+            for l in lines[i:j + 1]:
+                sep = "" if not joined or joined.endswith("(") else " "
+                joined += sep + l.strip()
+            packed = pack(lines[i][:len(lines[i]) - len(lines[i].lstrip())],
+                          joined.strip())
+            if packed:
+                out += packed
+                i = j + 1
+                continue
+        out += lines[i:j + 1]
+        i = j + 1
+    return "\n".join(out)
+
+
 def main():
     clang_format, style_file = sys.argv[1], sys.argv[2]
     text, bodies = protect(sys.stdin.read())
@@ -415,7 +498,7 @@ def main():
         lambda m: ("_cs" + m.group(1)).ljust(
             len(" ".join(bodies[int(m.group(1))])) - 1, "_") + ";", text)
     text = run(clang_format, "file:" + style_file, text)
-    sys.stdout.write(format_c(restore(text, bodies)))
+    sys.stdout.write(format_c(repack_calls(restore(text, bodies))))
 
 
 if __name__ == "__main__":
