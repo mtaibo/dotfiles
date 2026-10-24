@@ -94,7 +94,7 @@ let
     '';
   };
 in {
-  home.packages = [ pkgs.eww popup ];
+  home.packages = [ pkgs.eww popup info ];
 
   xdg.configFile."eww/eww.yuck".text = ''
     (defvar media_open false)

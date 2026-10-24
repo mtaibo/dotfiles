@@ -29,6 +29,27 @@ let
     '';
   };
 
+  # The player island: title and artist (40 characters at most) with a note,
+  # or a pause icon when paused; nothing (so the island hides) when nothing
+  # plays. `media-info` comes from eww.nix.
+  media = pkgs.writeShellApplication {
+    name = "waybar-media";
+    runtimeInputs = [ pkgs.jq ];
+    text = ''
+      media-info | jq -c '
+        def esc: gsub("&"; "&amp;") | gsub("<"; "&lt;") | gsub(">"; "&gt;");
+        if .status == "None" or .title == "" then {text: ""} else
+          (.title + (if .artist != "" then " - " + .artist else "" end)) as $full
+          | ($full | if length > 40 then .[0:39] + "…" else . end) as $short
+          | {
+              text: ((if .status == "Playing" then "󰝚" else "󰏤" end) + "  " + ($short | esc)),
+              tooltip: ($full | esc),
+              class: (.status | ascii_downcase)
+            }
+        end'
+    '';
+  };
+
   # Always date and time, capitalised the way I write it ("Sábado, 24 de
   # Octubre 09:19"); waybar's clock can only give lowercase Spanish names.
   # The tooltip is the month's calendar.
@@ -46,7 +67,7 @@ let
 in {
   home.packages = [ pkgs.nerd-fonts.jetbrains-mono pkgs.pavucontrol pkgs.playerctl ];
 
-  # waybar's mpris module and `playerctl` follow the player in use through it.
+  # `playerctl` follows the player in use through it.
   services.playerctld.enable = true;
 
   # The colours come from the wallpaper (matugen, see wallpaper.nix). Until
@@ -89,7 +110,7 @@ in {
       spacing = 0;
       fixed-center = true;
 
-      modules-left = [ "custom/clock" "mpris" ];
+      modules-left = [ "custom/clock" "custom/media" ];
       modules-center = [ "hyprland/workspaces" ];
       modules-right = [ "group/connection" "custom/notifications" "group/audio" ];
 
@@ -99,15 +120,13 @@ in {
         interval = 5;
       };
 
-      # What's playing (hidden when nothing is); a click opens the popup (eww.nix).
-      mpris = {
-        format = "{player_icon}  {dynamic}";
-        format-paused = "{status_icon}  {dynamic}";
-        dynamic-order = [ "title" "artist" ];
-        dynamic-len = 40;
-        player-icons.default = "󰝚";
-        status-icons.paused = "󰏤";
-        tooltip-format = "{player}: {title} · {artist}";
+      # What's playing (hidden when nothing is); a click opens the popup. It reads
+      # the popup's `media-info` (eww.nix) rather than waybar's mpris module,
+      # because Cider's MPRIS metadata goes empty after skipping a song.
+      "custom/media" = {
+        exec = "${media}/bin/waybar-media";
+        return-type = "json";
+        interval = 2;
         on-click = "media-popup";
         on-click-middle = "playerctl play-pause";
         on-click-right = "playerctl next";
@@ -218,7 +237,7 @@ in {
       #workspaces,
       #custom-notifications,
       #audio,
-      #mpris {
+      #custom-media {
         background: alpha(@island, 0.75);
         border-radius: ${toString radius}px;
         padding: 12px 20px;
@@ -286,7 +305,7 @@ in {
         color: @muted;
       }
 
-      #mpris.paused {
+      #custom-media.paused {
         color: @muted;
       }
 
