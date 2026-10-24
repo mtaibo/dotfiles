@@ -100,6 +100,9 @@ in {
     (defvar media_open false)
     (defpoll media :interval "1s" :run-while media_open :initial "{}"
       "${info}/bin/media-info")
+    ; es or en, the system language (language.nix).
+    (defpoll lang :interval "2s" :run-while media_open :initial "es"
+      "[ \"$(cat \"$XDG_RUNTIME_DIR/system-language\" 2>/dev/null)\" = en ] && echo en || echo es")
 
     (defwindow media
       :monitor 0
@@ -129,7 +132,7 @@ in {
             :style "''${media.art == "" ? "" : "background-image: url('" + media.art + "');"}"
             (label :class "art-icon" :visible {media.art == ""} :text "󰝚"))
           (box :orientation "v" :space-evenly false :spacing 2 :valign "center" :hexpand true
-            (label :class "title" :xalign 0 :text {media.status == "None" ? "Nada sonando" : media.title}
+            (label :class "title" :xalign 0 :text {media.status == "None" ? (lang == "en" ? "Nothing playing" : "Nada sonando") : media.title}
               :limit-width 28 :show-truncated true)
             (label :class "artist" :xalign 0 :text {media.artist ?: ""} :limit-width 32
               :show-truncated true :visible {(media.artist ?: "") != ""})

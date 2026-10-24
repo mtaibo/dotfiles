@@ -7,6 +7,7 @@
     ./hyprland.nix
     ./hyprlock.nix
     ./kitty.nix
+    ./language.nix
     ./vicinae.nix
     ./wallpaper.nix
     ./waybar.nix

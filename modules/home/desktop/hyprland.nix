@@ -24,7 +24,7 @@
         "SUPER, C, Cerrar la ventana, killactive,"
         "SUPER SHIFT, F, Pantalla completa, fullscreen,"
         "SUPER, V, Ventana flotante o en mosaico, togglefloating,"
-        "SUPER, L, Bloquear la pantalla, exec, hyprlock"
+        "SUPER, L, Bloquear la pantalla, exec, lock-screen"
         "SUPER, M, Salir de Hyprland, exec, hyprctl dispatch exit"
 
         ", Print, Captura de una zona al portapapeles, exec, grim -g \"$(slurp)\" - | wl-copy"
@@ -112,9 +112,45 @@
       };
 
       input = {
-        kb_layout = "es,us";
+        # Spanish; system-language (language.nix) switches it to "us" and back.
+        kb_layout = "es";
         follow_mouse = 1;
       };
     };
   };
+
+  # SUPER+H shows these when the system language is English (language.nix).
+  dotfiles.english = {
+    "Lanzador de aplicaciones" = "App launcher";
+    "Terminal" = "Terminal";
+    "Firefox" = "Firefox";
+    "Claude" = "Claude";
+    "Cerrar la ventana" = "Close the window";
+    "Pantalla completa" = "Fullscreen";
+    "Ventana flotante o en mosaico" = "Floating or tiled window";
+    "Bloquear la pantalla" = "Lock the screen";
+    "Salir de Hyprland" = "Quit Hyprland";
+    "Captura de una zona al portapapeles" = "Screenshot of an area to the clipboard";
+    "Subir el volumen" = "Volume up";
+    "Bajar el volumen" = "Volume down";
+    "Silenciar" = "Mute";
+    "Reproducir o pausar la música" = "Play or pause the music";
+    "Siguiente canción" = "Next song";
+    "Canción anterior" = "Previous song";
+    "Foco a la izquierda" = "Focus left";
+    "Foco abajo" = "Focus down";
+    "Foco arriba" = "Focus up";
+    "Foco a la derecha" = "Focus right";
+    "Estrechar la ventana" = "Make the window narrower";
+    "Alargar la ventana" = "Make the window taller";
+    "Acortar la ventana" = "Make the window shorter";
+    "Ensanchar la ventana" = "Make the window wider";
+    "Mover la ventana a la izquierda" = "Move the window left";
+    "Mover la ventana abajo" = "Move the window down";
+    "Mover la ventana arriba" = "Move the window up";
+    "Mover la ventana a la derecha" = "Move the window right";
+  } // lib.listToAttrs (lib.concatMap (n: [
+    (lib.nameValuePair "Ir al escritorio ${n}" "Go to workspace ${n}")
+    (lib.nameValuePair "Mandar la ventana al escritorio ${n}" "Send the window to workspace ${n}")
+  ]) (map toString (lib.range 1 9)));
 }

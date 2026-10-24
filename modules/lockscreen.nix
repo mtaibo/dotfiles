@@ -56,4 +56,12 @@
   };
 
   fadeMs = 400;
+
+  # hyprlock in English, when the system language is (language.nix); the
+  # login screen comes before any session and stays in Spanish.
+  english = {
+    strftime = "%A, %B %e";
+    placeholder = "Password";
+    failText = "Wrong password";
+  };
 }

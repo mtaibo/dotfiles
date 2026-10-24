@@ -14,17 +14,22 @@ let
     name = "waybar-notifications";
     runtimeInputs = [ pkgs.dunst ];
     text = ''
+      en=$([ "$(cat "$XDG_RUNTIME_DIR/system-language" 2>/dev/null)" = en ] && echo 1 || true)
       if [ "$(dunstctl is-paused)" = true ]; then
         n=$(dunstctl count waiting)
         state=dnd
-        tip="No molestar · $n pendientes"
+        tip=$([ -n "$en" ] && echo "Do not disturb · $n waiting" || echo "No molestar · $n pendientes")
       else
         n=$(dunstctl count history)
         state=$([ "$n" -gt 0 ] && echo notification || echo none)
-        tip="$n notificaciones recientes"
+        tip=$([ -n "$en" ] && echo "$n recent notifications" || echo "$n notificaciones recientes")
       fi
       if [ "$n" -gt 0 ]; then n="$n "; else n=""; fi
-      tip="$tip\nClic: no molestar · Derecho: mostrar la última · Central: borrar"
+      if [ -n "$en" ]; then
+        tip="$tip\nClick: do not disturb · Right: show the last one · Middle: clear"
+      else
+        tip="$tip\nClic: no molestar · Derecho: mostrar la última · Central: borrar"
+      fi
       printf '{"text":"%s","alt":"%s","class":"%s","tooltip":"%s"}\n' "$n" "$state" "$state" "$tip"
     '';
   };
@@ -51,14 +56,19 @@ let
   };
 
   # Always date and time, capitalised the way I write it ("Sábado, 24 de
-  # Octubre 09:19"); waybar's clock can only give lowercase Spanish names.
-  # The tooltip is the month's calendar.
+  # Octubre 09:19", or "Saturday, October 24 09:19" in English); waybar's clock
+  # can only give lowercase Spanish names. The tooltip is the month's calendar.
   clock = pkgs.writeShellApplication {
     name = "waybar-clock";
     runtimeInputs = with pkgs; [ coreutils gnused util-linux jq ];
     text = ''
-      export LC_TIME=es_ES.UTF-8
-      text=$(date "+%A, %-d de %B %H:%M" | sed "s/^./\\u&/; s/ de \\(.\\)/ de \\u\\1/")
+      if [ "$(cat "$XDG_RUNTIME_DIR/system-language" 2>/dev/null)" = en ]; then
+        export LC_TIME=en_US.UTF-8
+        text=$(date "+%A, %B %-d %H:%M")
+      else
+        export LC_TIME=es_ES.UTF-8
+        text=$(date "+%A, %-d de %B %H:%M" | sed "s/^./\\u&/; s/ de \\(.\\)/ de \\u\\1/")
+      fi
       cal=$(cal -m | sed "s/ *$//; 1s/^\\( *\\)\\(.\\)/\\1\\u\\2/")
       jq -cn --arg t "  $text" --arg c "<tt>$cal</tt>" '{text: $t, tooltip: $c}'
     '';
@@ -97,6 +107,7 @@ in {
   wayland.windowManager.hyprland.settings.bindd = [
     "SUPER, N, Mostrar u ocultar la barra, exec, pkill -USR1 -x .waybar-wrapped"
   ];
+  dotfiles.english."Mostrar u ocultar la barra" = "Show or hide the bar";
 
   programs.waybar = {
     enable = true;
@@ -113,12 +124,13 @@ in {
 
       modules-left = [ "custom/clock" "custom/media" ];
       modules-center = [ "hyprland/workspaces" ];
-      modules-right = [ "tray" "hyprland/language" "custom/notifications" "group/audio" ];
+      modules-right = [ "tray" "custom/language" "custom/notifications" "group/audio" ];
 
       "custom/clock" = {
         exec = "${clock}/bin/waybar-clock";
         return-type = "json";
         interval = 5;
+        signal = 8;
       };
 
       # What's playing (hidden when nothing is); a click opens the popup. It reads
@@ -139,11 +151,15 @@ in {
         spacing = 8;
       };
 
-      # Keyboard layout, ES or EN; a click switches to the other one.
-      "hyprland/language" = {
-        format-es = "ES";
-        format-en = "EN";
-        on-click = "hyprctl switchxkblayout all next";
+      # ES or EN, keyboard and system language together (language.nix); a
+      # click switches both. It shows that script's choice, not Hyprland's
+      # layout events, which come from whichever keyboard changed last.
+      "custom/language" = {
+        exec = "system-language status";
+        return-type = "json";
+        interval = "once";
+        signal = 9;
+        on-click = "system-language";
       };
 
       "hyprland/workspaces" = {
@@ -224,7 +240,7 @@ in {
       /* Islands: one dark, wallpaper-tinted pill per module. */
       #custom-clock,
       #tray,
-      #language,
+      #custom-language,
       #workspaces,
       #custom-notifications,
       #audio,

@@ -1,4 +1,4 @@
-{ pkgs, lib, ... }@args:
+{ config, pkgs, lib, ... }@args:
 let
   # Tree-style key: grey branch, blue icon + label padded to one width.
   # Greys are `{#90}`: fastfetch writes `bright_black` as bold + black (1;30),
@@ -20,6 +20,30 @@ let
       -font ${pkgs.nerd-fonts.symbols-only}/share/fonts/truetype/NerdFonts/Symbols/SymbolsNerdFont-Regular.ttf \
       label:$'\uf179' -trim -gravity center -extent 512x512 $out
   '';
+  # The rows, labels in Spanish or English (the English config is for when
+  # the desktop's system language is, see language.nix and shell.nix).
+  modules = lang: let t = es: en: if lang == "en" then en else es; in [
+    { type = "title"; format = "{#1}{user-name}{#}{#90}@{#}{#1}{host-name}"; }
+    "break"
+    (header (t "Sistema" "System"))
+    { type = "os"; key = mid osIcon "OS"; format = "{pretty-name}"; }
+    { type = "kernel"; key = mid "" "Kernel"; format = "{release}"; }
+    { type = "packages"; key = mid "󰏖" (t "Paquetes" "Packages"); format = "{all}"; }
+    { type = "wm"; key = mid "" (t "Ventanas" "WM"); format = "{pretty-name}"; }
+    { type = "terminal"; key = mid "" "Terminal"; format = "{pretty-name}"; }
+    { type = "shell"; key = mid "" "Shell"; format = "{pretty-name}"; }
+    { type = "uptime"; key = last "󰅐" (t "Encendido" "Uptime"); format = "{?days}{days}d {?}{hours}h {minutes}m"; }
+    "break"
+    (header "Hardware")
+    { type = "host"; key = mid "󰌢" (t "Equipo" "Machine"); }
+    { type = "cpu"; key = mid "" "CPU"; format = "{name}"; }
+    { type = "gpu"; key = mid "󰢮" "GPU"; format = "{name}"; hideType = "integrated"; }
+    # Display sits mid-list: on the headless Pi it prints nothing, and as the
+    # last row it took the closing branch with it.
+    { type = "display"; key = mid "󰍹" (t "Pantalla" "Display"); format = "{width}x{height} @ {refresh-rate} Hz"; }
+    { type = "memory"; key = mid "" (t "Memoria" "Memory"); format = "{used} / {total}"; }
+    { type = "disk"; key = last "" (t "Disco" "Disk"); folders = "/"; format = "{size-used} / {size-total}"; }
+  ];
 in {
   # Uses the terminal's named colours, so on the desktop it follows Stylix
   # through kitty's palette and still looks right on the Mac.
@@ -39,28 +63,10 @@ in {
 
       display.separator = "  ";
 
-      modules = [
-        { type = "title"; format = "{#1}{user-name}{#}{#90}@{#}{#1}{host-name}"; }
-        "break"
-        (header "Sistema")
-        { type = "os"; key = mid osIcon "OS"; format = "{pretty-name}"; }
-        { type = "kernel"; key = mid "" "Kernel"; format = "{release}"; }
-        { type = "packages"; key = mid "󰏖" "Paquetes"; format = "{all}"; }
-        { type = "wm"; key = mid "" "Ventanas"; format = "{pretty-name}"; }
-        { type = "terminal"; key = mid "" "Terminal"; format = "{pretty-name}"; }
-        { type = "shell"; key = mid "" "Shell"; format = "{pretty-name}"; }
-        { type = "uptime"; key = last "󰅐" "Encendido"; format = "{?days}{days}d {?}{hours}h {minutes}m"; }
-        "break"
-        (header "Hardware")
-        { type = "host"; key = mid "󰌢" "Equipo"; }
-        { type = "cpu"; key = mid "" "CPU"; format = "{name}"; }
-        { type = "gpu"; key = mid "󰢮" "GPU"; format = "{name}"; hideType = "integrated"; }
-        # Display sits mid-list: on the headless Pi it prints nothing, and as the
-        # last row it took the closing branch with it.
-        { type = "display"; key = mid "󰍹" "Pantalla"; format = "{width}x{height} @ {refresh-rate} Hz"; }
-        { type = "memory"; key = mid "" "Memoria"; format = "{used} / {total}"; }
-        { type = "disk"; key = last "" "Disco"; folders = "/"; format = "{size-used} / {size-total}"; }
-      ];
+      modules = modules "es";
     };
   };
+
+  xdg.configFile."fastfetch/config-en.jsonc".source = (pkgs.formats.json { }).generate "config-en.jsonc"
+    (config.programs.fastfetch.settings // { modules = modules "en"; });
 }

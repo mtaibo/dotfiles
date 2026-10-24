@@ -1,4 +1,4 @@
-{ config, lib, ... }:
+{ config, lib, pkgs, ... }:
 let
   # Shared with the SDDM login theme so both screens look the same.
   s = import ../../lockscreen.nix {
@@ -16,7 +16,35 @@ let
     halign = "center";
     valign = "center";
   };
+  date = locale: strftime: label s.date "cmd[update:60000] LC_TIME=${locale} date +\"${strftime}\"";
+  placeholder = text: "<span foreground=\"##${s.input.placeholderColor}\">${text}</span>";
+
+  # The same lock screen with its texts in English, for when the system
+  # language is (language.nix): the Spanish one with the texts swapped.
+  englishConf = pkgs.writeText "hyprlock-en.conf" (lib.hm.generators.toHyprconf {
+    attrs = lib.recursiveUpdate config.programs.hyprlock.settings {
+      label = [ (date "en_US.UTF-8" s.english.strftime) ] ++ lib.tail config.programs.hyprlock.settings.label;
+      input-field = {
+        placeholder_text = placeholder s.english.placeholder;
+        fail_text = s.english.failText;
+      };
+    };
+    inherit (config.programs.hyprlock) importantPrefixes;
+  });
+
+  # SUPER+L: hyprlock in the system language.
+  lockScreen = pkgs.writeShellApplication {
+    name = "lock-screen";
+    text = ''
+      if [ "$(cat "$XDG_RUNTIME_DIR/system-language" 2>/dev/null)" = en ]; then
+        exec hyprlock --config ${englishConf}
+      fi
+      exec hyprlock
+    '';
+  };
 in {
+  home.packages = [ lockScreen ];
+
   # Wallpaper comes from Stylix; layout and colours from modules/lockscreen.nix:
   # date + big clock on top, name and a glass pill input below.
   programs.hyprlock = {
@@ -41,7 +69,7 @@ in {
       };
 
       label = [
-        (label s.date ''cmd[update:60000] date +"${s.date.strftime}"'')
+        (date "es_ES.UTF-8" s.date.strftime)
         (label s.clock "$TIME")
         (label s.name "$DESC")
       ];
@@ -59,7 +87,7 @@ in {
         dots_spacing = s.input.dotsSpacing;
         dots_center = true;
         fade_on_empty = false;
-        placeholder_text = ''<span foreground="##${s.input.placeholderColor}">${s.input.placeholder}</span>'';
+        placeholder_text = placeholder s.input.placeholder;
         fail_text = s.input.failText;
         fail_timeout = s.input.failTimeoutMs;
         font_family = s.font;

@@ -117,4 +117,5 @@ in {
   wayland.windowManager.hyprland.settings.bindd = [
     "SUPER, K, Abrir Cider, exec, cider"
   ];
+  dotfiles.english."Abrir Cider" = "Open Cider";
 }

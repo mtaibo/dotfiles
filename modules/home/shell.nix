@@ -92,15 +92,20 @@
       # The image logo needs kitty itself, not tmux. Locally fastfetch passes
       # kitty the file path (kitty-direct); over SSH the file isn't on kitty's
       # machine, so the `kitty` type sends the pixels through the terminal.
-      # A function so typing `fastfetch` later picks the same logo.
+      # A function so typing `fastfetch` later picks the same logo, and the
+      # English labels when the desktop's system language is (language.nix).
       fastfetch() {
+        local lang=()
+        if [ "$(cat "''${XDG_RUNTIME_DIR:-/nonexistent}/system-language" 2>/dev/null)" = en ]; then
+          lang=(--config ~/.config/fastfetch/config-en.jsonc)
+        fi
         if [ "$TERM" = xterm-kitty ] && [ -z "$TMUX" ] && [ -z "$SSH_CONNECTION" ]; then
-          command fastfetch --pipe false "$@"
+          command fastfetch "''${lang[@]}" --pipe false "$@"
         ${lib.optionalString pkgs.stdenv.hostPlatform.isLinux ''
         elif [ "$TERM" = xterm-kitty ] && [ -z "$TMUX" ]; then
-          command fastfetch --pipe false --logo-type kitty "$@"
+          command fastfetch "''${lang[@]}" --pipe false --logo-type kitty "$@"
         ''}else
-          command fastfetch --pipe false --logo-type builtin --logo ${if pkgs.stdenv.hostPlatform.isDarwin
+          command fastfetch "''${lang[@]}" --pipe false --logo-type builtin --logo ${if pkgs.stdenv.hostPlatform.isDarwin
             then "macos_small"
             else ''"$([ -e /etc/NIXOS ] && echo NixOS_small || echo raspbian_small)"''} "$@"
         fi

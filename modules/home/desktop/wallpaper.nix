@@ -151,6 +151,9 @@ let
       name() { basename "''${1%.*}"; }
 
       pick() {
+        # The search field in English when the system language is (language.nix).
+        placeholder="Buscar fondo…"
+        if [ "$(cat "$XDG_RUNTIME_DIR/system-language" 2>/dev/null)" = en ]; then placeholder="Search wallpapers…"; fi
         random=$(others | shuf -n 1)
         choice=$(
           {
@@ -158,7 +161,8 @@ let
             list | while read -r f; do
               printf '%s\0icon\x1f%s\n' "$(name "$f")" "$thumbs/$(name "$f").jpg"
             done
-          } | rofi -dmenu -i -p "" -theme ${pickerTheme}
+          } | rofi -dmenu -i -p "" -theme ${pickerTheme} \
+              -theme-str "entry { placeholder: \"$placeholder\"; }"
         ) || exit 0
         case "$choice" in
           "") exit 0 ;;
@@ -271,6 +275,11 @@ in {
   # Loaded after Stylix's colours so the wallpaper's accents win; `globinclude`
   # doesn't complain before the first wallpaper has been set.
   programs.kitty.extraConfig = lib.mkAfter "globinclude matugen-colors.conf";
+
+  dotfiles.english = {
+    "Siguiente fondo de pantalla" = "Next wallpaper";
+    "Elegir fondo de pantalla" = "Choose a wallpaper";
+  };
 
   wayland.windowManager.hyprland.settings = {
     bindd = [

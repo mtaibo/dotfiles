@@ -3,6 +3,7 @@ let
   c = config.lib.stylix.colors;
   rgb = name: "${c."${name}-rgb-r"}, ${c."${name}-rgb-g"}, ${c."${name}-rgb-b"}";
   radius = config.wayland.windowManager.hyprland.settings.decoration.rounding;
+  english = pkgs.writeText "english.json" (builtins.toJSON config.dotfiles.english);
 
   # A Spotlight-like glass window in the middle of the screen, the same look
   # as the wallpaper picker; the accent comes from the wallpaper.
@@ -81,32 +82,48 @@ let
       # SUPER+H again closes it.
       if pkill -x rofi; then exit 0; fi
 
-      mapfile -t rows < <(hyprctl binds -j | jq -r '
+      # In English when the system language is (language.nix): descriptions
+      # through dotfiles.english, key names and the rows below by hand.
+      if [ "$(cat "$XDG_RUNTIME_DIR/system-language" 2>/dev/null)" = en ]; then
+        english=$(cat ${english})
+        keys='{"SPACE": "Space", "Print": "Print Screen", "XF86AudioMute": "Mute",
+               "XF86AudioNext": "Next", "XF86AudioPrev": "Previous"}'
+        mouse=($'SUPER + left click drag\tResize the window\t\t'
+               $'SUPER + right click drag\tMove the window\t\t')
+        placeholder="Search shortcuts…"
+      else
+        english='{}'
+        keys='{"SPACE": "Espacio", "Print": "Impr Pant", "XF86AudioMute": "Silencio",
+               "XF86AudioNext": "Siguiente", "XF86AudioPrev": "Anterior"}'
+        mouse=($'SUPER + clic izq. arrastrando\tRedimensionar la ventana\t\t'
+               $'SUPER + clic der. arrastrando\tMover la ventana\t\t')
+        placeholder="Buscar atajo…"
+      fi
+
+      mapfile -t rows < <(hyprctl binds -j | jq -r --argjson english "$english" --argjson keys "$keys" '
         def bit(n): (. / n | floor) % 2 == 1;
         def mods: [ (if bit(64) then "SUPER" else empty end),
                     (if bit(4) then "CTRL" else empty end),
                     (if bit(8) then "ALT" else empty end),
                     (if bit(1) then "SHIFT" else empty end) ];
-        def name: {
+        def name: ({
           "left": "←", "right": "→", "up": "↑", "down": "↓",
-          "SPACE": "Espacio", "Print": "Impr Pant",
           "XF86AudioRaiseVolume": "Vol +", "XF86AudioLowerVolume": "Vol −",
-          "XF86AudioMute": "Silencio", "XF86AudioPlay": "Play",
-          "XF86AudioNext": "Siguiente", "XF86AudioPrev": "Anterior"
-        }[.] // .;
+          "XF86AudioPlay": "Play"
+        } + $keys)[.] // .;
         .[] | select(.has_description)
         | [ ((.modmask | mods) + [ .key | name ] | join(" + ")),
-            .description, .dispatcher, .arg ]
+            ($english[.description] // .description), .dispatcher, .arg ]
         | @tsv')
 
       # Mouse binds can't carry a description; listed by hand, no action.
-      rows+=($'SUPER + clic izq. arrastrando\tRedimensionar la ventana\t\t'
-             $'SUPER + clic der. arrastrando\tMover la ventana\t\t')
+      rows+=("''${mouse[@]}")
 
       i=$(for row in "''${rows[@]}"; do
             IFS=$'\t' read -r key desc _ <<< "$row"
             printf '<b>%-30s</b><span foreground="${c.withHashtag.base04}">%s</span>\n' "$key" "$desc"
-          done | rofi -dmenu -i -p "" -markup-rows -format i -theme ${theme}) || exit 0
+          done | rofi -dmenu -i -p "" -markup-rows -format i -theme ${theme} \
+            -theme-str "entry { placeholder: \"$placeholder\"; }") || exit 0
 
       IFS=$'\t' read -r _ _ dispatcher arg <<< "''${rows[$i]}"
       if [ -n "$dispatcher" ]; then
@@ -120,4 +137,5 @@ in {
   wayland.windowManager.hyprland.settings.bindd = [
     "SUPER, H, Atajos de teclado, exec, hypr-cheatsheet"
   ];
+  dotfiles.english."Atajos de teclado" = "Keyboard shortcuts";
 }

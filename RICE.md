@@ -191,7 +191,7 @@ Stylix wants to paint the active border in the blue accent. I override it with `
 
 The workspace bindings are generated with a small `lib.concatMap` over `1..9` instead of 18 hand-written lines.
 
-Every binding is a `bindd`, a bind with a description (in Spanish, without commas, since commas separate the fields). `SUPER + H` opens a cheatsheet built from them: a small `hypr-cheatsheet` script reads `hyprctl binds -j` from the running compositor, turns the modifier mask and key names into `SUPER + SHIFT + ←`-style labels and shows them in a centred, searchable glass rofi window, like Spotlight. Enter runs the selected shortcut. Because it reads the live binds, it can't go stale; the two mouse binds can't carry descriptions and are added by hand. Focus, resize and move use the arrows: `SUPER + h` became the cheatsheet, and `SUPER + l` used to both lock the screen and move focus right.
+Every binding is a `bindd`, a bind with a description (in Spanish, without commas, since commas separate the fields; each module also gives the English one in `dotfiles.english`, and the build fails if one is missing). `SUPER + H` opens a cheatsheet built from them: a small `hypr-cheatsheet` script reads `hyprctl binds -j` from the running compositor, turns the modifier mask and key names into `SUPER + SHIFT + ←`-style labels and shows them in a centred, searchable glass rofi window, like Spotlight. Enter runs the selected shortcut. Because it reads the live binds, it can't go stale; the two mouse binds can't carry descriptions and are added by hand. Focus, resize and move use the arrows: `SUPER + h` became the cheatsheet, and `SUPER + l` used to both lock the screen and move focus right.
 
 ## 🖼️ Wallpapers
 
@@ -254,7 +254,7 @@ Copied from the bar in [binnewbs' Hyprland rice](https://github.com/binnewbs/arc
 | Clock | `  Sábado, 24 de Octubre 08:31`, always date and time, capitalised by a small `waybar-clock` script (waybar's own clock only gives lowercase Spanish names) | Tooltip with the month's calendar |
 | Music player | What's playing: title and artist, 󰏤 and grey when paused; hidden when nothing plays. A custom module (`waybar-media`) built on the popup's `media-info`, not waybar's `mpris` module, because Cider's MPRIS metadata goes empty after skipping a song. `playerctl` follows the player in use through `playerctld` | Left: a wide glass popup centred under the click: small artwork with the title, artist and icon buttons (previous / play-pause / next) beside it, and a full-width progress bar with the times below (a click anywhere else, the bar included, closes it) · middle: play / pause · right: next |
 | Tray | Icons of apps running in the background (Claude, Cider’s in white); hidden when there are none | Each app’s own (Cider: left shows the window, right opens its menu) |
-| Keyboard layout | `ES` or `EN`: Hyprland has `kb_layout = "es,us"` | Switches to the other layout |
+| Language | `ES` or `EN`, the keyboard layout and the system language at once (see [Language](#-language--es--en)) | Switches both |
 | Workspaces | Always four numbers, 1–4; the active one is a pill in the light accent with dark text, ones with windows in the text colour, empty ones grey | Switches workspace, scroll moves through them |
 | Notifications | 󰂚 with dunst's history count, 󱅫 when there are some, 󰂛 grey with the queued count in "do not disturb" | Left: toggle do not disturb · right: show the last one again · middle: clear |
 | Audio | Volume with its icon (headphones when they're the output), red when muted; hovering slides out the microphone | Left: mute · right: pavucontrol · scroll ±5 % (mic too) |
@@ -290,6 +290,15 @@ Notifications drop in at the top right, just under the bar, like on macOS:
 - Left click runs the notification's action and closes it; right click clears them all.
 
 It's `services.dunst` in Home Manager, D-Bus activated, so there's nothing to start by hand.
+
+## 🌐 Language — ES / EN
+
+The bar's `ES`/`EN` island switches the keyboard and the system language together; a small `system-language` script in [`modules/home/desktop/language.nix`](modules/home/desktop/language.nix) does it:
+
+- **Keyboard:** Hyprland's `kb_layout` becomes `us` or `es`, one layout rather than `es,us` and an index, so every keyboard follows it, including ones that appear later (Vicinae's virtual keyboard, the Bluetooth keyboard reconnecting). Hyprland runs `system-language apply` on every start and reload, since a reload brings back the config's `es`.
+- **Apps:** `LANG` and `LC_TIME` are set in Hyprland, systemd and D-Bus, and Vicinae is restarted, so apps opened afterwards start in the new language. Open ones keep theirs until they are reopened.
+- **My own texts:** the choice is written to `$XDG_RUNTIME_DIR/system-language`, and everything I wrote in Spanish reads it: the bar's clock and notification tooltips, the music popup, the `SUPER + H` cheatsheet (descriptions, key names, search field), the wallpaper picker's search field, the lock screen (date, "Password", "Wrong password") and fastfetch's labels.
+- **Every login starts in Spanish**, since that file lives in the runtime directory. The login screen comes before any session, so it stays in Spanish.
 
 ## 🔒 Lock screen — hyprlock
 
