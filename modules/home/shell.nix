@@ -18,7 +18,21 @@
       fi
 
       session="crc-$(date +%s)-$$"
-      tmux new-session -d -s "$session" -- claude "$@"
+      # remote-control (not plain claude) is what shows up in the Claude app.
+      # The pane stays after an early exit so its error can be shown here.
+      tmux new-session -d -s "$session" -- claude remote-control "$@"
+      tmux set-option -t "$session" remain-on-exit on
+      sleep 3
+      if [ "$(tmux display-message -p -t "$session" '#{pane_dead}')" = 1 ]; then
+        tmux capture-pane -p -J -S - -t "$session" | grep -v -e '^$' -e '^Pane is dead' || true
+        tmux kill-session -t "$session"
+        echo "crc: claude remote-control exited, nothing left running"
+        exit 1
+      fi
+      tmux set-option -t "$session" remain-on-exit off
+      if tmux capture-pane -p -J -t "$session" | grep -q 'Trust .*?'; then
+        echo "crc: this folder isn't trusted yet; attach, answer y, then detach (Ctrl+B D)"
+      fi
       echo "crc: running in background (tmux session: $session)"
       echo "crc: attach with: tmux attach -t $session"
       echo "crc: close all with: crc --close"
