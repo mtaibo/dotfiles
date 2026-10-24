@@ -5,6 +5,8 @@ let
   rgb = name: "${c."${name}-rgb-r"}, ${c."${name}-rgb-g"}, ${c."${name}-rgb-b"}";
   accentCss = "${config.xdg.configHome}/waybar/matugen-colors.css";
   font = "JetBrainsMono Nerd Font Propo";
+  # Same corners as the windows.
+  radius = config.wayland.windowManager.hyprland.settings.decoration.rounding;
 
   # Bell for the bar: dunst's history count, or what's queued while
   # "do not disturb" (dunst paused) is on.
@@ -35,7 +37,7 @@ let
       hover-select: true;
       me-select-entry: "MouseSecondary";
       me-accept-entry: "MousePrimary";
-      font: "${font} Bold 11";
+      font: "${font} Bold 12";
     }
 
     * {
@@ -47,10 +49,10 @@ let
       location: north east;
       anchor: north east;
       x-offset: -10px;
-      y-offset: 52px;
+      y-offset: 60px;
       width: 220px;
       transparency: "real";
-      border-radius: 20px;
+      border-radius: ${toString radius}px;
       border: 1px;
       border-color: rgba(255, 255, 255, 0.08);
       background-color: rgba(${rgb "base00"}, 0.75);
@@ -69,7 +71,7 @@ let
 
     element {
       padding: 10px 14px;
-      border-radius: 14px;
+      border-radius: ${toString (radius - 4)}px;
     }
 
     element selected {
@@ -127,6 +129,11 @@ in {
   # rounded island tinted by the wallpaper. Clock, connections and lettered
   # workspaces on the left, the focused window in the middle, notifications,
   # audio and the power button on the right.
+  # SUPER+N hides and shows the bar.
+  wayland.windowManager.hyprland.settings.bind = [
+    "SUPER, N, exec, pkill -USR1 -x .waybar-wrapped"
+  ];
+
   programs.waybar = {
     enable = true;
     systemd.enable = true;
@@ -159,7 +166,7 @@ in {
         modules = [ "tray" "network" "bluetooth" ];
       };
       tray = {
-        icon-size = 16;
+        icon-size = 18;
         spacing = 8;
       };
       network = {
@@ -179,16 +186,12 @@ in {
       };
 
       "hyprland/workspaces" = {
-        format = "{icon}";
+        format = "{name}";
         on-click = "activate";
         on-scroll-up = "hyprctl dispatch workspace e+1";
         on-scroll-down = "hyprctl dispatch workspace e-1";
         sort-by-number = true;
-        persistent-workspaces."*" = 5;
-        format-icons = {
-          "1" = "A"; "2" = "B"; "3" = "C"; "4" = "D"; "5" = "E";
-          "6" = "F"; "7" = "G"; "8" = "H"; "9" = "I"; "10" = "J";
-        };
+        persistent-workspaces."*" = 4;
       };
 
       "hyprland/window" = {
@@ -264,9 +267,8 @@ in {
       * {
         all: unset;
         font-family: "${font}";
-        font-size: 13px;
+        font-size: 15px;
         font-weight: bold;
-        font-feature-settings: '"zero", "ss01", "ss02", "ss03", "ss04", "ss05", "cv31"';
       }
 
       window#waybar {
@@ -283,8 +285,8 @@ in {
       #audio,
       #custom-power {
         background: alpha(@island, 0.75);
-        border-radius: 20px;
-        padding: 8px 15px;
+        border-radius: ${toString radius}px;
+        padding: 10px 18px;
         margin-left: 5px;
       }
 
@@ -305,13 +307,13 @@ in {
       }
 
       #workspaces {
-        padding: 6px 8px;
+        padding: 7px 10px;
       }
 
       #workspaces button {
-        padding: 1px 4px 0 4px;
+        padding: 3px 7px;
         margin: 0 2px;
-        border-radius: 9px;
+        border-radius: ${toString (radius - 4)}px;
         color: @muted;
         transition: all 0.5s cubic-bezier(.55, -0.68, .48, 1.682);
       }
@@ -321,7 +323,7 @@ in {
       }
 
       #workspaces button.active {
-        padding: 1px 10px 0 10px;
+        padding: 3px 12px;
         color: @surface;
         background: alpha(@accent_fixed, 0.75);
         transition: all 0.3s cubic-bezier(.55, -0.68, .48, 1.682);
@@ -351,7 +353,7 @@ in {
       }
 
       #custom-power {
-        padding: 8px 13px;
+        padding: 10px 16px;
       }
 
       #custom-power:hover {
@@ -360,7 +362,7 @@ in {
 
       tooltip {
         background: rgba(0, 0, 0, 0.8);
-        border-radius: 20px;
+        border-radius: ${toString radius}px;
         padding: 8px 12px;
       }
 

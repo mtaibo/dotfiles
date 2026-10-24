@@ -172,6 +172,7 @@ Stylix wants to paint the active border in the blue accent. I override it with `
 | `SUPER` + `L` | Lock screen |
 | `SUPER` + `W` | Next wallpaper |
 | `SUPER` + `Shift` + `W` | Pick a wallpaper (with previews) |
+| `SUPER` + `N` | Hide or show the bar |
 | `SUPER` + `M` | Exit Hyprland |
 | `SUPER` + `h` `j` `k` `l` | Move focus |
 | `SUPER` + `Shift` + `h` `j` `k` `l` | Resize window |
@@ -232,10 +233,10 @@ Every time the wallpaper changes, [matugen](https://github.com/InioX/matugen) re
 
 ## 📊 Top bar — Waybar
 
-Copied from the bar in [binnewbs' Hyprland rice](https://github.com/binnewbs/arch-hyprland) (JaKooLit's "window middle" layout with the "islands" style): no bar behind the modules, just a row of dark rounded islands floating 6 px from the top, each tinted by the wallpaper.
+Copied from the bar in [binnewbs' Hyprland rice](https://github.com/binnewbs/arch-hyprland) (JaKooLit's "window middle" layout with the "islands" style): no bar behind the modules, just a row of dark islands floating 6 px from the top, each tinted by the wallpaper. I made it a bit bigger (15 px text) and gave the islands the windows' 10 px corners instead of the original pills.
 
 ```
- (  08:31 ) ( ⋯ 󰈀 󰂯 ) ( A B C D E )        ( 󰈹  Firefox page )        ( 1 󱅫 ) ( 󰋋 40% ) ( 󰐥 )
+ (  08:31 ) ( ⋯ 󰈀 󰂯 ) ( 1 2 3 4 )        ( 󰈹  Firefox page )        ( 1 󱅫 ) ( 󰋋 40% ) ( 󰐥 )
    clock   tray·connection  workspaces       focused window       notifications  audio   power
 ```
 
@@ -243,7 +244,7 @@ Copied from the bar in [binnewbs' Hyprland rice](https://github.com/binnewbs/arc
 |---|---|---|
 | Clock | ` 08:31`; click for ` sábado, 24 de octubre  08:31` | Tooltip with a month calendar |
 | Tray + connection | App tray icons at 16 px, then 󰈀 ethernet · 󰖩 wifi · 󰈂 disconnected and 󰂯 / 󰂱 / 󰂲 bluetooth (grey when off) | Bluetooth: blueman |
-| Workspaces | Always five letters, A–E; the active one is a pill in the light accent with dark text, the rest grey | Switches workspace, scroll moves through them |
+| Workspaces | Always four numbers, 1–4; the active one is a pill in the light accent with dark text, the rest grey | Switches workspace, scroll moves through them |
 | Focused window | Its title (Firefox gets its icon, zsh shows `> [dir]`); the island vanishes on an empty workspace | — |
 | Notifications | 󰂚 with dunst's history count, 󱅫 when there are some, 󰂛 grey with the queued count in "do not disturb" | Left: toggle do not disturb · right: show the last one again · middle: clear |
 | Audio | Volume with its icon (headphones when they're the output), red when muted; hovering slides out the microphone | Left: mute · right: pavucontrol · scroll ±5 % (mic too) |
@@ -252,9 +253,10 @@ Copied from the bar in [binnewbs' Hyprland rice](https://github.com/binnewbs/arc
 How it's built:
 
 - **Colours.** matugen writes a few tones of the wallpaper's palette to `~/.config/waybar/matugen-colors.css`: `island` (its dark `surface_container`, at 75 %), `text` (secondary), `muted` (outline, for inactive workspaces), `accent` / `accent_fixed` (primary, for hover and the active-workspace pill) and `surface` (the pill's text). The style `@import`s it and the `wallpaper` script sends waybar `SIGUSR2` so it reloads on every wallpaper change. An activation step writes Stylix equivalents there until matugen has run with these names, so the import never fails.
-- **Font.** JetBrainsMono Nerd Font Propo in bold, as in the original, with its slashed zero and stylistic sets on.
+- **Font.** JetBrainsMono Nerd Font Propo in bold, as in the original. The original also turns on `font-feature-settings` (slashed zero, stylistic sets); I dropped them because they drew circles around letters and numbers.
 - **Isolated from GTK.** The style starts with `* { all: unset; }`, so the GTK theme can't leak paddings or backgrounds into the bar.
 - **Spanish dates.** Waybar only localises day and month names when the format has chrono's `L` flag (`{:L%A}`); without it the clock showed "Fri 23 Oct" even with `locale = "es_ES.UTF-8"`.
+- **Hiding.** `SUPER + N` sends waybar `SIGUSR1`, which toggles it.
 - **Custom modules need `exec`.** A `custom/*` module with only a `format` is never drawn, so the power button `echo`es its icon once.
 - **Notifications.** dunst has no notification centre, so a small `waybar-notifications` script asks `dunstctl` once a second (paused or not, history and waiting counts) and returns JSON for the module.
 - Stylix's Waybar target is off; the CSS is hand-written. It runs as a systemd user service.
