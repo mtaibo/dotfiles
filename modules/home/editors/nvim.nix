@@ -57,13 +57,23 @@ let
     '';
   };
 
-  # C formatting on save: c-style runs clang-format with this style and adds
-  # the layout clang-format can't do (one-line blocks kept, includes by
-  # length, grouped defines and typedefs, three blank lines around main).
+  # C and Java formatting on save, in one house style: code-style runs
+  # clang-format with this style and adds the layout clang-format can't do
+  # (one-line blocks kept, includes and imports by length, grouped defines
+  # and typedefs, class members in a fixed order, three blank lines around
+  # main). `code-style c` or `code-style java`, the file on stdin.
   clangFormat = ../../../assets/nvim/clang-format.yaml;
-  cStyle = pkgs.writeShellScriptBin "c-style" ''
-    exec ${pkgs.python3}/bin/python3 ${../../../assets/nvim/c-style.py} \
-      ${pkgs.clang-tools}/bin/clang-format ${clangFormat}
+  # 2-space indents with spaces and a guide at column 80, the limit
+  # code-style wraps at.
+  cIndent = ''
+    vim.opt_local.expandtab = true
+    vim.opt_local.shiftwidth = 2
+    vim.opt_local.tabstop = 2
+    vim.opt_local.colorcolumn = "81"
+  '';
+  codeStyle = pkgs.writeShellScriptBin "code-style" ''
+    exec ${pkgs.python3}/bin/python3 ${../../../assets/nvim/code-style.py} \
+      "$1" ${pkgs.clang-tools}/bin/clang-format ${clangFormat}
   '';
 in {
   options.dotfiles.nvim.ide = lib.mkOption {
@@ -105,7 +115,7 @@ in {
         jdk21
         maven
         gradle
-        cStyle
+        codeStyle
       ];
 
       extraLuaConfig = ''
@@ -292,7 +302,119 @@ in {
         for _, abbr in ipairs({ "terminal", "term" }) do
           vim.cmd(("cnoreabbrev <expr> %s getcmdtype() ==# ':' && getcmdline() ==# '%s' ? 'Terminal' : '%s'"):format(abbr, abbr, abbr))
         end
+
+        -- :Test (and a typed :test) saves everything and runs the project's
+        -- tests the same way: mvn test next to the nearest pom.xml, Gradle's
+        -- test task, or make test. :test Name runs only that test class.
+        local test_buf
+        local function run_test(args)
+          vim.cmd("silent! wall")
+          local file = vim.api.nvim_buf_get_name(0)
+          local start = file ~= "" and vim.fs.dirname(file) or vim.uv.cwd()
+          local root = vim.fs.find({ "pom.xml", "build.gradle", "build.gradle.kts", "GNUmakefile", "makefile", "Makefile" },
+            { upward = true, path = start })[1]
+          if not root then
+            return vim.notify("No pom.xml, Gradle build or Makefile above this file", vim.log.levels.WARN)
+          end
+          local dir, name = vim.fs.dirname(root), vim.fs.basename(root)
+          local cmd
+          if name == "pom.xml" then
+            cmd = { "mvn", "test" }
+            if args[1] then table.insert(cmd, "-Dtest=" .. table.concat(args, ",")) end
+          elseif name:match("^build%.gradle") then
+            local gradlew = dir .. "/gradlew"
+            cmd = { vim.uv.fs_stat(gradlew) and gradlew or "gradle", "test" }
+            for _, a in ipairs(args) do vim.list_extend(cmd, { "--tests", a }) end
+          else
+            cmd = vim.list_extend({ "make", "test" }, args)
+          end
+          local old = test_buf
+          test_buf = open_term(cmd, dir)
+          if old and vim.api.nvim_buf_is_valid(old) then
+            vim.api.nvim_buf_delete(old, { force = true })
+          end
+          stop_on_exit(test_buf)
+        end
+        vim.api.nvim_create_user_command("Test", function(o) run_test(o.fargs) end, { nargs = "*", desc = "Run the tests in a terminal" })
+        vim.cmd([[cnoreabbrev <expr> test getcmdtype() ==# ':' && getcmdline() ==# 'test' ? 'Test' : 'test']])
       '' + lib.optionalString cfg.ide ''
+
+        -- :Getset (and a typed :getset), or Space c G: getters and setters
+        -- for the Java field under the cursor (for every field when the
+        -- cursor isn't on one), skipping those that exist. final fields get
+        -- only a getter, booleans isX. The file is then formatted, so they
+        -- land with the other accessors.
+        local function java_accessors()
+          if vim.bo.filetype ~= "java" then
+            return vim.notify("Getters and setters are for Java files", vim.log.levels.WARN)
+          end
+          local ok, node = pcall(vim.treesitter.get_node)
+          if not ok or not node then
+            return vim.notify("No Java syntax tree here", vim.log.levels.WARN)
+          end
+          local field, class = nil, nil
+          while node do
+            local t = node:type()
+            if t == "field_declaration" and not field then field = node end
+            if t == "class_declaration" or t == "enum_declaration" then
+              class = node
+              break
+            end
+            node = node:parent()
+          end
+          if not class then
+            return vim.notify("Not inside a class", vim.log.levels.WARN)
+          end
+          local text = function(n) return vim.treesitter.get_node_text(n, 0) end
+          local body = class:field("body")[1]
+          local class_name = text(class:field("name")[1])
+          local existing, fields = {}, {}
+          for child in body:iter_children() do
+            if child:type() == "method_declaration" then
+              existing[text(child:field("name")[1])] = true
+            elseif child:type() == "field_declaration" then
+              table.insert(fields, child)
+            end
+          end
+          local lines = {}
+          for _, f in ipairs(field and { field } or fields) do
+            local mods = ""
+            for child in f:iter_children() do
+              if child:type() == "modifiers" then mods = text(child) end
+            end
+            local static = mods:match("%f[%w]static%f[%W]") ~= nil
+            local final = mods:match("%f[%w]final%f[%W]") ~= nil
+            -- Constants only when asked for one by name.
+            if field or not (static and final) then
+              local type = text(f:field("type")[1])
+              for _, decl in ipairs(f:field("declarator")) do
+                local name = text(decl:field("name")[1])
+                local cap = name:sub(1, 1):upper() .. name:sub(2)
+                local prefix = static and "public static " or "public "
+                local getter = (type == "boolean" and "is" or "get") .. cap
+                if not existing[getter] then
+                  table.insert(lines, ("%s%s %s () { return %s; }"):format(prefix, type, getter, name))
+                end
+                if not final and not existing["set" .. cap] then
+                  table.insert(lines, ("%svoid set%s (%s %s) { %s.%s = %s; }"):format(
+                    prefix, cap, type, name, static and class_name or "this", name, name))
+                end
+              end
+            end
+          end
+          if #lines == 0 then
+            return vim.notify("The getters and setters already exist", vim.log.levels.INFO)
+          end
+          -- Before the class's closing brace; the formatter puts them in place.
+          local last = body:end_()
+          local indent = vim.fn.indent(last + 1) + vim.bo.shiftwidth
+          for k, l in ipairs(lines) do lines[k] = string.rep(" ", indent) .. l end
+          vim.api.nvim_buf_set_lines(0, last, last, false, lines)
+          require("conform").format({ async = false })
+        end
+        vim.api.nvim_create_user_command("Getset", java_accessors, { desc = "Generate getters and setters" })
+        vim.cmd([[cnoreabbrev <expr> getset getcmdtype() ==# ':' && getcmdline() ==# 'getset' ? 'Getset' : 'getset']])
+        map("n", "<leader>cG", java_accessors, { desc = "Generate getters and setters" })
 
         -- Debugging
         map("n", "<F5>", function() require("dap").continue() end, { desc = "Start / continue debugging" })
@@ -424,14 +546,10 @@ in {
       # clangd and jdtls from Nix (see extraPackages), so Mason doesn't install
       # its own. LazyVim only adds Lombok to jdtls from Mason's copy, so the
       # command line is set here with nixpkgs' jar.
-      # C: 2-space indents with spaces and a guide at column 80, the limit
-      # clang-format wraps at.
-      "nvim/after/ftplugin/c.lua".text = ''
-        vim.opt_local.expandtab = true
-        vim.opt_local.shiftwidth = 2
-        vim.opt_local.tabstop = 2
-        vim.opt_local.colorcolumn = "81"
-      '';
+      # C: 2-space indents and the column-80 guide (cIndent above).
+      "nvim/after/ftplugin/c.lua".text = cIndent;
+      # Java in the same style.
+      "nvim/after/ftplugin/java.lua".text = cIndent;
 
       "nvim/lua/plugins/nix.lua".text = ''
         return {
@@ -440,17 +558,22 @@ in {
             opts = function(_, opts)
               opts.servers.clangd = vim.tbl_extend("force", opts.servers.clangd or {}, { mason = false })
               opts.servers.jdtls = vim.tbl_extend("force", opts.servers.jdtls or {}, { mason = false })
-              -- No inlay hints in C: the parameter names clangd draws push the
-              -- code right, past the column-80 guide (Space u h shows them).
+              -- No inlay hints in C or Java: the parameter names the servers
+              -- draw push the code right, past the column-80 guide (Space u h
+              -- shows them).
               opts.inlay_hints.exclude = opts.inlay_hints.exclude or {}
               table.insert(opts.inlay_hints.exclude, "c")
+              table.insert(opts.inlay_hints.exclude, "java")
             end,
           },
           {
             "stevearc/conform.nvim",
             opts = {
-              formatters_by_ft = { c = { "c_style" } },
-              formatters = { c_style = { command = "c-style" } },
+              formatters_by_ft = { c = { "c_style" }, java = { "java_style" } },
+              formatters = {
+                c_style = { command = "code-style", args = { "c" } },
+                java_style = { command = "code-style", args = { "java" } },
+              },
             },
           },
           {

@@ -1,7 +1,10 @@
-"""Formats a C file: clang-format, plus the layout rules clang-format can't
-express. Reads the file on stdin, writes it to stdout.
+"""Formats a C or Java file in one house style: clang-format, plus the layout
+rules clang-format can't express. Reads the file on stdin, writes it to
+stdout.
 
-    c-style.py CLANG_FORMAT STYLE_FILE < file.c
+    code-style.py c|java CLANG_FORMAT STYLE_FILE < file
+
+For both languages:
 
 - Blocks with several statements that fit on one line, such as
   `if (x) { printf("..."); return 1; }`, stay on one line (clang-format always
@@ -29,10 +32,33 @@ express. Reads the file on stdin, writes it to stdout.
     the shortest, a blank line between each, always after the types they use.
 - One blank line between top-level blocks, three around main. One-line
   functions written together stay together.
+
+The includes, #defines and typedefs above are C's. In Java instead:
+- Constructors get the space too: `Person (String name)`.
+- A long string isn't cut (Java doesn't join "a" "b"); the arguments go
+  below the `(` instead.
+- Imports: the JDK's (java., javax.), then the rest, then static imports,
+  each group from the shortest line to the longest, duplicates dropped.
+- A blank line after a class's opening brace. Each class body in a fixed
+  order, a blank line between kinds: nested types,
+  static fields and initializers, fields and initializers (each keeping its
+  own order, which initialization depends on), constructors, methods,
+  getters in field order, setters in field order (each block together,
+  however long its methods), @Override methods, main (three blank lines
+  before it). The accessors of a single property go together; with more,
+  each block of two or more gets a // Getters or // Setters label (labels
+  already there are replaced).
+- A method whose body is a single statement goes on one line when it fits,
+  even with an annotation above it. Enum constants stay first, packed onto as few lines as fit.
+  Comments and annotations above a member move with it.
+- If reordering would change any token, the file is left as it was before
+  reordering; files with text blocks aren't reordered at all.
 """
+import os
 import re
 import subprocess
 import sys
+import tempfile
 
 IDENT = re.compile(r"[A-Za-z_]\w*")
 
@@ -106,8 +132,9 @@ def split_units(lines):
             i = j + 1
         elif in_comment or not code.strip():
             j = i
-            while j < n and lines[j].strip() and (
-                    info[j][0] or not info[j][2].strip()):
+            # Blank lines inside a block comment belong to it.
+            while j < n and (info[j][0] or (
+                    lines[j].strip() and not info[j][2].strip())):
                 j += 1
             units.append(Unit("comment", lines[i:j], ""))
             i = j
@@ -387,26 +414,47 @@ def protect(text):
     return "\n".join(out), bodies
 
 
-def run(clang_format, style, text):
+FILENAMES = {"c": "file.c", "java": "File.java"}
+
+
+def run(clang_format, style, text, lang):
     return subprocess.run([clang_format, "--style=" + style,
-                           "--assume-filename=file.c"], input=text,
-                          capture_output=True, text=True, check=True).stdout
+                           "--assume-filename=" + FILENAMES[lang]],
+                          input=text, capture_output=True, text=True,
+                          check=True).stdout
 
 
-def format_bodies(clang_format, bodies):
-    """Each body formatted by clang-format, one line per statement."""
+def format_bodies(clang_format, style_file, bodies, lang):
+    """Each body formatted by clang-format in the same style, one line per
+    statement."""
     if not bodies:
         return []
-    snippet = "".join("void _cs%d(void) {\n%s\n}\n" % (n, b)
+    snippet = "".join("void _cs%d() {\n%s\n}\n" % (n, b)
                       for n, b in enumerate(bodies))
-    style = "{BasedOnStyle: LLVM, ColumnLimit: 0, " \
-            "AllowShortFunctionsOnASingleLine: None}"
-    lines, out = run(clang_format, style, snippet).split("\n"), []
-    for line in lines:
-        if line.startswith("void _cs"):
+    if lang == "java":
+        snippet = "class _Cs {\n" + snippet + "}\n"
+    overrides = {"ColumnLimit": "0", "AllowShortFunctionsOnASingleLine": "None",
+                 "AllowShortIfStatementsOnASingleLine": "Never",
+                 "AllowShortLoopsOnASingleLine": "false",
+                 "AllowShortBlocksOnASingleLine": "Never"}
+    lines = [l for l in open(style_file).read().split("\n")
+             if l.split(":")[0] not in overrides]
+    # Into the shared section, before the per-language ones.
+    at = lines.index("---") if "---" in lines else len(lines)
+    lines[at:at] = ["%s: %s" % kv for kv in overrides.items()]
+    style = "\n".join(lines) + "\n"
+    with tempfile.NamedTemporaryFile("w", suffix=".yaml") as f:
+        f.write(style)
+        f.flush()
+        formatted = run(clang_format, "file:" + f.name, snippet, lang)
+    # Each line keeps its indentation relative to the body.
+    lines, out, base = formatted.split("\n"), [], 4 if lang == "java" else 2
+    for line in lines[1:-2] if lang == "java" else lines:
+        if line.strip().startswith("void _cs"):
             out.append([])
-        elif line.strip() and line != "}" and out:
-            out[-1].append(line.strip())
+        elif line.strip() and line != " " * (base - 2) + "}" and out:
+            out[-1].append(line[base:] if line.startswith(" " * base)
+                           else line.strip())
     return out
 
 
@@ -421,13 +469,15 @@ def restore(text, bodies):
                 out += [indent + b for b in body[:-1]]
                 line = indent + body[-1]
             else:
-                line = line[:m.start()] + " ".join(body) + line[m.end():]
+                line = line[:m.start()] + " ".join(b.strip() for b in body) + \
+                    line[m.end():]
             m = PLACEHOLDER.search(line)
         out.append(line)
     return "\n".join(out)
 
 
 LIMIT = 80
+LANG = "c"
 CONTROL = re.compile(r"(\s*)(?:(?:else\s+)?if|for|while)\s*\(|(\s*)else$")
 NESTED = re.compile(r"(if|else|for|while|do|switch)\b")
 
@@ -540,7 +590,8 @@ def pack(indent, joined):
     else:
         # A long string first: it starts on the first line and is cut into
         # pieces; the other arguments follow its last piece.
-        pieces = split_literal(args[0], head, cont, first_end)
+        # (Java doesn't join adjacent literals, so there it isn't cut.)
+        pieces = LANG != "java" and split_literal(args[0], head, cont, first_end)
         if pieces:
             lines, line = pieces[:-1], pieces[-1]
         elif len(head) <= LIMIT and len(args) > 1:
@@ -557,7 +608,8 @@ def pack(indent, joined):
         line = cont + arg + end
         if len(line) > LIMIT:
             return None
-    lines.append(line)
+    if line is not None:
+        lines.append(line)
     return lines + [close]
 
 
@@ -698,18 +750,373 @@ def repack_inits(text):
     return "\n".join(out)
 
 
+# Java ----------------------------------------------------------------------
+
+TYPE_DECL = re.compile(r"\b(class|interface|enum|record)\s+([A-Za-z_]\w*)")
+ANNOTATION = re.compile(r"\s*@(?!interface\b)[\w.]+(?:\s*\([^()]*(?:\([^()]*\)[^()]*)*\))?")
+MODIFIERS = re.compile(r"\s*((?:(?:public|protected|private|static|final|abstract|"
+                       r"synchronized|native|transient|volatile|strictfp|default|"
+                       r"sealed|non-sealed)\s+)*)")
+
+
+def space_constructors(text):
+    """`Name (int a)` for constructors, like any other declaration
+    (clang-format only spaces methods)."""
+    names = {m.group(2) for m in TYPE_DECL.finditer(mask_all(text))}
+    if not names:
+        return text
+    ctor = re.compile(r"\s*(?:(?:public|protected|private)\s+)?(?:<[^>]*>\s*)?"
+                      r"(?P<name>" + "|".join(map(re.escape, sorted(names))) +
+                      r")\(")
+    out = []
+    for line in text.split("\n"):
+        m = ctor.match(mask(line))
+        if m:
+            line = line[:m.end("name")] + " " + line[m.end("name"):]
+        out.append(line)
+    return "\n".join(out)
+
+
+def mask_all(text):
+    return "\n".join(mask(l) for l in text.split("\n"))
+
+
+def strip_annotations(code):
+    while True:
+        m = ANNOTATION.match(code)
+        if not m:
+            return code
+        code = code[m.end():]
+
+
+class Member:
+    def __init__(self, unit, blank_before, floating):
+        self.unit = unit
+        self.blank_before = blank_before
+        self.floating = floating   # comments above it, a blank line apart
+        code = " ".join(strip_annotations(unit.code).split())
+        self.code = code
+        self.head = re.split(r"[{;=]", code, 1)[0]
+        mods = MODIFIERS.match(code).group(1).split()
+        self.static = "static" in mods
+        self.kind, self.name = self.classify()
+
+    def classify(self):
+        head = self.head
+        if TYPE_DECL.search(head) or head.lstrip().startswith("@interface"):
+            return "type", ""
+        if self.code.startswith("{") or re.fullmatch(r"static\s*", head):
+            return "init", ""
+        before = re.split(r"[=;]", self.code, 1)[0]
+        m = re.search(r"([A-Za-z_]\w*)\s*\($", before.split("(")[0] + "(") \
+            if "(" in before else None
+        if m:
+            words = MODIFIERS.sub("", before.split("(")[0], 1).split()
+            return ("ctor" if len(words) == 1 else "method"), m.group(1)
+        idents = IDENT.findall(re.sub(r"<[^<>]*>", "", head))
+        return "field", idents[-1] if idents else ""
+
+    def lines(self):
+        out = []
+        for n, c in enumerate(self.unit.comments):
+            out += c.lines
+            if self.floating and n == len(self.unit.comments) - 1:
+                out.append("")
+        return out + self.unit.lines
+
+    def one_line(self):
+        return len(self.unit.lines) == 1
+
+
+def body_units(lines, indent):
+    """Members of a class body, with the comments above each one."""
+    units, merged = split_units(lines), []
+    blank = False
+    pending = []          # comment units waiting for the member below
+    floating = False
+    members, trailing = [], []
+    for u in units:
+        if u.kind == "blank":
+            if pending:
+                floating = True
+            blank = True
+            continue
+        # The aligned rest of a wrapped trailing comment stays with its line.
+        lead = len(u.lines[0]) - len(u.lines[0].lstrip())
+        if u.kind == "comment" and lead > len(indent) and members \
+                and not blank and not pending:
+            members[-1].unit.lines += u.lines
+            continue
+        if u.kind == "comment":
+            if pending and blank:
+                floating = True
+            pending.append(u)
+            blank = False
+            continue
+        u.comments = pending
+        members.append(Member(u, blank, floating and bool(pending)))
+        pending, floating, blank = [], False, False
+    trailing = [l for u in pending for l in u.lines]
+    return members, trailing
+
+
+def property_of(member, fields):
+    m = re.fullmatch(r"(get|is|set)([A-Z]\w*)", member.name)
+    if not m or member.kind != "method":
+        return None
+    name = m.group(2)[0].lower() + m.group(2)[1:]
+    if name not in fields:
+        return None
+    return m.group(1) == "set", fields.index(name)
+
+
+def pack_constants(member, indent):
+    """Enum constants packed onto as few lines as fit, like initializers
+    (clang-format puts one per line when the enum has a body)."""
+    code = member.unit.code.strip()
+    if member.unit.comments or "{" in code or "//" in "".join(member.unit.lines) \
+            or not code.endswith(";"):
+        return member.lines()
+    items = split_args(" ".join(code[:-1].split()))
+    if not items:
+        return member.lines()
+    out, line = [], None
+    for n, item in enumerate(items):
+        item += ";" if n == len(items) - 1 else ","
+        if line is not None and len(line + " " + item) <= LIMIT:
+            line += " " + item
+        else:
+            if line is not None:
+                out.append(line)
+            line = indent + item
+    return out + [line]
+
+
+# A comment that only names a block of accessors (// Getters, // Setters,
+# // Getters y setters...): dropped and written again where it belongs.
+LABEL = re.compile(r"\s*//\s*(getters?|setters?)(\s*(y|and|&|/|,)\s*"
+                   r"(getters?|setters?))?\s*:?\s*$", re.IGNORECASE)
+
+
+def join_short_method(lines):
+    """A method whose body is a single statement on one line when it fits
+    (clang-format leaves it split when an annotation sits above it)."""
+    if len(lines) < 3 or mask(lines[-1]).strip() != "}":
+        return lines
+    head, stmt = lines[-3], lines[-2]
+    code = mask(stmt).strip()
+    if not mask(head).rstrip().endswith("{") or "{" in code or "}" in code \
+            or not code.endswith(";") or "//" in stmt or "/*" in stmt \
+            or NESTED.match(stmt.strip()):
+        return lines
+    # The header must start on that line (annotations above are fine).
+    if mask(head).lstrip().startswith((")", "@")) or (
+            len(lines) > 3 and mask(lines[-4]).rstrip().endswith((",", "("))):
+        return lines
+    joined = head.rstrip() + " " + stmt.strip() + " }"
+    return lines[:-3] + [joined] if len(joined) <= LIMIT else lines
+
+
+def organize(lines, enum):
+    """A class body laid out in the order described above."""
+    indent = next((l[:len(l) - len(l.lstrip())] for l in lines if l.strip()), "")
+    members, trailing = body_units(lines, indent)
+    constants = []
+    if enum and members:
+        constants = [members.pop(0)]
+    for m in members:
+        if m.kind == "type":
+            m.unit.lines = organize_type(m.unit.lines)
+        elif m.kind in ("method", "ctor"):
+            m.unit.lines = join_short_method(m.unit.lines)
+    fields = [m.name for m in members if m.kind == "field"]
+    groups = {k: [] for k in ("types", "static", "fields", "ctors", "methods",
+                              "accessors", "overrides", "main")}
+    accessors = []
+    for m in members:
+        if m.kind == "type":
+            groups["types"].append(m)
+        elif m.kind in ("field", "init"):
+            groups["static" if m.static else "fields"].append(m)
+        elif m.kind == "ctor":
+            groups["ctors"].append(m)
+        elif m.name == "main" and m.static:
+            groups["main"].append(m)
+        elif property_of(m, fields) is not None:
+            accessors.append(m)
+        elif re.search(r"@Override\b", m.unit.code):
+            groups["overrides"].append(m)
+        else:
+            groups["methods"].append(m)
+    accessors.sort(key=lambda m: property_of(m, fields))
+
+    # Accessors of one property stay together; with more, getters and
+    # setters are two blocks, each labelled when it has several methods.
+    for m in accessors:
+        for c in m.unit.comments:
+            while c.lines and LABEL.match(c.lines[0]):
+                c.lines.pop(0)
+        m.unit.comments = [c for c in m.unit.comments if c.lines]
+        if not m.unit.comments:
+            m.floating = False
+    several = len({property_of(m, fields)[1] for m in accessors}) > 1
+    labels = {}
+    if several:
+        for setter, label in ((False, "// Getters"), (True, "// Setters")):
+            block = [m for m in accessors if property_of(m, fields)[0] == setter]
+            if len(block) > 1:
+                labels[id(block[0])] = indent + label
+    groups["accessors"] = accessors
+
+    out = []
+    if constants:
+        out += pack_constants(constants[0], indent)
+    for name, group in groups.items():
+        for n, m in enumerate(group):
+            if not out:
+                pass
+            elif name == "main":
+                out += [""] * 3
+            elif n == 0:
+                out.append("")
+            elif name in ("static", "fields"):
+                if m.blank_before or m.unit.comments:
+                    out.append("")
+            elif name == "accessors":
+                # Getters together and setters together, however long; a
+                # blank line between the two blocks.
+                if m.unit.comments or several and property_of(m, fields)[0] != \
+                        property_of(group[n - 1], fields)[0]:
+                    out.append("")
+            elif m.unit.comments or not (
+                    m.one_line() and group[n - 1].one_line() and
+                    not m.blank_before):
+                out.append("")
+            if id(m) in labels:
+                out.append(labels[id(m)])
+            out += m.lines()
+    if trailing:
+        out += ([""] if out else []) + trailing
+    return out
+
+
+def organize_type(lines):
+    """A type declaration with its body organized; one-liners stay as they are."""
+    info = scan(lines)
+    open_at = next((k for k, (_, depth, _) in enumerate(info) if depth > 0), None)
+    if open_at is None or open_at == len(lines) - 1:
+        return lines
+    last = mask(lines[-1]).strip()
+    if not last.startswith("}"):
+        return lines
+    head = " ".join(mask(l) for l in lines[:open_at + 1])
+    enum = re.search(r"\benum\b", strip_annotations(head)) is not None
+    if mask(lines[open_at]).rstrip()[-1:] != "{":
+        return lines
+    body = organize(lines[open_at + 1:-1], enum)
+    # A blank line between the declaration and its first member.
+    return lines[:open_at + 1] + ([""] if body else []) + body + lines[-1:]
+
+
+def format_java(text):
+    lines = text.rstrip("\n").split("\n")
+    # Text blocks can hold anything; leave those files as clang-format left them.
+    if '"""' in text:
+        return text.rstrip("\n") + "\n"
+    units = split_units(lines)
+    header, package, imports, rest = [], [], [], []
+    pending, blank = [], False
+    for u in units:
+        if u.kind == "blank":
+            blank = True
+            continue
+        code = u.code.strip() if u.kind == "code" else ""
+        if u.kind == "comment":
+            if not package and not imports and not rest:
+                header.append(u)
+            else:
+                pending.append(u)
+        elif code.startswith("package ") and not rest:
+            package = pending + [u]
+            pending = []
+        elif code.startswith("import ") and not rest:
+            u.comments, pending = pending, []
+            imports.append(u)
+        else:
+            u.comments, pending = pending, []
+            rest.append((u, blank))
+        blank = False
+
+    def key(u):
+        line = u.lines[0].split("//")[0].rstrip()
+        return (len(line), line)
+
+    seen, unique = set(), []
+    for u in imports:
+        if u.lines[0].strip() not in seen:
+            seen.add(u.lines[0].strip())
+            unique.append(u)
+    static = [u for u in unique if re.match(r"\s*import\s+static\b", u.lines[0])]
+    plain = [u for u in unique if u not in static]
+    jdk = [u for u in plain if re.match(r"\s*import\s+javax?\.", u.lines[0])]
+    others = [u for u in plain if u not in jdk]
+
+    blocks = [[l for u in header for l in u.lines],
+              [l for u in package for l in u.lines]]
+    for group in (jdk, others, static):
+        blocks.append([l for u in sorted(group, key=key) for l in lines_of(u)])
+    chunks = [b for b in blocks if b]
+    for n, (u, blank_before) in enumerate(rest):
+        body = lines_of(u)
+        if u.kind == "code" and TYPE_DECL.search(strip_annotations(u.code)):
+            body = [l for c in u.comments for l in c.lines] + organize_type(u.lines)
+        if n == 0 or blank_before or u.kind == "code":
+            chunks.append(body)
+        else:
+            chunks[-1] += body
+    if pending:
+        chunks.append([l for u in pending for l in u.lines])
+
+    out = []
+    for n, chunk in enumerate(chunks):
+        if n:
+            out.append("")
+        out += chunk
+    result = "\n".join(out).rstrip("\n") + "\n"
+    # Only ever moves code around: if any token changed, keep the input.
+    # (Accessor labels are the exception: they're rewritten.)
+    def content(t):
+        return sorted(w for l in t.split("\n") if not LABEL.match(l)
+                      for w in l.split())
+    deduped = text
+    for u in imports:
+        if u not in unique:
+            deduped = deduped.replace(u.lines[0] + "\n", "", 1)
+    if content(result) != content(deduped):
+        if os.environ.get("CODE_STYLE_DEBUG"):
+            sys.stderr.write("code-style: member reordering skipped\n")
+        return text.rstrip("\n") + "\n"
+    return result
+
+
 def main():
-    clang_format, style_file = sys.argv[1], sys.argv[2]
-    text, bodies = protect(sys.stdin.read())
-    bodies = format_bodies(clang_format, bodies)
+    global LANG
+    lang, clang_format, style_file = sys.argv[1:4]
+    LANG = lang
+    source = sys.stdin.read()
+    text, bodies = protect(source)
+    bodies = format_bodies(clang_format, style_file, bodies, lang)
     # The placeholders take the length of the formatted bodies, so
     # clang-format keeps a block on one line only if the real one fits.
     text = PLACEHOLDER.sub(
         lambda m: ("_cs" + m.group(1)).ljust(
-            len(" ".join(bodies[int(m.group(1))])) - 1, "_") + ";", text)
-    text = run(clang_format, "file:" + style_file, text)
-    sys.stdout.write(format_c(repack_inits(repack_calls(
-        join_short_controls(restore(text, bodies))))))
+            len(" ".join(b.strip() for b in bodies[int(m.group(1))])) - 1,
+            "_") + ";", text)
+    text = restore(run(clang_format, "file:" + style_file, text, lang), bodies)
+    if lang == "java":
+        text = space_constructors(text)
+    text = repack_inits(repack_calls(join_short_controls(text)))
+    sys.stdout.write(format_java(text) if lang == "java" else format_c(text))
 
 
 if __name__ == "__main__":

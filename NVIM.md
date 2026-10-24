@@ -186,7 +186,7 @@ clangd provides completion, errors, go-to-definition, formatting (clang-format) 
 
 ### C style on save
 
-Saving a `.c` or `.h` file runs `c-style` (`assets/nvim/c-style.py`), which runs clang-format (`assets/nvim/clang-format.yaml`, also linked as `~/.clang-format`) and adds what clang-format can't do:
+Saving a `.c` or `.h` file runs `code-style c` (`assets/nvim/code-style.py`, the same house style as Java), which runs clang-format (`assets/nvim/clang-format.yaml`, also linked as `~/.clang-format`) and adds what clang-format can't do:
 
 - A space between a function's name and its parameters where it's defined or declared (`int foo (int a)`), not in calls (`foo(1)`).
 - 2-space indents, spaces only, nothing past column 80 (long lines and strings are split; the guide line marks the limit).
@@ -212,6 +212,8 @@ jdtls takes a few seconds to index a project the first time; Maven and Gradle pr
 
 | Keys | Action |
 |---|---|
+| `:getset` or `Space c G` | Getters and setters for the field under the cursor (for every field when the cursor is elsewhere in the class) |
+| `:test` | Save everything and run `mvn test` (see [Tests](#tests)) |
 | `Space c o` | Organize imports |
 | `Space c x v` / `Space c x c` | Extract variable / constant |
 | `Space c x m` (visual) | Extract method |
@@ -222,6 +224,23 @@ jdtls takes a few seconds to index a project the first time; Maven and Gradle pr
 | `Space t r` | Run the nearest test |
 | `Space t T` | Pick a test to run |
 | `F5` | Debug (it finds the `main` classes) |
+
+`:getset` writes them as one-liners (`public int getAge () { return age; }`), skips the ones that exist, gives `final` fields only a getter and booleans `isX`, and leaves constants (`static final`) out unless the cursor is on one. The file is formatted right after, so they land with the other accessors.
+
+### Java style on save
+
+Saving a `.java` file runs `code-style java`: the same clang-format settings and passes as [C](#c-style-on-save), so Java looks like C. 2 spaces, 80 columns, `int foo (int a)` where a method or constructor is declared but `foo(1)` in calls, `(int) v`, short methods, ifs and loops on one line, multi-statement one-line blocks kept while they fit, wrapped calls closing with `);` on their own line, headers that don't fit with their parameters below the `(` and `) {` on its own line, long trailing comments wrapped, three blank lines before `main`. What's particular to Java:
+
+- Imports: the JDK's (`java.`, `javax.`) first, then the rest, then `import static`, a blank line between each group, each from the shortest line to the longest. Duplicates go.
+- A blank line between a class (or enum, interface, record) and its first member.
+- Members always in the same order, each kind a blank line apart: nested types; static fields and `static {}` blocks; fields and `{}` blocks (each of those two keeps its own order, which Java's initialization depends on); constructors; methods; getters (in the order of the fields), then setters; `@Override` methods; `main` last. Comments and annotations above a member move with it. Enum constants stay first.
+- Fields and one-line methods written together stay together; longer methods get a blank line around them. Getters always stay together, and so do setters, even one that's split over several lines; there's a blank line between the two blocks.
+- With a single property, its getter and setter go together, with no blank line and no label. With more, each block of two or more gets a `// Getters` or `// Setters` comment above it (labels written by hand, like `// Getters y setters`, are replaced).
+- A method whose body is one statement goes on one line when it fits in 80 columns, also with an annotation above it (clang-format alone leaves those split): `@Override` / `public double galeonesPorHorrocrux () { return 90; }`.
+- Enum constants are packed onto as few lines as fit, like initializers.
+- Long strings aren't cut (Java doesn't join `"a" "b"`): when the first argument doesn't fit, all the arguments go below the `(`. A string literal longer than the line itself still goes past column 80.
+- Annotations go on their own line, on fields too.
+- A file with text blocks (`"""`) only gets clang-format and the line passes; members aren't reordered. Reordering never changes anything but the order: if the tokens don't match afterwards, the file is left as clang-format left it.
 
 ## Debugging
 
@@ -260,6 +279,8 @@ C/C++ use codelldb; Java uses the Java debug adapter.
 | `Space t S` | Stop |
 
 In Java files `Space t t`, `t r` and `t T` run through jdtls instead (see [Java](#java)).
+
+`:test` (or `:Test`) saves everything and runs the whole build's tests in a terminal that opens in the editor window like a file, the same way as `:make`: `mvn test` next to the nearest `pom.xml`, Gradle's `test` task (`./gradlew` when there is one) next to a `build.gradle`, or `make test` next to a Makefile. `:test PersonTest` runs only that class (`-Dtest=` / `--tests`). Running it again replaces the previous one; when it ends it drops to normal mode and `q` closes it.
 
 ## Git
 

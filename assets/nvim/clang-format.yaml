@@ -1,12 +1,13 @@
-# Base style for C. c-style.py runs clang-format with it on save, then
-# applies the layout rules clang-format can't express. clangd reads it too.
+# Base style for C and Java. code-style.py runs clang-format with it on save,
+# then applies the layout rules clang-format can't express. clangd reads it
+# too.
 BasedOnStyle: LLVM
 IndentWidth: 2
 UseTab: Never
 ColumnLimit: 80
-# c-style.py sorts includes by length.
+# code-style.py sorts includes and imports by length.
 SortIncludes: Never
-# c-style.py spaces the functions (one-line ones can stay together).
+# code-style.py spaces the functions (one-line ones can stay together).
 SeparateDefinitionBlocks: Leave
 MaxEmptyLinesToKeep: 1
 # Short functions, ifs, loops and blocks on one line when they fit.
@@ -31,3 +32,13 @@ ContinuationIndentWidth: 2
 PenaltyBreakComment: 10
 # Casts with a space: (int) v.
 SpaceAfterCStyleCast: true
+# Operators at the end of a wrapped line, in Java too (its preset puts them
+# at the start of the next).
+BreakBeforeBinaryOperators: None
+---
+Language: Java
+# Annotations on their own line, on fields as well as methods.
+BreakAfterJavaFieldAnnotations: true
+# Long strings are left alone: clang-format would re-cut them into "a" + "b"
+# pieces differently on every pass.
+BreakStringLiterals: false
