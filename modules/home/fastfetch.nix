@@ -46,9 +46,11 @@ in {
         { type = "host"; key = mid "󰌢" "Equipo"; }
         { type = "cpu"; key = mid "" "CPU"; format = "{name}"; }
         { type = "gpu"; key = mid "󰢮" "GPU"; format = "{name}"; hideType = "integrated"; }
+        # Display sits mid-list: on the headless Pi it prints nothing, and as the
+        # last row it took the closing branch with it.
+        { type = "display"; key = mid "󰍹" "Pantalla"; format = "{width}x{height} @ {refresh-rate} Hz"; }
         { type = "memory"; key = mid "" "Memoria"; format = "{used} / {total}"; }
-        { type = "disk"; key = mid "" "Disco"; folders = "/"; format = "{size-used} / {size-total}"; }
-        { type = "display"; key = last "󰍹" "Pantalla"; format = "{width}x{height} @ {refresh-rate} Hz"; }
+        { type = "disk"; key = last "" "Disco"; folders = "/"; format = "{size-used} / {size-total}"; }
       ];
     };
   };

@@ -355,9 +355,9 @@ Every new shell opens with an "About This Mac"-style summary:
              │  󰌢 Equipo      B760M DS3H DDR4
              │   CPU         13th Gen Intel(R) Core(TM) i7-13700K
              │  󰢮 GPU         GeForce RTX 4070
+             │  󰍹 Pantalla    2560x1440 @ 144 Hz
              │   Memoria     4.15 GiB / 15.38 GiB
-             │   Disco       28.80 GiB / 195.80 GiB
-             ╰  󰍹 Pantalla    2560x1440 @ 144 Hz
+             ╰   Disco       28.80 GiB / 195.80 GiB
 ```
 
 - **The logo is a real image**: the white NixOS snowflake PNG on the desktop and a white Raspberry Pi logo on the Pi (rendered at build time from the Nerd Font glyph with ImageMagick, so it matches the snowflake), drawn with kitty's graphics protocol. Locally fastfetch hands kitty the file path (`kitty-direct`); over SSH that file isn't on kitty's machine, so the shell switches to the `kitty` type, which sends the pixels through the terminal. Under tmux or in another terminal it falls back to a small text logo (`NixOS_small`, `raspbian_small` or `macos_small`). The Mac uses the built-in Apple logo.
