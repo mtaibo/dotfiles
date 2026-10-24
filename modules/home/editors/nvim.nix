@@ -142,6 +142,15 @@ in {
     # The same style for clangd and clang-format run by hand anywhere in ~.
     home.file = lib.mkIf cfg.ide { ".clang-format".source = clangFormat; };
 
+    # vim.loader keeps compiled Lua in ~/.cache/nvim/luac and only checks a
+    # file's mtime and size. Everything in the Nix store has the same mtime,
+    # so a config file that changes only a store path (same length) kept
+    # running the old code, e.g. :help opening the previous page. Drop the
+    # cache on every switch; nvim rebuilds it on the next start.
+    home.activation.nvimLuaCacheReset = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      run rm -rf "''${XDG_CACHE_HOME:-$HOME/.cache}/nvim/luac"
+    '';
+
     xdg.configFile = {
       "nvim/lua/config/lazy.lua".text = ''
         -- Bootstrap lazy.nvim, then load LazyVim with its extras and the
