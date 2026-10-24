@@ -1,5 +1,6 @@
 {
   imports = [
+    ./cheatsheet.nix
     ./dunst.nix
     ./hyprland.nix
     ./hyprlock.nix

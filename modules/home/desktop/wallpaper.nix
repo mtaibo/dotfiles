@@ -259,9 +259,9 @@ in {
   programs.kitty.extraConfig = lib.mkAfter "globinclude matugen-colors.conf";
 
   wayland.windowManager.hyprland.settings = {
-    bind = [
-      "SUPER, W, exec, wallpaper next"
-      "SUPER SHIFT, W, exec, wallpaper pick"
+    bindd = [
+      "SUPER, W, Siguiente fondo de pantalla, exec, wallpaper next"
+      "SUPER SHIFT, W, Elegir fondo de pantalla, exec, wallpaper pick"
     ];
     layerrule = [
       "blur, rofi"
