@@ -681,11 +681,18 @@ def layout_init(lines):
     content[-1] = (last[0][:-2] + " " + last[1]).strip()
 
     rows = []  # (items, comment)
-    for line in content:
+    for k, line in enumerate(content):
         parts = split_comment(line)
         if parts is None:
             return None
         code, comment = parts
+        # The aligned rest of a trailing comment clang-format wrapped goes
+        # back onto its line.
+        lead = len(lines[k]) - len(lines[k].lstrip()) if k else 0
+        if not code.strip() and comment.startswith("//") and lead > len(cont) \
+                and rows and rows[-1][1].startswith("//"):
+            rows[-1] = (rows[-1][0], rows[-1][1] + " " + comment[2:].strip())
+            continue
         items = split_args(code.rstrip(",")) if code.strip() else []
         if items is None:
             return None
