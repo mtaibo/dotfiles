@@ -11,10 +11,83 @@ let
     "dap.core"
     "test.core"
   ];
-  extras = [ "editor.neo-tree" ] ++ ideExtras;
+  extras = [ "editor.neo-tree" "lang.markdown" ] ++ ideExtras;
   importExtras = lib.concatMapStrings (e: ''
         { import = "lazyvim.plugins.extras.${e}" },
   '') extras;
+
+  # Markdown preview like VS Code's: an HTML page, live, scroll-synced
+  # (markdown-preview.nvim), styled with the rice's colours.
+  c = config.lib.stylix.colors.withHashtag;
+  previewCss = pkgs.writeText "markdown-preview.css" ''
+    html, body, #page-ctn, .markdown-body {
+      background: ${c.base00} !important;
+    }
+    .markdown-body {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 32px 36px;
+      color: ${c.base05};
+      font-family: "Inter", -apple-system, sans-serif;
+      font-size: 16px;
+      line-height: 1.65;
+    }
+    .markdown-body h1, .markdown-body h2, .markdown-body h3,
+    .markdown-body h4, .markdown-body h5, .markdown-body h6 {
+      color: ${c.base07};
+      font-weight: 650;
+      border-color: ${c.base02};
+    }
+    .markdown-body a { color: ${c.base0D}; }
+    .markdown-body code, .markdown-body pre, .markdown-body tt {
+      font-family: "FiraCode Nerd Font Mono", monospace;
+    }
+    .markdown-body :not(pre) > code {
+      background: ${c.base01};
+      color: ${c.base06};
+      border-radius: 6px;
+      padding: 0.15em 0.4em;
+    }
+    .markdown-body pre {
+      background: ${c.base01} !important;
+      border: 1px solid ${c.base02};
+      border-radius: 10px;
+    }
+    .markdown-body table { display: table; width: auto; }
+    .markdown-body table th, .markdown-body table td { border-color: ${c.base02}; }
+    .markdown-body table tr { background: transparent; border-color: ${c.base02}; }
+    .markdown-body table tr:nth-child(2n) { background: ${c.base01}; }
+    .markdown-body blockquote { color: ${c.base04}; border-left-color: ${c.base0D}; }
+    .markdown-body hr { background: ${c.base02}; }
+  '';
+
+  # A Firefox profile only for previews: no tabs or toolbars, so it looks
+  # like a preview pane; Hyprland tiles it next to kitty.
+  previewUserJs = pkgs.writeText "markdown-preview-user.js" ''
+    user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);
+    user_pref("dom.allow_scripts_to_close_windows", true);
+    user_pref("browser.shell.checkDefaultBrowser", false);
+    user_pref("browser.aboutwelcome.enabled", false);
+    user_pref("browser.startup.homepage_override.mstone", "ignore");
+    user_pref("datareporting.policy.dataSubmissionPolicyBypassNotification", true);
+    user_pref("browser.sessionstore.resume_from_crash", false);
+    user_pref("browser.tabs.warnOnClose", false);
+    user_pref("layout.css.prefers-color-scheme.content-override", 0);
+  '';
+  previewUserChrome = pkgs.writeText "markdown-preview-userChrome.css" ''
+    #navigator-toolbox { visibility: collapse !important; }
+  '';
+  previewOpen = pkgs.writeShellApplication {
+    name = "markdown-preview-open";
+    runtimeInputs = [ pkgs.coreutils ];
+    text = ''
+      profile=''${XDG_CACHE_HOME:-$HOME/.cache}/markdown-preview-firefox
+      mkdir -p "$profile/chrome"
+      install -m 644 ${previewUserJs} "$profile/user.js"
+      install -m 644 ${previewUserChrome} "$profile/chrome/userChrome.css"
+      exec firefox --profile "$profile" --no-remote --new-instance --name markdown-preview "$1"
+    '';
+  };
 in {
   options.dotfiles.nvim.ide = lib.mkOption {
     type = lib.types.bool;
@@ -95,6 +168,16 @@ in {
         })
       '';
 
+      # LazyVim turns on English spell checking in Markdown and text, which
+      # underlines everything written in Spanish; Space u s toggles it.
+      "nvim/lua/config/autocmds.lua".text = ''
+        pcall(vim.api.nvim_del_augroup_by_name, "lazyvim_wrap_spell")
+        vim.api.nvim_create_autocmd("FileType", {
+          pattern = { "text", "plaintex", "typst", "gitcommit", "markdown" },
+          callback = function() vim.opt_local.wrap = true end,
+        })
+      '';
+
       "nvim/lua/config/options.lua".text = ''
         vim.opt.tabstop = 2
         vim.opt.shiftwidth = 2
@@ -158,6 +241,88 @@ in {
                 styles = { sidebars = "transparent", floats = "transparent" },
               },
             },
+          },
+        }
+      '';
+
+      # Markdown like VS Code: the file stays plain, and Space c v opens a
+      # styled preview to the right that follows the text and the cursor
+      # (render-markdown's own preview). Space u m still renders in place.
+      "nvim/lua/plugins/markdown.lua".text = ''
+        return {
+          {
+            "MeanderingProgrammer/render-markdown.nvim",
+            opts = {
+              enabled = false,
+              overrides = {
+                preview = {
+                  enabled = true,
+                  render_modes = true,
+                  anti_conceal = { enabled = false },
+                  checkbox = { enabled = true },
+                  heading = { icons = { "󰲡 ", "󰲣 ", "󰲥 ", "󰲧 ", "󰲩 ", "󰲫 " } },
+                  win_options = {
+                    number = { default = false, rendered = false },
+                    relativenumber = { default = false, rendered = false },
+                    signcolumn = { default = "no", rendered = "no" },
+                    spell = { default = false, rendered = false },
+                  },
+                },
+              },
+            },
+            keys = {
+              { "<leader>cV", function() require("render-markdown").preview() end,
+                ft = "markdown", desc = "Markdown Preview (terminal)" },
+            },
+          },
+          {
+            -- nixpkgs' build, which runs its server with Nix's Node, so
+            -- nothing gets downloaded.
+            "iamcco/markdown-preview.nvim",
+            dir = "${pkgs.vimPlugins.markdown-preview-nvim}",
+            build = false,
+            init = function()
+              vim.g.mkdp_theme = "dark"
+              vim.g.mkdp_markdown_css = "${previewCss}"
+              vim.g.mkdp_page_title = "''${name}"
+              vim.g.mkdp_combine_preview = 1
+              vim.g.mkdp_auto_close = 0
+              vim.g.mkdp_preview_options = { disable_filename = 1, sync_scroll_type = "middle" }
+              ${lib.optionalString pkgs.stdenv.hostPlatform.isLinux ''
+              vim.cmd([[
+                function! MkdpOpen(url) abort
+                  call jobstart(['${previewOpen}/bin/markdown-preview-open', a:url], { 'detach': v:true })
+                endfunction
+              ]])
+              vim.g.mkdp_browserfunc = "MkdpOpen"
+              ''}
+            end,
+            keys = {
+              { "<leader>cv", "<cmd>MarkdownPreviewToggle<cr>", ft = "markdown", desc = "Markdown Preview" },
+            },
+          },
+          -- No markdownlint: VS Code doesn't lint Markdown by default, and its
+          -- fixes on save would rewrite the files.
+          {
+            "mfussenegger/nvim-lint",
+            opts = function(_, opts) opts.linters_by_ft.markdown = nil end,
+          },
+          {
+            "stevearc/conform.nvim",
+            opts = function(_, opts)
+              opts.formatters_by_ft.markdown = nil
+              opts.formatters_by_ft["markdown.mdx"] = nil
+            end,
+          },
+        }
+      '';
+
+      # The author of the current line at its end, as in the old config.
+      "nvim/lua/plugins/git.lua".text = ''
+        return {
+          {
+            "lewis6991/gitsigns.nvim",
+            opts = { current_line_blame = true, current_line_blame_opts = { delay = 500 } },
           },
         }
       '';
