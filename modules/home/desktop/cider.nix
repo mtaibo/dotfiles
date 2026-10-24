@@ -80,7 +80,10 @@ let
         # The tray icon is the only way back to a hidden window.
         yq -i ".enableTrayIcon = true" ${clientOptions}
       fi
-      exec cider-2 "$@"
+      # Under XWayland: natively on Wayland, the mini player shrinks the page to
+      # the artwork while the tiled window keeps its size, leaving it in a
+      # corner of an empty window; through X11 it fills the tile.
+      exec cider-2 --ozone-platform=x11 "$@"
     '';
   };
 in {
