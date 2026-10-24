@@ -10,6 +10,9 @@ express. Reads the file on stdin, writes it to stdout.
 - A call, prototype or function header that doesn't fit in 80 columns keeps
   its first argument on the first line and packs the rest together below,
   two spaces further in (clang-format fills the first line instead).
+- An initializer `x = { ... };` that doesn't fit on one line gets `{` at the
+  end of the first line, the elements below two spaces in (a line per
+  comment, comments aligned, the rest packed) and `};` on its own line.
 - Includes, #defines and typedefs are hoisted to the top of the file (not out
   of #if blocks), each group a blank line apart:
   - system includes, then a blank line and the project's ("..."), each from
@@ -488,6 +491,116 @@ def repack_calls(text):
     return "\n".join(out)
 
 
+def split_comment(line):
+    """(code, trailing comment) of a line, or None if a comment sits in the
+    middle of the code."""
+    quote, i = None, 0
+    while i < len(line):
+        c = line[i]
+        if quote:
+            if c == "\\":
+                i += 1
+            elif c == quote:
+                quote = None
+        elif c in "\"'":
+            quote = c
+        elif line.startswith("//", i):
+            return line[:i].rstrip(), line[i:].strip()
+        elif line.startswith("/*", i):
+            end = line.find("*/", i)
+            if end >= 0 and line[end + 2:].strip():
+                return None
+            return line[:i].rstrip(), line[i:].strip()
+        i += 1
+    return line.rstrip(), ""
+
+
+INIT = re.compile(r"(?P<head>\s*[^{}()]*=\s*)\{(?P<body>.*)$")
+
+
+def layout_init(lines):
+    """The initializer in `lines` laid out as described above, or None."""
+    m = INIT.match(lines[0])
+    if not m:
+        return None
+    indent = lines[0][:len(lines[0]) - len(lines[0].lstrip())]
+    cont = indent + "  "
+    content = [m.group("body")] + [l.strip() for l in lines[1:]]
+    last = split_comment(content[-1])
+    if last is None or not last[0].endswith("};"):
+        return None
+    content[-1] = (last[0][:-2] + " " + last[1]).strip()
+
+    rows = []  # (items, comment)
+    for line in content:
+        parts = split_comment(line)
+        if parts is None:
+            return None
+        code, comment = parts
+        items = split_args(code.rstrip(",")) if code.strip() else []
+        if items is None:
+            return None
+        rows.append((items, comment))
+    total = sum(len(items) for items, _ in rows)
+    trailing = content and split_comment(content[-1])[0].endswith(",")
+
+    out, line, n = [], None, 0
+    for items, comment in rows:
+        for item in items:
+            n += 1
+            item += "," if n < total or trailing else ""
+            if line is not None and len(line + " " + item) <= LIMIT:
+                line += " " + item
+            else:
+                if line is not None:
+                    out.append([line, ""])
+                line = cont + item
+                if len(line) > LIMIT:
+                    return None
+        if comment:
+            if line is None:
+                out.append([cont + comment, None])
+            else:
+                out.append([line, comment])
+                line = None
+    if line is not None:
+        out.append([line, ""])
+
+    width = max([len(l) for l, c in out if c] or [0])
+    fits = all(width + 1 + len(c) <= LIMIT for l, c in out if c)
+    result = [m.group("head").rstrip() + " {"]
+    for code, comment in out:
+        if comment:
+            pad = width - len(code) + 1 if fits else 1
+            result.append(code + " " * pad + comment)
+        else:
+            result.append(code)
+    return result + [indent + "};"]
+
+
+def repack_inits(text):
+    lines, out, i = text.split("\n"), [], 0
+    while i < len(lines):
+        m = INIT.match(mask(lines[i]))
+        if m:
+            depth, j = 0, i
+            while j < len(lines):
+                code = mask(lines[j])
+                depth += code.count("{") - code.count("}")
+                if depth <= 0:
+                    break
+                j += 1
+            if j > i and j < len(lines):
+                laid = layout_init(lines[i:j + 1])
+                if laid:
+                    out += laid
+                    i = j + 1
+                    continue
+        out.append(lines[i])
+        i += 1
+    return "\n".join(out)
+
+
 def main():
     clang_format, style_file = sys.argv[1], sys.argv[2]
     text, bodies = protect(sys.stdin.read())
@@ -498,7 +611,7 @@ def main():
         lambda m: ("_cs" + m.group(1)).ljust(
             len(" ".join(bodies[int(m.group(1))])) - 1, "_") + ";", text)
     text = run(clang_format, "file:" + style_file, text)
-    sys.stdout.write(format_c(repack_calls(restore(text, bodies))))
+    sys.stdout.write(format_c(repack_inits(repack_calls(restore(text, bodies)))))
 
 
 if __name__ == "__main__":
