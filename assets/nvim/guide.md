@@ -26,6 +26,15 @@ The comment style comes from the language at the cursor: `//` in C and Java, `#`
 
 Uses in files that aren't open need the project indexed: clangd reads `compile_commands.json` (CMake writes it with `-DCMAKE_EXPORT_COMPILE_COMMANDS=ON`; `bear -- make` makes one from a Makefile). Without it only the open files count. In Java jdtls indexes the project by itself.
 
+## Folding functions
+
+| Keys | Does |
+|---|---|
+| `:fold` | Fold every function so only its first line shows, except `main`. Structs, typedefs and globals stay open. In Java: every method and constructor except `main`; classes and fields stay open |
+| `:fold` again | Open them all back |
+| `za` | Open or close only the one under the cursor |
+| `zR` / `zM` | Open / close every fold |
+
 ## Terminal
 
 | Keys | Does |

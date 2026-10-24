@@ -468,6 +468,65 @@ in {
         vim.cmd([[cnoreabbrev <expr> getset getcmdtype() ==# ':' && getcmdline() ==# 'getset' ? 'Getset' : 'getset']])
         map("n", "<leader>cG", java_accessors, { desc = "Generate getters and setters" })
 
+        -- :Fold (and a typed :fold): folds every C function / Java method
+        -- and constructor except main, so only their first line shows;
+        -- structs, typedefs, fields and classes stay open. Again opens them.
+        -- The window switches to manual folds meanwhile and gets back its
+        -- own folding afterwards.
+        local fold_nodes = {
+          c = { function_definition = true },
+          java = { method_declaration = true, constructor_declaration = true },
+        }
+        local function fold_name(node)
+          local name = node:field("name")[1]
+          while not name do
+            node = node:field("declarator")[1]
+            if not node then return nil end
+            if node:type() == "identifier" then name = node end
+          end
+          return vim.treesitter.get_node_text(name, 0)
+        end
+        local function toggle_folds()
+          local saved = vim.w.fold_saved
+          if saved then
+            vim.w.fold_saved = nil
+            vim.cmd("normal! zE")
+            vim.wo.foldmethod, vim.wo.foldexpr, vim.wo.foldlevel = saved[1], saved[2], saved[3]
+            return
+          end
+          local types = fold_nodes[vim.bo.filetype]
+          if not types then
+            return vim.notify("Folding functions is for C and Java files", vim.log.levels.WARN)
+          end
+          local ok, parser = pcall(vim.treesitter.get_parser, 0)
+          if not ok or not parser then
+            return vim.notify("No syntax tree here", vim.log.levels.WARN)
+          end
+          local ranges = {}
+          local function walk(node)
+            for child in node:iter_children() do
+              if types[child:type()] then
+                local first, _, last = child:range()
+                if last > first and fold_name(child) ~= "main" then
+                  table.insert(ranges, { first + 1, last + 1 })
+                end
+              else
+                walk(child)
+              end
+            end
+          end
+          walk(parser:parse()[1]:root())
+          if #ranges == 0 then
+            return vim.notify("No functions to fold", vim.log.levels.INFO)
+          end
+          vim.w.fold_saved = { vim.wo.foldmethod, vim.wo.foldexpr, vim.wo.foldlevel }
+          vim.wo.foldmethod = "manual"
+          vim.cmd("normal! zE")
+          for _, r in ipairs(ranges) do vim.cmd(("%d,%dfold"):format(r[1], r[2])) end
+        end
+        vim.api.nvim_create_user_command("Fold", toggle_folds, { desc = "Fold every function but main" })
+        vim.cmd([[cnoreabbrev <expr> fold getcmdtype() ==# ':' && getcmdline() ==# 'fold' ? 'Fold' : 'fold']])
+
         -- Debugging
         map("n", "<F5>", function() require("dap").continue() end, { desc = "Start / continue debugging" })
         map("n", "<S-F5>", function() require("dap").terminate() end, { desc = "Stop debugging" })

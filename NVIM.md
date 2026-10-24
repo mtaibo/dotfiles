@@ -155,6 +155,7 @@ Brackets and quotes close themselves. Text objects work with code: `vaf` selects
 |---|---|
 | `gd` | Go to definition: on a call, the function's code; on its name or anywhere inside its body, its prototype (the `.h`); on a prototype, the code |
 | `gn` / `gN` | Next / previous use of the function under the cursor or the one you're inside, across files (`cgn` still works) |
+| `:fold` | Fold every C function and Java method/constructor except `main` (structs, fields and classes stay open); again opens them. `za` toggles the one under the cursor |
 | `F12` | Plain definition of what's under the cursor |
 | `gr` (or `Shift+F12`) | References |
 | `gI` | Implementation |
