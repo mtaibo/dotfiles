@@ -12,6 +12,9 @@
   ] ++ lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
     kitty
   ] ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [
+    # C from any terminal, not only inside Neovim (the Mac has Xcode's).
+    gcc
+    gnumake
     bibata-cursors
     grim
     slurp
