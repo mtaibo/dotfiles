@@ -208,12 +208,12 @@ in {
     Install.WantedBy = [ "swww.service" ];
   };
 
-  # matugen turns the wallpaper into a Material You palette; only its accent
-  # tones are used. They replace the terminal's blue, magenta and cyan (so
-  # `ls`, the prompt and fastfetch take the wallpaper's colour) and give the
-  # picker and the bar their accent. Red, green and yellow keep their meaning
-  # (errors, git diff, warnings) and the greys stay Stylix's so text stays
-  # readable.
+  # matugen turns the wallpaper into a Material You palette. Its accent tones
+  # replace the terminal's blue, magenta and cyan (so `ls`, the prompt and
+  # fastfetch take the wallpaper's colour) and give the picker its accent; the
+  # bar also takes its dark surface tones for the islands. Red, green and
+  # yellow keep their meaning (errors, git diff, warnings) and the terminal's
+  # greys stay Stylix's so text stays readable.
   xdg.configFile = {
     "matugen/config.toml".source = (pkgs.formats.toml { }).generate "matugen.toml" {
       config = { };
@@ -246,6 +246,11 @@ in {
     '';
     "matugen/templates/waybar.css".text = ''
       @define-color accent {{colors.primary.default.hex}};
+      @define-color accent_fixed {{colors.primary_fixed.default.hex}};
+      @define-color surface {{colors.surface.default.hex}};
+      @define-color island {{colors.surface_container.default.hex}};
+      @define-color text {{colors.secondary.default.hex}};
+      @define-color muted {{colors.outline.default.hex}};
     '';
   };
 

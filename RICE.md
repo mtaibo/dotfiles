@@ -100,7 +100,7 @@ The accents are deliberately muted versions of Apple's system colours, so even s
 
 Every glass surface is two layers:
 
-1. **The fill** — the component paints itself with `base00` at partial alpha (`rgba(28, 28, 30, 0.45)` on the bar, `#1c1c1e99` on notifications) and a 1 px border of white at 8–15 % opacity. That faint edge is what makes it read as glass rather than just "transparent".
+1. **The fill** — the component paints itself with `base00` at partial alpha (`#1c1c1e99` on notifications; the bar's islands use the wallpaper's dark surface tone at 75 % instead) and a 1 px border of white at 8–15 % opacity. That faint edge is what makes it read as glass rather than just "transparent".
 2. **The blur** — Hyprland blurs whatever is behind specific layer-shell surfaces, picked by namespace:
 
 ```nix
@@ -113,7 +113,7 @@ layerrule = [
 ];
 ```
 
-`ignorezero` stops Hyprland from blurring the fully transparent gaps between the bar's pills, so only the pills themselves are frosted. The blur is deliberately light (2 passes of size 5), so the shapes of the wallpaper still show through, and `brightness = 0.7` darkens whatever is behind the glass. That is what keeps grey text in a 70 % transparent terminal readable even over a bright wallpaper; a heavier, undarkened blur turned bright skies into a milky haze.
+`ignorezero` stops Hyprland from blurring the fully transparent gaps between the bar's islands, so only the islands themselves are frosted. The blur is deliberately light (2 passes of size 5), so the shapes of the wallpaper still show through, and `brightness = 0.7` darkens whatever is behind the glass. That is what keeps grey text in a 70 % transparent terminal readable even over a bright wallpaper; a heavier, undarkened blur turned bright skies into a milky haze.
 
 The login screen does its own blur in Qt (see below), since it runs before Hyprland exists.
 
@@ -206,10 +206,10 @@ The theme is generated in Nix with the same glass as the bar (`base00` at 60 %, 
 
 ### Colours that follow the wallpaper
 
-Every time the wallpaper changes, [matugen](https://github.com/InioX/matugen) reads it and builds a Material You palette, and the script makes every open kitty reload (`SIGUSR1`). Only the accent tones are used, which keeps the "one accent" idea: the accent simply becomes the wallpaper's colour.
+Every time the wallpaper changes, [matugen](https://github.com/InioX/matugen) reads it and builds a Material You palette, and the script makes every open kitty reload (`SIGUSR1`). Mostly the accent tones are used, which keeps the "one accent" idea: the accent simply becomes the wallpaper's colour.
 
 - **Terminal:** matugen's primary, tertiary and secondary tones replace the terminal's blue, magenta and cyan (and their bright versions). The prompt uses them for git status and a nix shell, and fastfetch for its icons. Mountain turns them sky blue, the forest green, curvy lavender.
-- **Bar:** the chips, icons, active workspace and clock in Waybar use the same accent (see [Top bar](#-top-bar--waybar)).
+- **Bar:** Waybar's islands take the palette's dark surface tone and the active workspace and hovers its accent (see [Top bar](#-top-bar--waybar)).
 - **`ls` / `l` (eza):** eza's default theme paints most columns red, yellow and green, which would never change. `EZA_COLORS` (set in `shell.nix`, starting with `reset` to drop its per-extension colours) redraws it with only the three accent tones and greys: folders and your user in the accent, permission bits `r` / `w` / `x` in the three tones, sizes white with grey units, links, dates, dashes and the header grey. A matching minimal `LS_COLORS` replaces the one NixOS's `dircolors` sets. Red is kept only for broken links and deleted or conflicted files in git.
 - **Kept fixed on purpose:** the terminal's red, green and yellow keep their meaning for other programs (errors, `git diff`, warnings), and the greys, background and foreground stay Stylix's so text stays readable on the glass.
 - **Why matugen and not wallust** (which Hyprlust uses): wallust takes colours straight from the picture, and on dark wallpapers several of them came out dark grey, unreadable on a dark terminal. Material You tones have a guaranteed lightness for dark themes, so every wallpaper gives a readable accent.
@@ -232,34 +232,32 @@ Every time the wallpaper changes, [matugen](https://github.com/InioX/matugen) re
 
 ## 📊 Top bar — Waybar
 
-Modelled on the bar from [Hyprlust](https://github.com/NischalDawadi/Hyprlust): one floating glass bar, 1500 px wide and centred 8 px from the top, with chips inside tinted by the wallpaper's accent.
+Copied from the bar in [binnewbs' Hyprland rice](https://github.com/binnewbs/arch-hyprland) (JaKooLit's "window middle" layout with the "islands" style): no bar behind the modules, just a row of dark rounded islands floating 6 px from the top, each tinted by the wallpaper.
 
 ```
-╭─────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ [] [kitty] [󰁔 󰘚 1% 󰍛 1.9G  34°]      [    ]      [⋯] [󰈀 󰂯 󰕾] [󰂚 1] [21:27] │
-╰─────────────────────────────────────────────────────────────────────────────────────────────────╯
-  logo  window  stats drawer (hover the arrow)    workspaces       tray connection notifications clock
+ (  08:31 ) ( ⋯ 󰈀 󰂯 ) ( A B C D E )        ( 󰈹  Firefox page )        ( 1 󱅫 ) ( 󰋋 40% ) ( 󰐥 )
+   clock   tray·connection  workspaces       focused window       notifications  audio   power
 ```
 
 | Module | Shows | Click |
 |---|---|---|
-| Logo | Nix snowflake in the accent | Left: Vicinae · right: wallpaper picker |
-| Active window | The app's class, or "Escritorio" (dimmed) on an empty workspace | — |
-| Stats drawer | An arrow; hovering it slides out CPU usage, used RAM and the CPU package temperature (red from 85 °C) | — |
-| Workspaces | Always five dots:  active in the accent,  has windows,  empty | Switches workspace |
-| Tray | App tray icons at 16 px | App menu |
-| Connection | 󰈀 ethernet · 󰖩 wifi · 󰈂 disconnected, 󰂯 / 󰂱 / 󰂲 bluetooth, 󰕿 󰖀 󰕾 / 󰝟 volume, in the accent and dimmed when off | Bluetooth: blueman · volume: pavucontrol, right-click mutes, scroll ±5 % |
+| Clock | ` 08:31`; click for ` sábado, 24 de octubre  08:31` | Tooltip with a month calendar |
+| Tray + connection | App tray icons at 16 px, then 󰈀 ethernet · 󰖩 wifi · 󰈂 disconnected and 󰂯 / 󰂱 / 󰂲 bluetooth (grey when off) | Bluetooth: blueman |
+| Workspaces | Always five letters, A–E; the active one is a pill in the light accent with dark text, the rest grey | Switches workspace, scroll moves through them |
+| Focused window | Its title (Firefox gets its icon, zsh shows `> [dir]`); the island vanishes on an empty workspace | — |
 | Notifications | 󰂚 with dunst's history count, 󱅫 when there are some, 󰂛 grey with the queued count in "do not disturb" | Left: toggle do not disturb · right: show the last one again · middle: clear |
-| Clock | `21:27` in the accent; click for `viernes, 23 de octubre  21:27` | Tooltip with a month calendar |
+| Audio | Volume with its icon (headphones when they're the output), red when muted; hovering slides out the microphone | Left: mute · right: pavucontrol · scroll ±5 % (mic too) |
+| Power | 󰐥 | A small glass rofi menu under the button: lock, log out, reboot, power off |
 
 How it's built:
 
-- **Colours.** The chips are `alpha(@accent, 0.12)` with accent icons, where `@accent` is matugen's primary tone from the wallpaper. matugen writes it to `~/.config/waybar/matugen-colors.css`, the style `@import`s it, and the `wallpaper` script sends waybar `SIGUSR2` so it reloads on every wallpaper change. Before the first wallpaper is set, an activation step writes Stylix's blue there so the import never fails.
-- **Isolated from GTK.** The style starts with `* { all: unset; }`, as Hyprlust does, so the GTK theme can't leak paddings or backgrounds into the bar.
+- **Colours.** matugen writes a few tones of the wallpaper's palette to `~/.config/waybar/matugen-colors.css`: `island` (its dark `surface_container`, at 75 %), `text` (secondary), `muted` (outline, for inactive workspaces), `accent` / `accent_fixed` (primary, for hover and the active-workspace pill) and `surface` (the pill's text). The style `@import`s it and the `wallpaper` script sends waybar `SIGUSR2` so it reloads on every wallpaper change. An activation step writes Stylix equivalents there until matugen has run with these names, so the import never fails.
+- **Font.** JetBrainsMono Nerd Font Propo in bold, as in the original, with its slashed zero and stylistic sets on.
+- **Isolated from GTK.** The style starts with `* { all: unset; }`, so the GTK theme can't leak paddings or backgrounds into the bar.
 - **Spanish dates.** Waybar only localises day and month names when the format has chrono's `L` flag (`{:L%A}`); without it the clock showed "Fri 23 Oct" even with `locale = "es_ES.UTF-8"`.
-- **Custom modules need `exec`.** A `custom/*` module with only a `format` is never drawn, which is why the logo used to be missing; the logo and the arrow `echo` their icon once.
+- **Custom modules need `exec`.** A `custom/*` module with only a `format` is never drawn, so the power button `echo`es its icon once.
 - **Notifications.** dunst has no notification centre, so a small `waybar-notifications` script asks `dunstctl` once a second (paused or not, history and waiting counts) and returns JSON for the module.
-- The temperature reads `/sys/devices/platform/coretemp.0/hwmon` + `temp1_input` (the CPU package sensor) instead of a `hwmonN` number, which can change between boots. Stylix's Waybar target is off; the CSS is hand-written with Stylix's greys and the matugen accent. It runs as a systemd user service.
+- Stylix's Waybar target is off; the CSS is hand-written. It runs as a systemd user service.
 
 ## 🔍 Launcher — Vicinae
 
@@ -309,7 +307,7 @@ There's no hypridle on purpose: the screen never turns off or locks by itself. N
 
 ## 🐱 Terminal — kitty
 
-`programs.kitty` in Home Manager. Stylix sets the font (FiraCode Nerd Font Mono, 15 pt), the base16 colour table and the 0.7 background opacity, so Hyprland's blur shows through like the rest of the glass. The blue, magenta and cyan are then overridden by the wallpaper's accent (see [Colours that follow the wallpaper](#colours-that-follow-the-wallpaper)). What I set by hand is only the feel: 15 px padding, no window decorations, ligatures always on and no confirm-on-close. The Mac keeps its own kitty config in `assets/kitty`.
+`programs.kitty` in Home Manager. Stylix sets the font (FiraCode Nerd Font Mono, 15 pt), the base16 colour table and the 0.7 background opacity, so Hyprland's blur shows through like the rest of the glass. The blue, magenta and cyan are then overridden by the wallpaper's accent (see [Colours that follow the wallpaper](#colours-that-follow-the-wallpaper)). What I set by hand is the feel (15 px padding, no window decorations, ligatures always on, no confirm-on-close) and one colour: Stylix maps bright black, the grey that eza, `ls` and the prompt's git branch use, to `base02`, almost the background, so it is overridden with `base03` (`#8e8e93`). The Mac keeps its own kitty config in `assets/kitty`.
 
 ## ❯ Prompt — Starship
 
@@ -388,7 +386,7 @@ Firefox uses [firefox-gnome-theme](https://github.com/rafaelmardojai/firefox-gno
 | Add a wallpaper | Drop it in `assets/wallpapers/` and add it to `modules/wallpapers.nix` |
 | Change which terminal colours follow the wallpaper | The matugen templates in `modules/home/desktop/wallpaper.nix` |
 | Change the default wallpaper | `default` in `modules/wallpapers.nix` |
-| Make glass more or less see-through | `stylix.opacity` for Stylix-themed apps; the `rgba(…, 0.45)` values in `waybar.nix` and `dunst.nix` |
+| Make glass more or less see-through | `stylix.opacity` for Stylix-themed apps; the `alpha(@island, 0.75)` in `waybar.nix` and the alpha in `dunst.nix` |
 | Change the blur | `decoration.blur` in `hyprland.nix` |
 | Restyle the lock and login screens | `modules/lockscreen.nix` (both follow) |
 | Change fonts | `stylix.fonts` |
