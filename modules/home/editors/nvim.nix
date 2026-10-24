@@ -266,6 +266,10 @@ in {
             vim.api.nvim_buf_delete(old, { force = true })
           end
           vim.fn.jobstart(vim.list_extend({ "make" }, args), { cwd = dir, term = true })
+          -- A blank margin between the explorer's border and the output
+          -- (Neovim clears the side columns when the terminal opens).
+          vim.opt_local.statuscolumn = ""
+          vim.opt_local.signcolumn = "yes:1"
           local buf = make_buf
           -- Back to normal mode when it ends, so a key doesn't close it.
           vim.api.nvim_create_autocmd("TermClose", {
