@@ -191,7 +191,8 @@ Saving a `.c` or `.h` file runs `c-style` (`assets/nvim/c-style.py`), which runs
 - When a call, prototype or function header doesn't fit, the first argument stays on the first line and all the others go together below it, two spaces further in, as many per line as fit (`printf("...",` then `  n, t, mark, ...);`). Other wrapped lines also continue two spaces in. Inlay hints (the grey parameter names) are off in C because they push the code past the guide; `Space u h` shows them.
 - An initializer (`AlgInfo x = { ... };`) that doesn't fit on one line gets `{` at the end of the first line, the elements below two spaces in and `};` on its own line. Elements followed by a comment keep their line and the comments are aligned; the rest are packed as many per line as fit.
 - A trailing comment that would go past column 80 is split onto aligned `//` lines below it; the code stays whole.
-- Short functions, ifs and loops go on one line when they fit: `if (x) return 1;`, `int f(int n) { return n; }`. Blocks with several statements written on one line, like `if (x) { printf("..."); return 1; }`, stay that way while they fit in 80 columns; past that they're split.
+- Short functions, ifs and loops go on one line when they fit: `if (x) return 1;`, `int f(int n) { return n; }`. Blocks with several statements written on one line, like `if (x) { printf("..."); return 1; }`, stay that way while they fit in 80 columns; past that they're split. That includes an `else if` after a braced branch, which clang-format alone splits.
+- Casts have a space: `(int) v`.
 - Includes, `#define`s and typedefs are moved to the top, each group a blank line apart (nothing is pulled out of an `#if` block).
 - System includes (`<...>`) first, then a blank line and the project's (`"..."`), each from the shortest line to the longest, not alphabetically.
 - `#define`s stay in their order.

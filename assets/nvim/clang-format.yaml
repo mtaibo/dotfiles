@@ -29,3 +29,5 @@ ContinuationIndentWidth: 2
 # A trailing comment past column 80 is wrapped onto aligned // lines rather
 # than the code being split.
 PenaltyBreakComment: 10
+# Casts with a space: (int) v.
+SpaceAfterCStyleCast: true

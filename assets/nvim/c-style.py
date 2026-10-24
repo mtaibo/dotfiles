@@ -7,6 +7,9 @@ express. Reads the file on stdin, writes it to stdout.
   `if (x) { printf("..."); return 1; }`, stay on one line (clang-format always
   splits them): their bodies are swapped for a placeholder of the same length
   while clang-format runs.
+- An `if`, `else if`, `else`, `for` or `while` with a single statement goes
+  on one line when it fits (clang-format splits an `else if` that follows a
+  braced branch).
 - A call, prototype or function header that doesn't fit in 80 columns keeps
   its first argument on the first line and packs the rest together below,
   two spaces further in (clang-format fills the first line instead).
@@ -422,6 +425,45 @@ def restore(text, bodies):
 
 
 LIMIT = 80
+CONTROL = re.compile(r"(\s*)(?:(?:else\s+)?if|for|while)\s*\(|(\s*)else$")
+NESTED = re.compile(r"(if|else|for|while|do|switch)\b")
+
+
+def balanced(code):
+    depth = 0
+    for c in code:
+        depth += {"(": 1, ")": -1}.get(c, 0)
+        if depth < 0:
+            return False
+    return depth == 0
+
+
+def join_short_controls(text):
+    """`if (x)` / `  stmt;` back onto one line when it fits."""
+    lines, out, i = text.split("\n"), [], 0
+    while i < len(lines):
+        line = lines[i]
+        code = mask(line).rstrip()
+        m = CONTROL.match(code)
+        if m and i + 1 < len(lines) and code == line.rstrip() and \
+                (code.endswith(")") or code.strip() == "else") and \
+                balanced(code):
+            indent = m.group(1) if m.group(1) is not None else m.group(2)
+            nxt = lines[i + 1]
+            body = mask(nxt)
+            if nxt.startswith(indent + "  ") and \
+                    not nxt.startswith(indent + "   ") and \
+                    body.rstrip().endswith(";") and balanced(body) and \
+                    not NESTED.match(nxt.strip()) and \
+                    len(line.rstrip() + " " + nxt.strip()) <= LIMIT:
+                out.append(line.rstrip() + " " + nxt.strip())
+                i += 2
+                continue
+        out.append(line)
+        i += 1
+    return "\n".join(out)
+
+
 CALL = re.compile(r"(?P<prefix>[^()]*?)(?P<name>[A-Za-z_][\w.]*(?:->[\w.]+)*)"
                   r"(?P<space> ?)\((?P<args>.*)\)(?P<end>;| \{)$")
 
@@ -621,7 +663,8 @@ def main():
         lambda m: ("_cs" + m.group(1)).ljust(
             len(" ".join(bodies[int(m.group(1))])) - 1, "_") + ";", text)
     text = run(clang_format, "file:" + style_file, text)
-    sys.stdout.write(format_c(repack_inits(repack_calls(restore(text, bodies)))))
+    sys.stdout.write(format_c(repack_inits(repack_calls(
+        join_short_controls(restore(text, bodies))))))
 
 
 if __name__ == "__main__":
