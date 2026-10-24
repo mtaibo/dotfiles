@@ -13,24 +13,28 @@ let
   osIcon = if pkgs.stdenv.hostPlatform.isDarwin then ""
     else if args ? osConfig then ""
     else "";
+  # A white Apple logo in the style of the NixOS snowflake, drawn from the
+  # Nerd Font glyph (the built-in macos logo is coloured ASCII).
+  appleLogo = pkgs.runCommand "apple-logo.png" { nativeBuildInputs = [ pkgs.imagemagick ]; } ''
+    magick -background none -fill white -pointsize 480 \
+      -font ${pkgs.nerd-fonts.symbols-only}/share/fonts/truetype/NerdFonts/Symbols/SymbolsNerdFont-Regular.ttf \
+      label:$'\uf179' -trim -gravity center -extent 512x512 $out
+  '';
 in {
   # Uses the terminal's named colours, so on the desktop it follows Stylix
   # through kitty's palette and still looks right on the Mac.
   programs.fastfetch = {
     enable = true;
     settings = {
-      logo = if pkgs.stdenv.hostPlatform.isLinux then {
-        # Real image through kitty's graphics protocol; the shell falls back to
-        # a small text logo where that isn't available (tmux, SSH, other terminals).
+      # Real image through kitty's graphics protocol; the shell falls back to a
+      # small text logo where that isn't available (tmux, other terminals).
+      logo = {
         type = "kitty-direct";
-        source = "${pkgs.nixos-icons}/share/icons/hicolor/512x512/apps/nix-snowflake-white.png";
+        source = if pkgs.stdenv.hostPlatform.isDarwin then appleLogo
+          else "${pkgs.nixos-icons}/share/icons/hicolor/512x512/apps/nix-snowflake-white.png";
         width = 24;
         height = 11;
         padding = { top = 3; left = 2; right = 4; };
-      } else {
-        type = "builtin";
-        source = "macos";
-        padding = { top = 1; left = 2; right = 4; };
       };
 
       display.separator = "  ";
