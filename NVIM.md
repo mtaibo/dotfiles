@@ -182,6 +182,20 @@ clangd provides completion, errors, go-to-definition, formatting (clang-format) 
 - CMake, through cmake-tools: `:CMakeGenerate`, `:CMakeBuild`, `:CMakeRun`, `:CMakeDebug`, `:CMakeSelectBuildType`, `:CMakeSelectLaunchTarget`, `:CMakeClean`.
 - To debug, build with debug info (`-g`, or the Debug build type) and press `F5`.
 
+### C style on save
+
+Saving a `.c` or `.h` file runs clang-format (`assets/nvim/clang-format.yaml`, also linked as `~/.clang-format`) and then `c-style` (`assets/nvim/c-style.py`) for what clang-format can't do:
+
+- 2-space indents, spaces only, nothing past column 80 (long lines and strings are split; the guide line marks the limit).
+- Includes, `#define`s and typedefs are moved to the top, each group a blank line apart (nothing is pulled out of an `#if` block).
+- Includes go from the shortest line to the longest, not alphabetically.
+- `#define`s stay in their order.
+- One-line typedefs come first, then the multi-line ones (structs) and struct/union/enum definitions, from the longest to the shortest with a blank line between each. A struct always stays below the types it uses, even if it's longer.
+- One blank line between functions, three before and after `main`.
+- `.h` files open as C, not C++.
+
+`Space u f` turns format on save off if a file must stay as it is.
+
 ## Java
 
 jdtls takes a few seconds to index a project the first time; Maven and Gradle projects are picked up from `pom.xml` / `build.gradle`.
@@ -307,6 +321,6 @@ All under `Space u`:
 
 - **LazyVim + extras**: `editor.neo-tree` and `lang.markdown` everywhere; `lang.clangd`, `lang.cmake`, `lang.java`, `dap.core` and `test.core` on the desktop and the Mac. The Pi keeps just the editor (`dotfiles.nvim.ide = false` in `hosts/tphome/home.nix`).
 - **Tools from Nix**: ripgrep, fd, lazygit, git, gcc, make, tree-sitter, Node and Python for LazyVim and Mason; clangd (clang-tools), jdtls (`jdt-language-server`, which runs on Java 21) with Lombok, CMake, JDK 21, Maven and Gradle for the IDE. They're only on Neovim's PATH.
-- **Tools from Mason**: the Java debug adapter and test runner (plain jars), codelldb (NixOS runs it through nix-ld), neocmakelsp, markdownlint, marksman and the formatters. clangd and jdtls are kept away from Mason: its clangd can't find the system headers on NixOS, and its jdtls is a snapshot that already needs Java 25.
+- **Tools from Mason**: the Java debug adapter and test runner (plain jars), codelldb (NixOS runs it through nix-ld), neocmakelsp, marksman and the formatters (clang-format comes from Nix). clangd and jdtls are kept away from Mason: its clangd can't find the system headers on NixOS, and its jdtls is a snapshot that already needs Java 25.
 - **Look**: carbonfox, monochrome, with a transparent background so kitty's glass shows through. English spell checking is off by default (it underlined everything written in Spanish).
 - **Files**: `lua/config/{lazy,options,keymaps,autocmds}.lua` and `lua/plugins/*.lua` under `~/.config/nvim`, all generated from `nvim.nix`. Lazy writes `lazy-lock.json` next to them.

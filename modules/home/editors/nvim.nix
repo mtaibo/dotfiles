@@ -88,6 +88,14 @@ let
       exec firefox --profile "$profile" --no-remote --new-instance --name markdown-preview "$1"
     '';
   };
+
+  # C formatting on save: clang-format with this style, then c-style for the
+  # layout clang-format can't do (includes by length, grouped defines and
+  # typedefs, three blank lines around main).
+  clangFormat = ../../../assets/nvim/clang-format.yaml;
+  cStyle = pkgs.writeShellScriptBin "c-style" ''
+    exec ${pkgs.python3}/bin/python3 ${../../../assets/nvim/c-style.py}
+  '';
 in {
   options.dotfiles.nvim.ide = lib.mkOption {
     type = lib.types.bool;
@@ -128,12 +136,16 @@ in {
         jdk21
         maven
         gradle
+        cStyle
       ];
 
       extraLuaConfig = ''
         require("config.lazy")
       '';
     };
+
+    # The same style for clangd and clang-format run by hand anywhere in ~.
+    home.file = lib.mkIf cfg.ide { ".clang-format".source = clangFormat; };
 
     xdg.configFile = {
       "nvim/lua/config/lazy.lua".text = ''
@@ -184,6 +196,8 @@ in {
         vim.opt.relativenumber = true
         vim.opt.mouse = "a"
         vim.opt.clipboard = "unnamedplus"
+        -- .h files are C headers, not C++.
+        vim.g.c_syntax_for_h = true
       '';
 
       # VS Code's shortcuts on top of LazyVim's (Space is the leader; press it
@@ -345,11 +359,30 @@ in {
       # clangd and jdtls from Nix (see extraPackages), so Mason doesn't install
       # its own. LazyVim only adds Lombok to jdtls from Mason's copy, so the
       # command line is set here with nixpkgs' jar.
+      # C: 2-space indents with spaces and a guide at column 80, the limit
+      # clang-format wraps at.
+      "nvim/after/ftplugin/c.lua".text = ''
+        vim.opt_local.expandtab = true
+        vim.opt_local.shiftwidth = 2
+        vim.opt_local.tabstop = 2
+        vim.opt_local.colorcolumn = "81"
+      '';
+
       "nvim/lua/plugins/nix.lua".text = ''
         return {
           {
             "neovim/nvim-lspconfig",
             opts = { servers = { clangd = { mason = false }, jdtls = { mason = false } } },
+          },
+          {
+            "stevearc/conform.nvim",
+            opts = {
+              formatters_by_ft = { c = { "clang_format", "c_style" } },
+              formatters = {
+                clang_format = { prepend_args = { "--style=file:${clangFormat}" } },
+                c_style = { command = "c-style" },
+              },
+            },
           },
           {
             "mfussenegger/nvim-jdtls",
