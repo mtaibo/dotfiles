@@ -1,4 +1,4 @@
-{ pkgs, lib, ... }:
+{ pkgs, lib, ... }@args:
 let
   # Tree-style key: grey branch, blue icon + label padded to one width.
   # Greys are `{#90}`: fastfetch writes `bright_black` as bold + black (1;30),
@@ -8,6 +8,11 @@ let
   mid = key "│";
   last = key "╰";
   header = title: { type = "custom"; format = "{#90}╭─{#} {#1}${title}"; };
+  # The OS row's icon: Home Manager inside NixOS or nix-darwin gets `osConfig`;
+  # the standalone one is the Raspberry Pi.
+  osIcon = if pkgs.stdenv.hostPlatform.isDarwin then ""
+    else if args ? osConfig then ""
+    else "";
 in {
   # Uses the terminal's named colours, so on the desktop it follows Stylix
   # through kitty's palette and still looks right on the Mac.
@@ -34,7 +39,7 @@ in {
         { type = "title"; format = "{#1}{user-name}{#}{#90}@{#}{#1}{host-name}"; }
         "break"
         (header "Sistema")
-        { type = "os"; key = mid "" "OS"; format = "{pretty-name}"; }
+        { type = "os"; key = mid osIcon "OS"; format = "{pretty-name}"; }
         { type = "kernel"; key = mid "" "Kernel"; format = "{release}"; }
         { type = "packages"; key = mid "󰏖" "Paquetes"; format = "{all}"; }
         { type = "wm"; key = mid "" "Ventanas"; format = "{pretty-name}"; }
