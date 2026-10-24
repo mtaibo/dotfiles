@@ -29,15 +29,15 @@ let
     '';
   };
 
-  # The power button's menu: a small glass list under the button.
-  powerTheme = pkgs.writeText "power-menu.rasi" ''
+  # The music popup: a small glass list under the player island.
+  mediaTheme = pkgs.writeText "media-menu.rasi" ''
     @import "${config.xdg.configHome}/rofi/matugen-colors.rasi"
 
     configuration {
       hover-select: true;
       me-select-entry: "MouseSecondary";
       me-accept-entry: "MousePrimary";
-      font: "${font} Bold 12";
+      font: "${font} Bold 13";
     }
 
     * {
@@ -46,11 +46,10 @@ let
     }
 
     window {
-      location: north east;
-      anchor: north east;
-      x-offset: -10px;
-      y-offset: 60px;
-      width: 220px;
+      location: north west;
+      anchor: north west;
+      y-offset: 6px;
+      width: 320px;
       transparency: "real";
       border-radius: ${toString radius}px;
       border: 1px;
@@ -59,12 +58,21 @@ let
     }
 
     mainbox {
-      children: [ "listview" ];
+      children: [ "message", "listview" ];
       padding: 8px;
+      spacing: 6px;
+    }
+
+    message {
+      padding: 8px 14px 4px 14px;
+    }
+
+    textbox {
+      text-color: ${c.withHashtag.base05};
     }
 
     listview {
-      lines: 4;
+      lines: 3;
       spacing: 4px;
       fixed-height: false;
     }
@@ -84,28 +92,63 @@ let
     }
   '';
 
-  power = pkgs.writeShellApplication {
-    name = "waybar-power";
-    runtimeInputs = with pkgs; [ rofi systemd hyprland procps ];
+  # Clicking the player island: the song and previous / play-pause / next.
+  # It reopens after each action, so it works like a small remote; Escape
+  # or a click outside closes it.
+  media = pkgs.writeShellApplication {
+    name = "waybar-media";
+    runtimeInputs = with pkgs; [ rofi playerctl procps hyprland gnused coreutils ];
     text = ''
-      # A second click on the button closes the menu.
+      # A second click on the island closes the popup.
       if pkill -x rofi; then exit 0; fi
-      choice=$(printf '%s\n' \
-        "󰌾  Bloquear" \
-        "󰍃  Cerrar sesión" \
-        "󰜉  Reiniciar" \
-        "󰐥  Apagar" \
-        | rofi -dmenu -i -p "" -no-custom -theme ${powerTheme}) || exit 0
-      case "$choice" in
-        *Bloquear) hyprlock ;;
-        *sesión) hyprctl dispatch exit ;;
-        *Reiniciar) systemctl reboot ;;
-        *Apagar) systemctl poweroff ;;
-      esac
+
+      # Open under the cursor, which is on the island that was clicked.
+      x=$(hyprctl cursorpos | cut -d, -f1)
+      x=$(( x > 170 ? x - 160 : 10 ))
+
+      esc() { sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g'; }
+
+      while :; do
+        title=$(playerctl metadata --format '{{ title }}' 2>/dev/null | esc || true)
+        artist=$(playerctl metadata --format '{{ artist }}' 2>/dev/null | esc || true)
+        if [ "$(playerctl status 2>/dev/null || true)" = Playing ]; then
+          toggle="󰏤  Pausar"
+        else
+          toggle="󰐊  Reproducir"
+        fi
+        choice=$(printf '%s\n' "󰒮  Anterior" "$toggle" "󰒭  Siguiente" \
+          | rofi -dmenu -i -p "" -no-custom -mesg "<b>''${title:-Nada sonando}</b>
+      <span alpha='65%'>$artist</span>" \
+            -theme ${mediaTheme} -theme-str "window { x-offset: ''${x}px; }") || exit 0
+        case "$choice" in
+          *Anterior) playerctl previous ;;
+          *Siguiente) playerctl next ;;
+          *) playerctl play-pause ;;
+        esac
+        sleep 0.3
+      done
     '';
   };
+
+  # Always date and time, capitalised the way I write it ("Sábado, 24 de
+  # Octubre 09:19"); waybar's clock can only give lowercase Spanish names.
+  # The tooltip is the month's calendar.
+  clock = pkgs.writeShellApplication {
+    name = "waybar-clock";
+    runtimeInputs = with pkgs; [ coreutils gnused util-linux jq ];
+    text = ''
+      export LC_TIME=es_ES.UTF-8
+      text=$(date "+%A, %-d de %B %H:%M" | sed "s/^./\\u&/; s/ de \\(.\\)/ de \\u\\1/")
+      cal=$(cal -m | sed "s/ *$//; 1s/^\\( *\\)\\(.\\)/\\1\\u\\2/")
+      jq -cn --arg t "  $text" --arg c "<tt>$cal</tt>" '{text: $t, tooltip: $c}'
+    '';
+  };
+
 in {
-  home.packages = [ pkgs.nerd-fonts.jetbrains-mono pkgs.pavucontrol ];
+  home.packages = [ pkgs.nerd-fonts.jetbrains-mono pkgs.pavucontrol pkgs.playerctl ];
+
+  # waybar's mpris module and `playerctl` follow the player in use through it.
+  services.playerctld.enable = true;
 
   # The colours come from the wallpaper (matugen, see wallpaper.nix). Until
   # the first wallpaper is set, or after the template gains new names,
@@ -126,12 +169,12 @@ in {
 
   # Copied from rice-reference-2 (JaKooLit's "window middle" layout with the
   # "islands" style): no bar background, every module is its own dark
-  # rounded island tinted by the wallpaper. Clock, connections and lettered
-  # workspaces on the left, the focused window in the middle, notifications,
-  # audio and the power button on the right.
+  # rounded island tinted by the wallpaper. Clock and the music player on the
+  # left, the workspaces in the middle (instead of the original's focused
+  # window), connections, notifications and audio on the right; no power button.
   # SUPER+N hides and shows the bar.
-  wayland.windowManager.hyprland.settings.bind = [
-    "SUPER, N, exec, pkill -USR1 -x .waybar-wrapped"
+  wayland.windowManager.hyprland.settings.bindd = [
+    "SUPER, N, Mostrar u ocultar la barra, exec, pkill -USR1 -x .waybar-wrapped"
   ];
 
   programs.waybar = {
@@ -147,18 +190,28 @@ in {
       spacing = 0;
       fixed-center = true;
 
-      modules-left = [ "clock" "group/connection" "hyprland/workspaces" ];
-      modules-center = [ "hyprland/window" ];
-      modules-right = [ "custom/notifications" "group/audio" "custom/power" ];
+      modules-left = [ "custom/clock" "mpris" ];
+      modules-center = [ "hyprland/workspaces" ];
+      modules-right = [ "group/connection" "custom/notifications" "group/audio" ];
 
-      clock = {
-        # `L` makes waybar use the locale for day and month names.
-        interval = 1;
-        format = " {:L%H:%M}";
-        format-alt = " {:L%A, %e de %B  %H:%M}";
-        locale = "es_ES.UTF-8";
-        tooltip-format = "<tt><small>{calendar}</small></tt>";
-        calendar.format.today = "<b><u>{}</u></b>";
+      "custom/clock" = {
+        exec = "${clock}/bin/waybar-clock";
+        return-type = "json";
+        interval = 5;
+      };
+
+      # What's playing (hidden when nothing is); a click opens the remote.
+      mpris = {
+        format = "{player_icon}  {dynamic}";
+        format-paused = "{status_icon}  {dynamic}";
+        dynamic-order = [ "title" "artist" ];
+        dynamic-len = 40;
+        player-icons.default = "󰝚";
+        status-icons.paused = "󰏤";
+        tooltip-format = "{player}: {title} · {artist}";
+        on-click = "${media}/bin/waybar-media";
+        on-click-middle = "playerctl play-pause";
+        on-click-right = "playerctl next";
       };
 
       "group/connection" = {
@@ -166,7 +219,7 @@ in {
         modules = [ "tray" "network" "bluetooth" ];
       };
       tray = {
-        icon-size = 18;
+        icon-size = 20;
         spacing = 8;
       };
       network = {
@@ -192,16 +245,6 @@ in {
         on-scroll-down = "hyprctl dispatch workspace e-1";
         sort-by-number = true;
         persistent-workspaces."*" = 4;
-      };
-
-      "hyprland/window" = {
-        format = "{}";
-        max-length = 55;
-        separate-outputs = true;
-        rewrite = {
-          "(.*) — Mozilla Firefox" = "󰈹  $1";
-          "(.*) - zsh" = "> [$1]";
-        };
       };
 
       "custom/notifications" = {
@@ -253,12 +296,6 @@ in {
         on-scroll-down = "wpctl set-volume @DEFAULT_AUDIO_SOURCE@ 5%-";
       };
 
-      "custom/power" = {
-        exec = "echo '󰐥'";
-        interval = "once";
-        tooltip-format = "Bloquear, cerrar sesión, reiniciar o apagar";
-        on-click = "${power}/bin/waybar-power";
-      };
     };
 
     style = ''
@@ -267,7 +304,7 @@ in {
       * {
         all: unset;
         font-family: "${font}";
-        font-size: 15px;
+        font-size: 17px;
         font-weight: bold;
       }
 
@@ -277,20 +314,19 @@ in {
       }
 
       /* Islands: one dark, wallpaper-tinted pill per module. */
-      #clock,
+      #custom-clock,
       #connection,
       #workspaces,
-      #window,
       #custom-notifications,
       #audio,
-      #custom-power {
+      #mpris {
         background: alpha(@island, 0.75);
         border-radius: ${toString radius}px;
-        padding: 10px 18px;
+        padding: 12px 20px;
         margin-left: 5px;
       }
 
-      #clock {
+      #custom-clock {
         margin-left: 0;
       }
 
@@ -307,15 +343,20 @@ in {
       }
 
       #workspaces {
-        padding: 7px 10px;
+        padding: 8px 12px;
       }
 
       #workspaces button {
-        padding: 3px 7px;
+        padding: 4px 8px;
         margin: 0 2px;
         border-radius: ${toString (radius - 4)}px;
-        color: @muted;
+        color: @text;
         transition: all 0.5s cubic-bezier(.55, -0.68, .48, 1.682);
+      }
+
+      /* Workspaces without windows fade to grey. */
+      #workspaces button.empty {
+        color: @muted;
       }
 
       #workspaces button:hover {
@@ -323,7 +364,7 @@ in {
       }
 
       #workspaces button.active {
-        padding: 3px 12px;
+        padding: 4px 14px;
         color: @surface;
         background: alpha(@accent_fixed, 0.75);
         transition: all 0.3s cubic-bezier(.55, -0.68, .48, 1.682);
@@ -331,12 +372,6 @@ in {
 
       #workspaces button.urgent {
         color: @accent;
-      }
-
-      /* Nothing focused: the middle island disappears. */
-      window#waybar.empty #window {
-        background: transparent;
-        padding: 0;
       }
 
       #pulseaudio.microphone {
@@ -352,12 +387,8 @@ in {
         color: @muted;
       }
 
-      #custom-power {
-        padding: 10px 16px;
-      }
-
-      #custom-power:hover {
-        color: @accent;
+      #mpris.paused {
+        color: @muted;
       }
 
       tooltip {
