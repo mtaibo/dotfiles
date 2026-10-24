@@ -325,7 +325,7 @@ A two-line prompt that stays out of the way:
 | Part | Style |
 |---|---|
 | OS icon | White. `` NixOS, `` macOS, `` Raspberry Pi OS |
-| Hostname | Grey, and only over SSH, with a `` prefix |
+| User and host | `migueltaibo@tphome` in grey, only over SSH (root shows its name in red). Without its own settings starship's `username` landed on the right in yellow |
 | Directory | Bold white, the last 3 levels or from the repo root, with a `󰌾` in red if read-only |
 | Git branch | Grey, with a `` prefix |
 | Git state | Yellow, only during a rebase/merge/cherry-pick, with progress |

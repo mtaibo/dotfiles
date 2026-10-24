@@ -58,10 +58,11 @@ in {
     settings = languages // {
       add_newline = true;
 
-      # Line 1: os, host (SSH only), path, git … right side: tools, duration.
+      # Line 1: os, user@host (SSH only), path, git … right side: tools, duration.
       # Line 2: just the prompt character.
       format = lib.concatStrings [
         "$os"
+        "$username"
         "$hostname"
         "$directory"
         "$git_branch"
@@ -91,10 +92,17 @@ in {
         };
       };
 
+      # Over SSH: `user@host` in grey, next to the OS icon. Left alone the user
+      # landed in `$all` with starship's yellow default.
+      username = {
+        style_user = "bright-black";
+        style_root = "red";
+        format = "[$user@]($style)";
+      };
+
       hostname = {
-        ssh_symbol = " ";
         style = "bright-black";
-        format = "[$ssh_symbol$hostname]($style) ";
+        format = "[$hostname]($style) ";
       };
 
       directory = {
