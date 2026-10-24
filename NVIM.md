@@ -285,6 +285,8 @@ Changes show in the margin, and the author of the current line appears at its en
 
 ``Ctrl+` `` opens or closes a terminal at the bottom (from inside it too). `Space f t` / `Space f T` open one at the project root / current directory.
 
+`:terminal` (or `:term`, or `:Terminal`) opens a shell in Neovim's working directory that opens in the editor window like a file, the same way as `:make` (a tab of its own; the explorer stays on the left). If one is already open it goes back to it. `Esc Esc` drops to normal mode, `q` then closes it, and typing `exit` closes it too. `:terminal cmd` runs a command instead and, like `:make`, stays open in normal mode when it ends.
+
 ## Markdown
 
 | Keys | Action |

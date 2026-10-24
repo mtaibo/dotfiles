@@ -201,45 +201,24 @@ in {
         map("n", "<F2>", vim.lsp.buf.rename, { desc = "Rename symbol" })
         map({ "n", "i", "v" }, "<C-.>", vim.lsp.buf.code_action, { desc = "Quick fix" })
 
-        -- :Make (and a typed :make) saves everything and runs make, from the
-        -- nearest Makefile above the current file, in a terminal that opens
-        -- in the editor window like a file (a tab; the explorer stays),
-        -- focused so the program can be typed into. Running it again replaces
-        -- the previous one; once it ends, q closes it.
-        local make_buf
-        local function run_make(args)
-          vim.cmd("silent! wall")
-          local file = vim.api.nvim_buf_get_name(0)
-          local start = file ~= "" and vim.fs.dirname(file) or vim.uv.cwd()
-          local makefile = vim.fs.find({ "GNUmakefile", "makefile", "Makefile" }, { upward = true, path = start })[1]
-          local dir = makefile and vim.fs.dirname(makefile) or vim.uv.cwd()
-          -- From the explorer or another side panel, use the editor window.
+        -- Terminals that open in the editor window like a file (a tab; the
+        -- explorer stays), focused so they can be typed into. q closes them
+        -- once in normal mode.
+        local term_bufs = {}
+        -- From the explorer or another side panel, move to the editor window.
+        local function focus_editor()
           local function editor(win)
             local buf = vim.api.nvim_win_get_buf(win)
             return vim.api.nvim_win_get_config(win).relative == ""
-              and (vim.bo[buf].buftype == "" or buf == make_buf)
+              and (vim.bo[buf].buftype == "" or term_bufs[buf])
           end
-          if not editor(0) then
-            for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
-              if editor(win) then
-                vim.api.nvim_set_current_win(win)
-                break
-              end
-            end
+          if editor(0) then return end
+          for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+            if editor(win) then return vim.api.nvim_set_current_win(win) end
           end
-          local old = make_buf
-          vim.cmd("enew")
-          make_buf = vim.api.nvim_get_current_buf()
-          if old and vim.api.nvim_buf_is_valid(old) then
-            vim.api.nvim_buf_delete(old, { force = true })
-          end
-          vim.fn.jobstart(vim.list_extend({ "make" }, args), { cwd = dir, term = true })
-          -- A blank margin between the explorer's border and the output
-          -- (Neovim clears the side columns when the terminal opens).
-          vim.opt_local.statuscolumn = ""
-          vim.opt_local.signcolumn = "yes:1"
-          local buf = make_buf
-          -- Back to normal mode when it ends, so a key doesn't close it.
+        end
+        -- Back to normal mode when the command ends, so a key doesn't close it.
+        local function stop_on_exit(buf)
           vim.api.nvim_create_autocmd("TermClose", {
             buffer = buf,
             callback = function()
@@ -248,12 +227,71 @@ in {
               end)
             end,
           })
-          vim.keymap.set("n", "q", function() Snacks.bufdelete({ buf = buf, force = true }) end, { buffer = buf, desc = "Close make" })
+        end
+        local function open_term(cmd, dir)
+          focus_editor()
+          vim.cmd("enew")
+          local buf = vim.api.nvim_get_current_buf()
+          term_bufs[buf] = true
+          vim.fn.jobstart(cmd, { cwd = dir, term = true })
+          -- A blank margin between the explorer's border and the output
+          -- (Neovim clears the side columns when the terminal opens).
+          vim.opt_local.statuscolumn = ""
+          vim.opt_local.signcolumn = "yes:1"
+          vim.api.nvim_create_autocmd("BufWipeout", { buffer = buf, callback = function() term_bufs[buf] = nil end })
+          vim.keymap.set("n", "q", function() Snacks.bufdelete({ buf = buf, force = true }) end, { buffer = buf, desc = "Close terminal" })
           vim.cmd("startinsert")
+          return buf
+        end
+
+        -- :Make (and a typed :make) saves everything and runs make from the
+        -- nearest Makefile above the current file. Running it again replaces
+        -- the previous one.
+        local make_buf
+        local function run_make(args)
+          vim.cmd("silent! wall")
+          local file = vim.api.nvim_buf_get_name(0)
+          local start = file ~= "" and vim.fs.dirname(file) or vim.uv.cwd()
+          local makefile = vim.fs.find({ "GNUmakefile", "makefile", "Makefile" }, { upward = true, path = start })[1]
+          local old = make_buf
+          make_buf = open_term(vim.list_extend({ "make" }, args), makefile and vim.fs.dirname(makefile) or vim.uv.cwd())
+          if old and vim.api.nvim_buf_is_valid(old) then
+            vim.api.nvim_buf_delete(old, { force = true })
+          end
+          stop_on_exit(make_buf)
         end
         vim.api.nvim_create_user_command("Make", function(o) run_make(o.fargs) end, { nargs = "*", desc = "make in a terminal" })
         vim.cmd([[cnoreabbrev <expr> make getcmdtype() ==# ':' && getcmdline() ==# 'make' ? 'Make' : 'make']])
         map("n", "<leader>m", "<cmd>Make<cr>", { desc = "Make" })
+
+        -- :Terminal (and a typed :terminal or :term) opens a shell the same
+        -- way, in Neovim's working directory; if one is already open it goes
+        -- back to it. :terminal cmd runs a command instead, like :make.
+        -- Esc Esc leaves terminal mode; exiting the shell closes the tab.
+        local shell_buf
+        local function run_terminal(args)
+          if #args == 0 and shell_buf and vim.api.nvim_buf_is_valid(shell_buf) then
+            focus_editor()
+            vim.api.nvim_win_set_buf(0, shell_buf)
+            return vim.cmd("startinsert")
+          end
+          local buf = open_term(#args > 0 and table.concat(args, " ") or { vim.o.shell }, vim.uv.cwd())
+          vim.keymap.set("t", "<Esc><Esc>", [[<C-\><C-n>]], { buffer = buf, desc = "Normal mode" })
+          if #args > 0 then return stop_on_exit(buf) end
+          shell_buf = buf
+          vim.api.nvim_create_autocmd("TermClose", {
+            buffer = buf,
+            callback = function()
+              vim.schedule(function()
+                if vim.api.nvim_buf_is_valid(buf) then Snacks.bufdelete({ buf = buf, force = true }) end
+              end)
+            end,
+          })
+        end
+        vim.api.nvim_create_user_command("Terminal", function(o) run_terminal(o.fargs) end, { nargs = "*", complete = "shellcmd", desc = "Terminal in the editor" })
+        for _, abbr in ipairs({ "terminal", "term" }) do
+          vim.cmd(("cnoreabbrev <expr> %s getcmdtype() ==# ':' && getcmdline() ==# '%s' ? 'Terminal' : '%s'"):format(abbr, abbr, abbr))
+        end
       '' + lib.optionalString cfg.ide ''
 
         -- Debugging
