@@ -485,23 +485,59 @@ def split_args(args):
     return out if depth == 0 and all(out) else None
 
 
+LITERALS = re.compile(r'\s*(?:"(?:[^"\\]|\\.)*"\s*)+')
+PIECE = re.compile(r'"((?:[^"\\]|\\.)*)"')
+
+
+def split_literal(arg, first, cont, suffix):
+    """A string literal (or adjacent ones) spread over lines that start with
+    `first` and then `cont`, cut after spaces, the last line ending with
+    `suffix`; None if it isn't a literal or can't be cut."""
+    if not LITERALS.fullmatch(arg):
+        return None
+    pieces = PIECE.findall(arg)
+    # Joining "\x4" "1" would change the escape; leave those alone.
+    if any(re.search(r"\\(x[0-9a-fA-F]*|[0-7]{1,2})$", p) for p in pieces[:-1]):
+        return None
+    text, lines, start = "".join(pieces), [], first
+    while True:
+        if len(start) + len(text) + 2 + len(suffix) <= LIMIT:
+            return lines + [start + '"' + text + '"' + suffix]
+        room = LIMIT - len(start) - 2
+        cut = text.rfind(" ", 0, room) + 1
+        if cut <= 0 or cut >= len(text):
+            return None
+        lines.append(start + '"' + text[:cut] + '"')
+        text, start = text[cut:], cont
+
+
 def pack(indent, joined):
     """The statement laid out as described above, or None to leave it."""
     m = CALL.match(joined)
     if not m or m.group("name") in ("if", "for", "while", "switch", "return"):
         return None
     args = split_args(m.group("args"))
-    if not args or len(args) < 2:
+    if not args:
         return None
     head = indent + m.group("prefix") + m.group("name") + m.group("space") + "("
     tail = ")" + m.group("end")
-    if len(head + args[0] + ",") <= LIMIT:
-        lines, rest = [head + args[0] + ","], args[1:]
-    elif len(head) <= LIMIT:
-        lines, rest = [head], args
+    cont = indent + "  "
+    first_end = "," if len(args) > 1 else tail
+    lines, line, rest = [], None, args[1:]
+    if len(head + args[0] + first_end) <= LIMIT:
+        if len(args) < 2:
+            return None
+        lines = [head + args[0] + ","]
     else:
-        return None
-    cont, line = indent + "  ", None
+        # A long string first: it starts on the first line and is cut into
+        # pieces; the other arguments follow its last piece.
+        pieces = split_literal(args[0], head, cont, first_end)
+        if pieces:
+            lines, line = pieces[:-1], pieces[-1]
+        elif len(head) <= LIMIT and len(args) > 1:
+            lines, rest = [head], args
+        else:
+            return None
     for n, arg in enumerate(rest):
         end = tail if n == len(rest) - 1 else ","
         if line is not None and len(line + " " + arg + end) <= LIMIT:
@@ -522,7 +558,7 @@ def repack_calls(text):
         first = mask(lines[i]).rstrip()
         j = i
         if first.strip() and not first.lstrip().startswith(("#", "//", "/*")) \
-                and first.endswith((",", "(", "=")):
+                and first.endswith((",", "(", "=", '"')):
             indent = lines[i][:len(lines[i]) - len(lines[i].lstrip())]
             while j + 1 < len(lines) and lines[j + 1].startswith(indent + " ") \
                     and not mask(lines[j]).rstrip().endswith((";", "{")):
