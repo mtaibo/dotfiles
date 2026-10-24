@@ -226,6 +226,10 @@ in {
           input_path = "${config.xdg.configHome}/matugen/templates/rofi.rasi";
           output_path = "${config.xdg.configHome}/rofi/matugen-colors.rasi";
         };
+        eww = {
+          input_path = "${config.xdg.configHome}/matugen/templates/eww.scss";
+          output_path = "${config.xdg.configHome}/eww/colors.scss";
+        };
         waybar = {
           input_path = "${config.xdg.configHome}/matugen/templates/waybar.css";
           output_path = "${config.xdg.configHome}/waybar/matugen-colors.css";
@@ -249,6 +253,11 @@ in {
       * { accent: {{colors.primary.default.hex}}; }
     '';
     "matugen/templates/cider-accent".text = "{{colors.primary.default.hex}}";
+    "matugen/templates/eww.scss".text = ''
+      $accent: {{colors.primary.default.hex}};
+      $text: {{colors.secondary.default.hex}};
+      $muted: {{colors.outline.default.hex}};
+    '';
     "matugen/templates/waybar.css".text = ''
       @define-color accent {{colors.primary.default.hex}};
       @define-color accent_fixed {{colors.primary_fixed.default.hex}};

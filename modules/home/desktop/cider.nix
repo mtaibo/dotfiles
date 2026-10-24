@@ -4,6 +4,7 @@ let
   rgb = name: "${c."${name}-rgb-r"}, ${c."${name}-rgb-g"}, ${c."${name}-rgb-b"}";
   settings = "${config.xdg.configHome}/sh.cider.genten/spa-config.yml";
   clientOptions = "${config.xdg.configHome}/sh.cider.genten/client-options.yml";
+  tokenFile = "${config.xdg.configHome}/cider/api-token";
   # Written by matugen on every wallpaper change (see wallpaper.nix).
   accentFile = "${config.xdg.configHome}/cider/accent";
 
@@ -46,7 +47,7 @@ let
   # second one; a wallpaper change reaches Cider on its next start.
   cider = pkgs.writeShellApplication {
     name = "cider";
-    runtimeInputs = [ pkgs.yq-go pkgs.procps pkgs.systemd package ];
+    runtimeInputs = [ pkgs.yq-go pkgs.procps pkgs.systemd pkgs.coreutils package ];
     text = ''
       if pgrep -x Cider >/dev/null; then
         # Find the tray item whose owner process is Cider and activate it.
@@ -79,6 +80,19 @@ let
           ' ${settings}
         # The tray icon is the only way back to a hidden window.
         yq -i ".enableTrayIcon = true" ${clientOptions}
+
+        # A token for Cider's local API, which the bar's music popup reads the
+        # song times from (eww.nix).
+        if [ ! -s ${tokenFile} ]; then
+          mkdir -p "$(dirname ${tokenFile})"
+          head -c 18 /dev/urandom | base64 | tr -d '/+=' > ${tokenFile}
+        fi
+        TOKEN=$(cat ${tokenFile}) yq -i '
+          .connectivity.apiTokens = ([.connectivity.apiTokens[] | select(.name != "dotfiles")] + [{
+            "name": "dotfiles", "friendlyName": "Barra", "token": strenv(TOKEN),
+            "creationTime": 0, "isRemote": false, "method": "lan"
+          }])
+        ' ${settings}
       fi
       # Under XWayland: natively on Wayland, the mini player shrinks the page to
       # the artwork while the tiled window keeps its size, leaving it in a

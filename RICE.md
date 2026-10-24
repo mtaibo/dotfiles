@@ -35,6 +35,7 @@ I wanted my PC to feel as calm as a Mac: dark greys, frosted glass, one accent c
 | Terminal | kitty | [`modules/home/desktop/kitty.nix`](modules/home/desktop/kitty.nix) |
 | Music | Cider (Apple Music), themed to match | [`modules/home/desktop/cider.nix`](modules/home/desktop/cider.nix) |
 | Shortcut cheatsheet | rofi over `hyprctl binds`, on SUPER+H | [`modules/home/desktop/cheatsheet.nix`](modules/home/desktop/cheatsheet.nix) |
+| Music popup | eww, from the bar's player | [`modules/home/desktop/eww.nix`](modules/home/desktop/eww.nix) |
 | Prompt | Starship | [`modules/home/starship.nix`](modules/home/starship.nix) |
 | System info | fastfetch | [`modules/home/fastfetch.nix`](modules/home/fastfetch.nix) |
 | Browser | Firefox + firefox-gnome-theme | [`modules/home/browsers/firefox.nix`](modules/home/browsers/firefox.nix) |
@@ -251,7 +252,7 @@ Copied from the bar in [binnewbs' Hyprland rice](https://github.com/binnewbs/arc
 | Module | Shows | Click |
 |---|---|---|
 | Clock | `  Sábado, 24 de Octubre 08:31`, always date and time, capitalised by a small `waybar-clock` script (waybar's own clock only gives lowercase Spanish names) | Tooltip with the month's calendar |
-| Music player | What's playing (`mpris`): title and artist, 󰏤 and grey when paused; hidden when nothing plays. It follows the player in use through `playerctld` | Left: a small glass popup under the island with the song, previous, play / pause and next (it reopens after each action, Escape or a click outside closes it) · middle: play / pause · right: next |
+| Music player | What's playing (`mpris`): title and artist, 󰏤 and grey when paused; hidden when nothing plays. It follows the player in use through `playerctld` | Left: a wide glass popup centred under the click: small artwork with the title, artist and icon buttons (previous / play-pause / next) beside it, and a full-width progress bar with the times below (a click anywhere else, the bar included, closes it) · middle: play / pause · right: next |
 | Tray + connection | App tray icons (Cider's in white), then 󰈀 ethernet · 󰖩 wifi · 󰈂 disconnected and 󰂯 / 󰂱 / 󰂲 bluetooth (grey when off) | Bluetooth: blueman |
 | Workspaces | Always four numbers, 1–4; the active one is a pill in the light accent with dark text, ones with windows in the text colour, empty ones grey | Switches workspace, scroll moves through them |
 | Notifications | 󰂚 with dunst's history count, 󱅫 when there are some, 󰂛 grey with the queued count in "do not disturb" | Left: toggle do not disturb · right: show the last one again · middle: clear |
@@ -265,7 +266,7 @@ How it's built:
 - **Spanish dates.** The clock is a custom module: `date` with `LC_TIME=es_ES.UTF-8`, then `sed` capitalises the day and the month, and `cal -m` gives the tooltip. Waybar's clock can localise names (chrono's `L` flag) but not capitalise them.
 - **Hiding.** `SUPER + N` sends waybar `SIGUSR1`, which toggles it.
 - **Custom modules need `exec`.** A `custom/*` module with only a `format` is never drawn.
-- **Music popup.** `waybar-media` is a rofi menu opened at the cursor's x (it's on the island that was clicked); its `y-offset` is tiny because rofi already starts below the bar's reserved space. The bar had a power button and menu (lock, log out, reboot, power off) until I swapped it for the player.
+- **Music popup.** Made with [eww](https://github.com/elkowar/eww) (`modules/home/desktop/eww.nix`), since rofi can only draw lists. `media-popup` opens it with `eww open --pos` centred on the cursor's x (the cursor is on the island that was clicked), plus a clear `media-closer` window behind it that closes it on any click elsewhere. Layer surfaces start below the bar's reserved space, so the closer starts 100 px above the top edge (a negative margin) to cover the bar too. A `media-info` script polls `playerctl` once a second while it's open and returns JSON (times from microseconds to `m:ss`, but for Cider everything comes from its local API on port 10767: with seamless transitions on, Cider's MPRIS length grows as it buffers the next song (a 3:45 song showed 5:35 and climbing), and after a skip its MPRIS metadata can stay empty; fields are split on the unit separator so empty ones don't shift the rest; the `cider` launcher creates a token in `~/.config/cider/api-token` and adds it to Cider's `connectivity.apiTokens`; artwork as the local file Cider and chromium give, or downloaded once into `~/.cache/media-art` when it's a URL). Accent and greys come from matugen (`~/.config/eww/colors.scss`), the glass is blurred by a Hyprland layer rule on `eww-media`, and an `eww` user service keeps the daemon running so it opens instantly. The bar had a power button and menu (lock, log out, reboot, power off) until I swapped it for the player.
 - **Notifications.** dunst has no notification centre, so a small `waybar-notifications` script asks `dunstctl` once a second (paused or not, history and waiting counts) and returns JSON for the module.
 - Stylix's Waybar target is off; the CSS is hand-written. It runs as a systemd user service.
 

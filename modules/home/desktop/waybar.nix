@@ -29,107 +29,6 @@ let
     '';
   };
 
-  # The music popup: a small glass list under the player island.
-  mediaTheme = pkgs.writeText "media-menu.rasi" ''
-    @import "${config.xdg.configHome}/rofi/matugen-colors.rasi"
-
-    configuration {
-      hover-select: true;
-      me-select-entry: "MouseSecondary";
-      me-accept-entry: "MousePrimary";
-      font: "${font} Bold 13";
-    }
-
-    * {
-      background-color: transparent;
-      text-color: ${c.withHashtag.base05};
-    }
-
-    window {
-      location: north west;
-      anchor: north west;
-      y-offset: 6px;
-      width: 320px;
-      transparency: "real";
-      border-radius: ${toString radius}px;
-      border: 1px;
-      border-color: rgba(255, 255, 255, 0.08);
-      background-color: rgba(${rgb "base00"}, 0.75);
-    }
-
-    mainbox {
-      children: [ "message", "listview" ];
-      padding: 8px;
-      spacing: 6px;
-    }
-
-    message {
-      padding: 8px 14px 4px 14px;
-    }
-
-    textbox {
-      text-color: ${c.withHashtag.base05};
-    }
-
-    listview {
-      lines: 3;
-      spacing: 4px;
-      fixed-height: false;
-    }
-
-    element {
-      padding: 10px 14px;
-      border-radius: ${toString (radius - 4)}px;
-    }
-
-    element selected {
-      background-color: @accent;
-      text-color: ${c.withHashtag.base00};
-    }
-
-    element-text {
-      text-color: inherit;
-    }
-  '';
-
-  # Clicking the player island: the song and previous / play-pause / next.
-  # It reopens after each action, so it works like a small remote; Escape
-  # or a click outside closes it.
-  media = pkgs.writeShellApplication {
-    name = "waybar-media";
-    runtimeInputs = with pkgs; [ rofi playerctl procps hyprland gnused coreutils ];
-    text = ''
-      # A second click on the island closes the popup.
-      if pkill -x rofi; then exit 0; fi
-
-      # Open under the cursor, which is on the island that was clicked.
-      x=$(hyprctl cursorpos | cut -d, -f1)
-      x=$(( x > 170 ? x - 160 : 10 ))
-
-      esc() { sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g'; }
-
-      while :; do
-        title=$(playerctl metadata --format '{{ title }}' 2>/dev/null | esc || true)
-        artist=$(playerctl metadata --format '{{ artist }}' 2>/dev/null | esc || true)
-        if [ "$(playerctl status 2>/dev/null || true)" = Playing ]; then
-          toggle="󰏤  Pausar"
-        else
-          toggle="󰐊  Reproducir"
-        fi
-        choice=$(printf '%s\n' "󰒮  Anterior" "$toggle" "󰒭  Siguiente" \
-          | rofi -dmenu -i -p "" -no-custom -mesg "<b>''${title:-Nada sonando}</b>
-      <span alpha='65%'>$artist</span>" \
-            -theme ${mediaTheme} -theme-str "window { x-offset: ''${x}px; }") || exit 0
-        case "$choice" in
-          *Anterior) playerctl previous ;;
-          *Siguiente) playerctl next ;;
-          *) playerctl play-pause ;;
-        esac
-        sleep 0.3
-      done
-    '';
-  };
-
   # Always date and time, capitalised the way I write it ("Sábado, 24 de
   # Octubre 09:19"); waybar's clock can only give lowercase Spanish names.
   # The tooltip is the month's calendar.
@@ -200,7 +99,7 @@ in {
         interval = 5;
       };
 
-      # What's playing (hidden when nothing is); a click opens the remote.
+      # What's playing (hidden when nothing is); a click opens the popup (eww.nix).
       mpris = {
         format = "{player_icon}  {dynamic}";
         format-paused = "{status_icon}  {dynamic}";
@@ -209,7 +108,7 @@ in {
         player-icons.default = "󰝚";
         status-icons.paused = "󰏤";
         tooltip-format = "{player}: {title} · {artist}";
-        on-click = "${media}/bin/waybar-media";
+        on-click = "media-popup";
         on-click-middle = "playerctl play-pause";
         on-click-right = "playerctl next";
       };
