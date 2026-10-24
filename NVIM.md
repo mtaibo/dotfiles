@@ -186,6 +186,7 @@ clangd provides completion, errors, go-to-definition, formatting (clang-format) 
 
 Saving a `.c` or `.h` file runs `c-style` (`assets/nvim/c-style.py`), which runs clang-format (`assets/nvim/clang-format.yaml`, also linked as `~/.clang-format`) and adds what clang-format can't do:
 
+- A space between a function's name and its parameters where it's defined or declared (`int foo (int a)`), not in calls (`foo(1)`).
 - 2-space indents, spaces only, nothing past column 80 (long lines and strings are split; the guide line marks the limit). Inlay hints (the grey parameter names) are off in C because they push the code past the guide; `Space u h` shows them.
 - Short functions, ifs and loops go on one line when they fit: `if (x) return 1;`, `int f(int n) { return n; }`. Blocks with several statements written on one line, like `if (x) { printf("..."); return 1; }`, stay that way while they fit in 80 columns; past that they're split.
 - Includes, `#define`s and typedefs are moved to the top, each group a blank line apart (nothing is pulled out of an `#if` block).

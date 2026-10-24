@@ -14,3 +14,12 @@ AllowShortFunctionsOnASingleLine: All
 AllowShortIfStatementsOnASingleLine: AllIfsAndElse
 AllowShortBlocksOnASingleLine: Always
 AllowShortLoopsOnASingleLine: true
+# A space between a function's name and its parameters where it's declared
+# or defined (int foo (int a)), not in calls (foo(1)).
+SpaceBeforeParens: Custom
+SpaceBeforeParensOptions:
+  AfterControlStatements: true
+  AfterForeachMacros: true
+  AfterIfMacros: true
+  AfterFunctionDeclarationName: true
+  AfterFunctionDefinitionName: true
