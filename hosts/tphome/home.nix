@@ -21,6 +21,15 @@
 
   programs.gh.enable = true;
 
+  # fastfetch shows a white Raspberry Pi logo instead of the NixOS snowflake,
+  # drawn from the Nerd Font glyph so it matches the snowflake's style.
+  programs.fastfetch.settings.logo.source = lib.mkForce (pkgs.runCommand "raspberry-pi-logo.png"
+    { nativeBuildInputs = [ pkgs.imagemagick ]; } ''
+      magick -background none -fill white -pointsize 480 \
+        -font ${pkgs.nerd-fonts.symbols-only}/share/fonts/truetype/NerdFonts/Symbols/SymbolsNerdFont-Regular.ttf \
+        label:$'' -trim -gravity center -extent 512x512 $out
+    '');
+
   home.packages = with pkgs; [
     eza
     bat

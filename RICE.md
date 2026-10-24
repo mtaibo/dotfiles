@@ -360,8 +360,8 @@ Every new shell opens with an "About This Mac"-style summary:
              ╰  󰍹 Pantalla    2560x1440 @ 144 Hz
 ```
 
-- **The logo is a real image**: the white NixOS snowflake PNG, drawn with kitty's graphics protocol (`kitty-direct`). Images don't survive tmux or SSH, so the shell checks for kitty, no `$TMUX` and no `$SSH_CONNECTION` first, and otherwise falls back to a small text logo (`NixOS_small`, `raspbian_small` or `macos_small`). The Mac uses the built-in Apple logo.
-- **Tree layout** with grey branches, blue icon + label and white values. Labels are padded in Nix rather than with `key.width`, which positions by absolute column and misaligns next to a logo.
+- **The logo is a real image**: the white NixOS snowflake PNG on the desktop and a white Raspberry Pi logo on the Pi (rendered at build time from the Nerd Font glyph with ImageMagick, so it matches the snowflake), drawn with kitty's graphics protocol. Locally fastfetch hands kitty the file path (`kitty-direct`); over SSH that file isn't on kitty's machine, so the shell switches to the `kitty` type, which sends the pixels through the terminal. Under tmux or in another terminal it falls back to a small text logo (`NixOS_small`, `raspbian_small` or `macos_small`). The Mac uses the built-in Apple logo.
+- **Tree layout** with grey branches, blue icon + label and white values. The greys are written as the raw code `{#90}`, because fastfetch turns `bright_black` into bold + black (`1;30`), which kitty draws in the background colour. Labels are padded in Nix rather than with `key.width`, which positions by absolute column and misaligns next to a logo.
 - The integrated Intel GPU is hidden (`hideType = "integrated"`), and uptime is formatted as `3h 12m` instead of fastfetch's English "3 hours".
 - Like the prompt, it uses named terminal colours, so it follows Stylix through kitty.
 
@@ -403,4 +403,4 @@ Then `update` (an alias for `sudo nixos-rebuild switch --flake ~/dotfiles#deskto
 - **The login theme is hand-written QML.** It only uses stock QtQuick, Controls and Effects, but a big SDDM or Qt update could still need small tweaks to `Main.qml`.
 - **Neovim and VS Code aren't on the palette**, on purpose (see above).
 - **firefox-gnome-theme tracks Firefox versions.** A major Firefox update without a tag bump can leave parts of the UI slightly off until the tag catches up.
-- **The fastfetch image logo is kitty-only.** Everywhere else you get the small text logo.
+- **The fastfetch image logo is kitty-only** (directly or over SSH from kitty, not inside tmux). Everywhere else you get the small text logo.

@@ -75,10 +75,15 @@
       export LS_COLORS='${lsColors}'
       export EZA_COLORS='${ezaColors}'
 
-      # The image logo only works in kitty itself, not through tmux or SSH.
+      # The image logo needs kitty itself, not tmux. Locally fastfetch passes
+      # kitty the file path (kitty-direct); over SSH the file isn't on kitty's
+      # machine, so the `kitty` type sends the pixels through the terminal.
       if [ "$TERM" = xterm-kitty ] && [ -z "$TMUX" ] && [ -z "$SSH_CONNECTION" ]; then
         fastfetch --pipe false
-      else
+      ${lib.optionalString pkgs.stdenv.hostPlatform.isLinux ''
+      elif [ "$TERM" = xterm-kitty ] && [ -z "$TMUX" ]; then
+        fastfetch --pipe false --logo-type kitty
+      ''}else
         fastfetch --pipe false --logo-type builtin --logo ${if pkgs.stdenv.hostPlatform.isDarwin
           then "macos_small"
           else ''"$([ -e /etc/NIXOS ] && echo NixOS_small || echo raspbian_small)"''}
