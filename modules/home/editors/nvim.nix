@@ -234,9 +234,10 @@ in {
         map({ "n", "i", "v" }, "<C-.>", vim.lsp.buf.code_action, { desc = "Quick fix" })
 
         -- :Make (and a typed :make) saves everything and runs make, from the
-        -- nearest Makefile above the current file, in a terminal on the right,
+        -- nearest Makefile above the current file, in a terminal that opens
+        -- in the editor window like a file (a tab; the explorer stays),
         -- focused so the program can be typed into. Running it again replaces
-        -- the previous one; q closes it once it's done.
+        -- the previous one; once it ends, q closes it.
         local make_buf
         local function run_make(args)
           vim.cmd("silent! wall")
@@ -244,17 +245,41 @@ in {
           local start = file ~= "" and vim.fs.dirname(file) or vim.uv.cwd()
           local makefile = vim.fs.find({ "GNUmakefile", "makefile", "Makefile" }, { upward = true, path = start })[1]
           local dir = makefile and vim.fs.dirname(makefile) or vim.uv.cwd()
-          if make_buf and vim.api.nvim_buf_is_valid(make_buf) then
-            vim.api.nvim_buf_delete(make_buf, { force = true })
+          -- From the explorer or another side panel, use the editor window.
+          local function editor(win)
+            local buf = vim.api.nvim_win_get_buf(win)
+            return vim.api.nvim_win_get_config(win).relative == ""
+              and (vim.bo[buf].buftype == "" or buf == make_buf)
           end
-          vim.cmd("botright vnew")
+          if not editor(0) then
+            for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+              if editor(win) then
+                vim.api.nvim_set_current_win(win)
+                break
+              end
+            end
+          end
+          local old = make_buf
+          vim.cmd("enew")
           make_buf = vim.api.nvim_get_current_buf()
+          if old and vim.api.nvim_buf_is_valid(old) then
+            vim.api.nvim_buf_delete(old, { force = true })
+          end
           vim.fn.jobstart(vim.list_extend({ "make" }, args), { cwd = dir, term = true })
-          vim.bo[make_buf].buflisted = false
-          vim.keymap.set("n", "q", "<cmd>bdelete!<cr>", { buffer = make_buf, desc = "Close make" })
+          local buf = make_buf
+          -- Back to normal mode when it ends, so a key doesn't close it.
+          vim.api.nvim_create_autocmd("TermClose", {
+            buffer = buf,
+            callback = function()
+              vim.schedule(function()
+                if vim.api.nvim_get_current_buf() == buf then vim.cmd("stopinsert") end
+              end)
+            end,
+          })
+          vim.keymap.set("n", "q", function() Snacks.bufdelete({ buf = buf, force = true }) end, { buffer = buf, desc = "Close make" })
           vim.cmd("startinsert")
         end
-        vim.api.nvim_create_user_command("Make", function(o) run_make(o.fargs) end, { nargs = "*", desc = "make in a terminal on the right" })
+        vim.api.nvim_create_user_command("Make", function(o) run_make(o.fargs) end, { nargs = "*", desc = "make in a terminal" })
         vim.cmd([[cnoreabbrev <expr> make getcmdtype() ==# ':' && getcmdline() ==# 'make' ? 'Make' : 'make']])
         map("n", "<leader>m", "<cmd>Make<cr>", { desc = "Make" })
       '' + lib.optionalString cfg.ide ''
