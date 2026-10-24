@@ -10,10 +10,12 @@ express. Reads the file on stdin, writes it to stdout.
 - An `if`, `else if`, `else`, `for` or `while` with a single statement goes
   on one line when it fits (clang-format splits an `else if` that follows a
   braced branch).
-- A call, prototype or function header that doesn't fit in 80 columns keeps
-  its first argument on the first line, packs the rest together below, two
-  spaces further in (clang-format fills the first line instead), and closes
-  with `);` (or `) {`) on its own line, like a block.
+- A call that doesn't fit in 80 columns keeps its first argument on the
+  first line, packs the rest together below, two spaces further in
+  (clang-format fills the first line instead), and closes with `);` on its
+  own line, like a block. A prototype or function header that doesn't fit
+  puts all its parameters below the `(`, packed, and closes with `);` or
+  `) {` on its own line.
 - An initializer `x = { ... };` that doesn't fit on one line gets `{` at the
   end of the first line, the elements below two spaces in (a line per
   comment, comments aligned, the rest packed) and `};` on its own line.
@@ -527,7 +529,13 @@ def pack(indent, joined):
     cont = indent + "  "
     first_end = "," if len(args) > 1 else tail
     lines, line, rest = [], None, args[1:]
-    if len(head + args[0] + first_end) <= LIMIT:
+    # Prototypes and definitions (the ones with a space before the bracket)
+    # take all their parameters below the opening bracket.
+    if m.group("space"):
+        if len(head) > LIMIT:
+            return None
+        lines, rest = [head], args
+    elif len(head + args[0] + first_end) <= LIMIT:
         lines = [head + args[0] + first_end]
     else:
         # A long string first: it starts on the first line and is cut into
