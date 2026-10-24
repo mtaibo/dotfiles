@@ -58,14 +58,16 @@ let
     '';
   };
 
-  # :help opens this page: a Vim guide (assets/nvim/help.md) rendered with
+  # :help opens this page: my own short guide (assets/nvim/guide.md) and the
+  # full Vim guide (assets/nvim/help.md), picked in the sidebar, rendered with
   # the preview's own markdown-it and stylesheet, in the preview's window on
   # Linux and the default browser on the Mac.
   helpPage = pkgs.runCommand "nvim-help" { nativeBuildInputs = [ pkgs.nodejs ]; } ''
     mkdir -p $out
     node ${../../../assets/nvim/help-render.js} \
-      ${pkgs.vimPlugins.markdown-preview-nvim}/app ${../../../assets/nvim/help.md} \
-      $out/index.html ${previewCss} ${previewHighlightCss} ${../../../assets/nvim/help.css}
+      ${pkgs.vimPlugins.markdown-preview-nvim}/app $out/index.html \
+      ${../../../assets/nvim/guide.md} ${../../../assets/nvim/help.md} \
+      ${previewCss} ${previewHighlightCss} ${../../../assets/nvim/help.css}
   '';
   helpOpen = if pkgs.stdenv.hostPlatform.isDarwin
     then "{ 'open', '${helpPage}/index.html' }"
@@ -573,6 +575,143 @@ in {
       # Java in the same style.
       "nvim/after/ftplugin/java.lua".text = cIndent;
 
+      # gd and gn (keys in plugins/nix.lua): a function's definition and its
+      # uses, for the function under the cursor or, anywhere else in a body,
+      # the function the cursor is inside.
+      "nvim/lua/config/code_nav.lua".text = ''
+        local M = {}
+
+        -- The function's name: called or declared under the cursor ("call" /
+        -- "decl"), else the name of the function around the cursor ("decl").
+        local function target()
+          local ok, node = pcall(vim.treesitter.get_node)
+          if not ok or not node then return end
+          local t = node:type()
+          if t == "identifier" or t == "field_identifier" then
+            local inner, p = node, node:parent()
+            -- s->f(...) and s.f(...) in C.
+            if p and p:type() == "field_expression" and p:field("field")[1] == node then
+              inner, p = p, p:parent()
+            end
+            if p then
+              local pt = p:type()
+              if (pt == "call_expression" and p:field("function")[1] == inner)
+                or (pt == "method_invocation" and p:field("name")[1] == node) then
+                return { node = node, kind = "call" }
+              end
+              if (pt == "function_declarator" and p:field("declarator")[1] == node)
+                or ((pt == "method_declaration" or pt == "constructor_declaration") and p:field("name")[1] == node) then
+                return { node = node, kind = "decl" }
+              end
+            end
+          end
+          local n = node
+          while n do
+            local nt = n:type()
+            if nt == "method_declaration" or nt == "constructor_declaration" then
+              return { node = n:field("name")[1], kind = "decl", around = true }
+            end
+            if nt == "function_definition" then
+              local d = n:field("declarator")[1]
+              while d and d:type() ~= "function_declarator" do d = d:field("declarator")[1] end
+              local name = d and d:field("declarator")[1]
+              if name then return { node = name, kind = "decl", around = true } end
+            end
+            n = n:parent()
+          end
+        end
+
+        -- Ask the language server about the name node; returns the
+        -- locations as { uri, range } and the server's position encoding.
+        local function ask(method, node, extra)
+          local client = vim.lsp.get_clients({ bufnr = 0, method = method })[1]
+          if not client then return {}, "utf-16" end
+          local row, col = node:start()
+          local line = vim.api.nvim_buf_get_lines(0, row, row + 1, false)[1] or ""
+          local params = vim.tbl_extend("force", {
+            textDocument = vim.lsp.util.make_text_document_params(0),
+            position = { line = row, character = vim.str_utfindex(line, client.offset_encoding, col, false) },
+          }, extra or {})
+          local res = client:request_sync(method, params, 3000, 0)
+          local result = res and res.result or {}
+          if result.uri or result.targetUri then result = { result } end
+          local out = {}
+          for _, l in ipairs(result) do
+            table.insert(out, { uri = l.uri or l.targetUri, range = l.targetSelectionRange or l.range })
+          end
+          return out, client.offset_encoding
+        end
+
+        local function here(node)
+          local row = node:start()
+          return { uri = vim.uri_from_bufnr(0), line = row }
+        end
+        local function elsewhere(locs, at)
+          return vim.tbl_filter(function(l) return not (l.uri == at.uri and l.range.start.line == at.line) end, locs)
+        end
+        local function jump(loc, enc)
+          vim.cmd("normal! m'")
+          vim.lsp.util.show_document({ uri = loc.uri, range = loc.range }, enc, { focus = true })
+        end
+
+        -- gd: on a call, to the function's code; on a declaration or inside
+        -- a body, to the prototype (or from a prototype to the code).
+        function M.definition()
+          local t = target()
+          if not t then return vim.lsp.buf.definition() end
+          local at = here(t.node)
+          local methods = t.kind == "call" and { "textDocument/definition" }
+            or { "textDocument/declaration", "textDocument/definition" }
+          for _, method in ipairs(methods) do
+            local locs, enc = ask(method, t.node)
+            locs = elsewhere(locs, at)
+            if #locs > 0 then return jump(locs[1], enc) end
+          end
+          -- No prototype anywhere else: at least the function's own name.
+          if t.around then
+            vim.cmd("normal! m'")
+            local row, col = t.node:start()
+            return vim.api.nvim_win_set_cursor(0, { row + 1, col })
+          end
+          vim.notify("No other definition", vim.log.levels.INFO)
+        end
+
+        -- gn / gN: the next / previous call of that function, in file order,
+        -- wrapping around.
+        function M.use(dir)
+          local t = target()
+          if not t then return vim.notify("Not on or inside a function", vim.log.levels.WARN) end
+          local locs, enc = ask("textDocument/references", t.node, { context = { includeDeclaration = false } })
+          if #locs == 0 then return vim.notify("No uses found", vim.log.levels.INFO) end
+          local function before(a, b)
+            if a.uri ~= b.uri then return a.uri < b.uri end
+            if a.range.start.line ~= b.range.start.line then return a.range.start.line < b.range.start.line end
+            return a.range.start.character < b.range.start.character
+          end
+          table.sort(locs, before)
+          local cur = vim.api.nvim_win_get_cursor(0)
+          local line = vim.api.nvim_get_current_line()
+          local me = { uri = vim.uri_from_bufnr(0), range = { start = {
+            line = cur[1] - 1, character = vim.str_utfindex(line, enc, cur[2], false) } } }
+          local pick, index
+          if dir > 0 then
+            for i, l in ipairs(locs) do
+              if before(me, l) then pick, index = l, i break end
+            end
+            if not pick then pick, index = locs[1], 1 end
+          else
+            for i = #locs, 1, -1 do
+              if before(locs[i], me) then pick, index = locs[i], i break end
+            end
+            if not pick then pick, index = locs[#locs], #locs end
+          end
+          jump(pick, enc)
+          vim.api.nvim_echo({ { ("Use %d of %d"):format(index, #locs) } }, false, {})
+        end
+
+        return M
+      '';
+
       "nvim/lua/plugins/nix.lua".text = ''
         return {
           {
@@ -586,6 +725,15 @@ in {
               opts.inlay_hints.exclude = opts.inlay_hints.exclude or {}
               table.insert(opts.inlay_hints.exclude, "c")
               table.insert(opts.inlay_hints.exclude, "java")
+              -- gd also works from inside a function's body, gn / gN walk
+              -- through its uses (lua/config/code_nav.lua).
+              local all = opts.servers["*"]
+              all.keys = all.keys or {}
+              vim.list_extend(all.keys, {
+                { "gd", function() require("config.code_nav").definition() end, desc = "Goto Definition", has = "definition" },
+                { "gn", function() require("config.code_nav").use(1) end, desc = "Next use of the function", has = "references" },
+                { "gN", function() require("config.code_nav").use(-1) end, desc = "Previous use of the function", has = "references" },
+              })
             end,
           },
           {

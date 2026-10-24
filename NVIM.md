@@ -26,7 +26,7 @@ My Neovim is [LazyVim](https://www.lazyvim.org) inside kitty, set up to replace 
 - **Space is the leader key.** Press it and wait: which-key pops up with every command grouped by letter (`f` files, `s` search, `c` code, `g` git, `d` debug, `t` tests, `u` toggles…). `Space ?` lists the keys of the current buffer, `Space s k` searches all keymaps.
 - **The mouse works everywhere**: click to place the cursor, select, scroll, click tabs and their ×, click files in the explorer (a single click opens them).
 - **Modes**: Normal (move and run commands), Insert (`i`, `a`, `o` to type; `Esc` to leave), Visual (`v` characters, `V` lines, `Ctrl+V` block). Undo `u`, redo `Ctrl+R`.
-- **`:help`** opens a guide to Vim itself in the browser (motions, operators, text objects, registers, macros, search and replace, windows, folds…), styled like the Markdown preview, with what this setup changes marked. It's `assets/nvim/help.md`, rendered when the config is built. `:help topic` is still Vim's own manual.
+- **`:help`** opens two guides in the browser, styled like the Markdown preview, with a switch at the top left: **My guide**, only the commands I really use (`assets/nvim/guide.md`), and **Vim help**, a guide to Vim itself (motions, operators, text objects, registers, macros, search and replace, windows, folds…) with what this setup changes marked (`assets/nvim/help.md`). Both are rendered when the config is built. `:help topic` is still Vim's own manual.
 - **The first launch** downloads the plugins and Mason's tools (about a minute). `Space l` opens Lazy, the plugin manager; `Space c m` opens Mason.
 
 In the tables, `Space f f` means: press Space, then `f`, then `f`.
@@ -153,7 +153,9 @@ Brackets and quotes close themselves. Text objects work with code: `vaf` selects
 
 | Keys | Action |
 |---|---|
-| `gd` (or `F12`) | Go to definition |
+| `gd` | Go to definition: on a call, the function's code; on its name or anywhere inside its body, its prototype (the `.h`); on a prototype, the code |
+| `gn` / `gN` | Next / previous use of the function under the cursor or the one you're inside, across files (`cgn` still works) |
+| `F12` | Plain definition of what's under the cursor |
 | `gr` (or `Shift+F12`) | References |
 | `gI` | Implementation |
 | `gy` | Type definition |

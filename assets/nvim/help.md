@@ -264,7 +264,7 @@ Tips: start the macro with `0` or `^` so it works from any column, and end it wi
 | `/` `Up` | Previous searches |
 | `/text/e` | Land on the end of the match (`/text/+1` a line below) |
 | `//` | Search the last pattern again |
-| `gn` / `gN` | Select the next / previous match: `cgn` changes it, then `.` changes the next one |
+| `cgn` | Change the next match, then `.` changes the next one (`dgn` deletes it). **Changed here:** a plain `gn` / `gN` goes to the next use of a function |
 | `:noh` | Hide the highlights (or `Esc` here) |
 
 Patterns: `\c` anywhere makes it ignore case (`/\cfoo`); here searches already ignore case unless you type a capital. `\<word\>` matches the whole word. `\v` at the start makes it "very magic" (regex like elsewhere: `/\v(foo|bar)\d+`). `.` any character, `*` repeat, `^` `$` line start / end, `\s` space, `\d` digit, `\w` word character, `\n` newline, `[abc]` a set, `\{2,4}` 2 to 4 times, `\zs` / `\ze` start / end of what counts as the match.
@@ -449,7 +449,9 @@ Here folds follow the syntax tree (functions, blocks) and everything starts open
 
 | Keys | Does |
 |---|---|
-| `gd` / `F12` | Go to definition |
+| `gd` | **Here:** go to definition; inside a function's body, to its prototype (the `.h`); on a prototype, to the code |
+| `gn` / `gN` | **Here:** next / previous use of the function under the cursor or the one you're inside, across files |
+| `F12` | Plain definition of what's under the cursor |
 | `gr` / `Shift+F12` | References |
 | `gI` / `gy` / `gD` | Implementation / type definition / declaration |
 | `K` | Documentation of what's under the cursor (`K` again to enter the window) |
@@ -512,7 +514,7 @@ Here folds follow the syntax tree (functions, blocks) and everything starts open
 | `Esc Esc` | **Here:** leave terminal mode in it (anywhere: `Ctrl+\` `Ctrl+n`) |
 | `i` / `a` | Back into terminal mode |
 | `q` | **Here:** close it (in normal mode) |
-| ``Ctrl+` `` \| **Here:** a terminal at the bottom, toggled \|
+| ``Ctrl+` `` | **Here:** a terminal at the bottom, toggled |
 
 ## Commands of this setup
 
