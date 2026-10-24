@@ -175,6 +175,7 @@ Stylix wants to paint the active border in the blue accent. I override it with `
 | `SUPER` + `W` | Next wallpaper |
 | `SUPER` + `Shift` + `W` | Pick a wallpaper (with previews) |
 | `SUPER` + `H` | Shortcut cheatsheet |
+| `SUPER` + `K` | Open Cider (also brings it back when hidden) |
 | `SUPER` + `N` | Hide or show the bar |
 | `SUPER` + `M` | Exit Hyprland |
 | `SUPER` + arrows | Move focus |
@@ -240,7 +241,7 @@ Every time the wallpaper changes, [matugen](https://github.com/InioX/matugen) re
 
 ## 📊 Top bar — Waybar
 
-Copied from the bar in [binnewbs' Hyprland rice](https://github.com/binnewbs/arch-hyprland) (JaKooLit's "window middle" layout with the "islands" style, with the workspaces moved to the middle in place of the focused window, the connections moved right and a music player instead of the power button): no bar behind the modules, just a row of dark islands floating 6 px from the top, each tinted by the wallpaper. I made it bigger (17 px text) and gave the islands the windows' 10 px corners instead of the original pills.
+Copied from the bar in [binnewbs' Hyprland rice](https://github.com/binnewbs/arch-hyprland) (JaKooLit's "window middle" layout with the "islands" style, with the workspaces moved to the middle in place of the focused window, the connections moved right and a music player instead of the power button): no bar behind the modules, just a row of dark islands floating 6 px from the top, each tinted by the wallpaper. I made it bigger (17 px text) and gave the islands 16 px corners (the windows' 10 px plus 6) instead of the original pills.
 
 ```
  (   Sábado, 24 de Octubre 08:31 ) ( 󰝚  Song · Artist )        ( 1 2 3 4 )        ( ⋯ 󰈀 󰂯 ) ( 1 󱅫 ) ( 󰋋 40% )
@@ -251,7 +252,7 @@ Copied from the bar in [binnewbs' Hyprland rice](https://github.com/binnewbs/arc
 |---|---|---|
 | Clock | `  Sábado, 24 de Octubre 08:31`, always date and time, capitalised by a small `waybar-clock` script (waybar's own clock only gives lowercase Spanish names) | Tooltip with the month's calendar |
 | Music player | What's playing (`mpris`): title and artist, 󰏤 and grey when paused; hidden when nothing plays. It follows the player in use through `playerctld` | Left: a small glass popup under the island with the song, previous, play / pause and next (it reopens after each action, Escape or a click outside closes it) · middle: play / pause · right: next |
-| Tray + connection | App tray icons at 16 px, then 󰈀 ethernet · 󰖩 wifi · 󰈂 disconnected and 󰂯 / 󰂱 / 󰂲 bluetooth (grey when off) | Bluetooth: blueman |
+| Tray + connection | App tray icons (Cider's in white), then 󰈀 ethernet · 󰖩 wifi · 󰈂 disconnected and 󰂯 / 󰂱 / 󰂲 bluetooth (grey when off) | Bluetooth: blueman |
 | Workspaces | Always four numbers, 1–4; the active one is a pill in the light accent with dark text, ones with windows in the text colour, empty ones grey | Switches workspace, scroll moves through them |
 | Notifications | 󰂚 with dunst's history count, 󱅫 when there are some, 󰂛 grey with the queued count in "do not disturb" | Left: toggle do not disturb · right: show the last one again · middle: clear |
 | Audio | Volume with its icon (headphones when they're the output), red when muted; hovering slides out the microphone | Left: mute · right: pavucontrol · scroll ±5 % (mic too) |
@@ -322,7 +323,7 @@ There's no hypridle on purpose: the screen never turns off or locks by itself. N
 
 I use Apple Music, which has no Linux app, so [Cider](https://cider.sh) stands in: a third-party Apple Music client (Electron, the same MusicKit as music.apple.com) packaged in nixpkgs as `cider-2`, Widevine included. It's paid: it asks you to sign in to a Cider Taproom account that owns a licence before anything else, and Apple Music itself needs its subscription.
 
-It's themed like the rest: a transparent window with Stylix's background at 70 % (so Hyprland's blur shows through, like kitty), the wallpaper's accent instead of Apple's red, no album-art tinting, Inter, and no in-app window buttons. Cider keeps its settings in `~/.config/sh.cider.genten/spa-config.yml`, so the `cider` launcher (the only one installed, with its own desktop entry) writes those keys and a small custom CSS into it with `yq` and then starts the app. matugen writes the accent to `~/.config/cider/accent` on every wallpaper change; Cider picks it up on its next start. The settings file only appears after the first launch, so the theme shows from the second one. It reports what's playing over MPRIS, so it shows up in the bar's player.
+It's themed like the rest: a transparent window with Stylix's background at 70 % (so Hyprland's blur shows through, like kitty), the wallpaper's accent instead of Apple's red, no album-art tinting, Inter, and no in-app window buttons. Cider keeps its settings in `~/.config/sh.cider.genten/spa-config.yml`, so the `cider` launcher (the only one installed, with its own desktop entry) writes those keys and a small custom CSS into it with `yq` and then starts the app. matugen writes the accent to `~/.config/cider/accent` on every wallpaper change; Cider picks it up on its next start. The settings file only appears after the first launch, so the theme shows from the second one. Closing the window only hides it (`general.closeToTray`), so the music keeps playing. Its red tray icon is swapped at build time for its macOS tray template turned white (`overrideAttrs` copies it over `resources/public/tray.png`). Left click on it shows the window, right click opens Cider's menu (show / hide, quit). Launching Cider again doesn't bring a hidden window back (it boots a second copy that gives up), so when Cider is already running the `cider` launcher, and with it `SUPER + K`, "clicks" that tray icon over D-Bus instead: it finds the StatusNotifierItem whose owner process is Cider and calls `Activate`. So the tray icon has to stay on (`enableTrayIcon: true`). It reports what's playing over MPRIS, so it shows up in the bar's player.
 
 ## ❯ Prompt — Starship
 

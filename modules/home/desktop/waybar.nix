@@ -5,8 +5,8 @@ let
   rgb = name: "${c."${name}-rgb-r"}, ${c."${name}-rgb-g"}, ${c."${name}-rgb-b"}";
   accentCss = "${config.xdg.configHome}/waybar/matugen-colors.css";
   font = "JetBrainsMono Nerd Font Propo";
-  # Same corners as the windows.
-  radius = config.wayland.windowManager.hyprland.settings.decoration.rounding;
+  # A little rounder than the windows.
+  radius = config.wayland.windowManager.hyprland.settings.decoration.rounding + 6;
 
   # Bell for the bar: dunst's history count, or what's queued while
   # "do not disturb" (dunst paused) is on.
