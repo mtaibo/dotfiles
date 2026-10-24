@@ -89,12 +89,13 @@ let
     '';
   };
 
-  # C formatting on save: clang-format with this style, then c-style for the
-  # layout clang-format can't do (includes by length, grouped defines and
-  # typedefs, three blank lines around main).
+  # C formatting on save: c-style runs clang-format with this style and adds
+  # the layout clang-format can't do (one-line blocks kept, includes by
+  # length, grouped defines and typedefs, three blank lines around main).
   clangFormat = ../../../assets/nvim/clang-format.yaml;
   cStyle = pkgs.writeShellScriptBin "c-style" ''
-    exec ${pkgs.python3}/bin/python3 ${../../../assets/nvim/c-style.py}
+    exec ${pkgs.python3}/bin/python3 ${../../../assets/nvim/c-style.py} \
+      ${pkgs.clang-tools}/bin/clang-format ${clangFormat}
   '';
 in {
   options.dotfiles.nvim.ide = lib.mkOption {
@@ -372,16 +373,20 @@ in {
         return {
           {
             "neovim/nvim-lspconfig",
-            opts = { servers = { clangd = { mason = false }, jdtls = { mason = false } } },
+            opts = function(_, opts)
+              opts.servers.clangd = vim.tbl_extend("force", opts.servers.clangd or {}, { mason = false })
+              opts.servers.jdtls = vim.tbl_extend("force", opts.servers.jdtls or {}, { mason = false })
+              -- No inlay hints in C: the parameter names clangd draws push the
+              -- code right, past the column-80 guide (Space u h shows them).
+              opts.inlay_hints.exclude = opts.inlay_hints.exclude or {}
+              table.insert(opts.inlay_hints.exclude, "c")
+            end,
           },
           {
             "stevearc/conform.nvim",
             opts = {
-              formatters_by_ft = { c = { "clang_format", "c_style" } },
-              formatters = {
-                clang_format = { prepend_args = { "--style=file:${clangFormat}" } },
-                c_style = { command = "c-style" },
-              },
+              formatters_by_ft = { c = { "c_style" } },
+              formatters = { c_style = { command = "c-style" } },
             },
           },
           {

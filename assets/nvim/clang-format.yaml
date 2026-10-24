@@ -1,12 +1,16 @@
-# Base style for C, applied on save by Neovim (conform) and by clangd.
-# The layout rules clang-format can't express live in c-style.py.
+# Base style for C. c-style.py runs clang-format with it on save, then
+# applies the layout rules clang-format can't express. clangd reads it too.
 BasedOnStyle: LLVM
 IndentWidth: 2
 UseTab: Never
 ColumnLimit: 80
 # c-style.py sorts includes by length.
 SortIncludes: Never
-# A blank line between functions; c-style.py widens it to three around main.
-SeparateDefinitionBlocks: Always
+# c-style.py spaces the functions (one-line ones can stay together).
+SeparateDefinitionBlocks: Leave
 MaxEmptyLinesToKeep: 1
-AllowShortFunctionsOnASingleLine: None
+# Short functions, ifs, loops and blocks on one line when they fit.
+AllowShortFunctionsOnASingleLine: All
+AllowShortIfStatementsOnASingleLine: AllIfsAndElse
+AllowShortBlocksOnASingleLine: Always
+AllowShortLoopsOnASingleLine: true

@@ -1,16 +1,25 @@
-"""Second pass after clang-format on C files, for the layout rules
-clang-format can't express. Reads the file on stdin, writes it to stdout.
+"""Formats a C file: clang-format, plus the layout rules clang-format can't
+express. Reads the file on stdin, writes it to stdout.
 
+    c-style.py CLANG_FORMAT STYLE_FILE < file.c
+
+- Blocks with several statements that fit on one line, such as
+  `if (x) { printf("..."); return 1; }`, stay on one line (clang-format always
+  splits them): their bodies are swapped for a placeholder of the same length
+  while clang-format runs.
 - Includes, #defines and typedefs are hoisted to the top of the file (not out
   of #if blocks), each group a blank line apart:
-  - includes from the shortest line to the longest;
+  - system includes, then a blank line and the project's ("..."), each from
+    the shortest line to the longest;
   - #defines in their original order;
   - one-line typedefs in their original order;
   - multi-line typedefs and struct/union/enum definitions from the longest to
     the shortest, a blank line between each, always after the types they use.
-- One blank line between top-level blocks, three around main.
+- One blank line between top-level blocks, three around main. One-line
+  functions written together stay together.
 """
 import re
+import subprocess
 import sys
 
 IDENT = re.compile(r"[A-Za-z_]\w*")
@@ -132,7 +141,7 @@ def is_function(u):
     if u.kind != "code" or "{" not in u.code or is_typedef(u) or is_record(u):
         return False
     last = u.code.rstrip().splitlines()[-1].strip()
-    return "(" in u.code[:u.code.index("{")] and last.startswith("}") \
+    return "(" in u.code[:u.code.index("{")] and last.endswith("}") \
         and not last.endswith(";")
 
 
@@ -193,6 +202,10 @@ def sort_types(singles, multis):
         placed.append(pick)
         left.remove(pick)
     return top, placed
+
+
+def is_one_line_function(u):
+    return is_function(u) and len(u.lines) == 1
 
 
 def lines_of(u):
@@ -264,17 +277,31 @@ def format_c(text):
     top, placed = sort_types(singles, multis)
     blocks = [[l for u in header for l in u.lines],
               [l for u in guard for l in lines_of(u)],
-              [l for u in sorted(includes, key=key) for l in lines_of(u)],
+              [l for u in sorted(includes, key=key) if "<" in u.lines[0]
+               for l in lines_of(u)],
+              [l for u in sorted(includes, key=key) if "<" not in u.lines[0]
+               for l in lines_of(u)],
               [l for u in defines for l in lines_of(u)],
               [l for u in top for l in lines_of(u)]]
     blocks += [lines_of(u) for u in placed]
     chunks = [(b, False) for b in blocks if b]
     preamble = len(chunks)
 
-    # The rest, in blank-separated chunks.
+    # The rest, in blank-separated chunks. Functions longer than a line get
+    # one each; one-line functions written together stay together.
+    def group(u):
+        if is_main(u):
+            return "main"
+        if is_function(u):
+            return "one-line" if is_one_line_function(u) else "function"
+        return "other"
+
+    prev = None
     for u, blank_before in rest:
-        if blank_before or len(chunks) == preamble:
+        if blank_before or len(chunks) == preamble or group(u) in ("function", "main") \
+                or group(u) != prev or prev == "main":
             chunks.append(([], False))
+        prev = group(u)
         lines, has_main = chunks[-1]
         chunks[-1] = (lines + lines_of(u), has_main or bool(is_main(u)))
 
@@ -286,5 +313,110 @@ def format_c(text):
     return "\n".join(out).rstrip("\n") + "\n"
 
 
+def mask(line):
+    """The line with comments and string contents blanked out, same length."""
+    out, quote, i = list(line), None, 0
+    while i < len(line):
+        c = line[i]
+        if quote:
+            if c == "\\":
+                out[i] = " "
+                if i + 1 < len(line):
+                    out[i + 1] = " "
+                i += 1
+            elif c == quote:
+                quote = None
+            else:
+                out[i] = " "
+        elif line.startswith("//", i) or line.startswith("/*", i):
+            end = line.find("*/", i + 2) if line[i + 1] == "*" else -1
+            stop = len(line) if end < 0 else end + 2
+            out[i:stop] = " " * (stop - i)
+            i = stop
+            continue
+        elif c in "\"'":
+            quote = c
+        i += 1
+    return "".join(out)
+
+
+ONE_LINE_BLOCK = re.compile(r"\{([^{}]*)\}")
+PLACEHOLDER = re.compile(r"_cs(\d+)_*;")
+
+
+def protect(text):
+    """Swaps the bodies of one-line blocks with several statements (after an
+    `if (...)`, a function header, `else` or `do`) for placeholders."""
+    bodies, out = [], []
+    for line in text.split("\n"):
+        masked = mask(line)
+        if masked.lstrip().startswith("#"):
+            out.append(line)
+            continue
+        for m in reversed(list(ONE_LINE_BLOCK.finditer(masked))):
+            before = masked[:m.start()].rstrip()
+            if masked[m.start(1):m.end(1)].count(";") < 2 or not (
+                    before.endswith(")") or re.search(r"\b(else|do)$", before)):
+                continue
+            n = len(bodies)
+            bodies.append(line[m.start(1):m.end(1)].strip())
+            line = line[:m.start(1)] + " _cs%d; " % n + line[m.end(1):]
+        out.append(line)
+    return "\n".join(out), bodies
+
+
+def run(clang_format, style, text):
+    return subprocess.run([clang_format, "--style=" + style,
+                           "--assume-filename=file.c"], input=text,
+                          capture_output=True, text=True, check=True).stdout
+
+
+def format_bodies(clang_format, bodies):
+    """Each body formatted by clang-format, one line per statement."""
+    if not bodies:
+        return []
+    snippet = "".join("void _cs%d(void) {\n%s\n}\n" % (n, b)
+                      for n, b in enumerate(bodies))
+    style = "{BasedOnStyle: LLVM, ColumnLimit: 0, " \
+            "AllowShortFunctionsOnASingleLine: None}"
+    lines, out = run(clang_format, style, snippet).split("\n"), []
+    for line in lines:
+        if line.startswith("void _cs"):
+            out.append([])
+        elif line.strip() and line != "}" and out:
+            out[-1].append(line.strip())
+    return out
+
+
+def restore(text, bodies):
+    out = []
+    for line in text.split("\n"):
+        m = PLACEHOLDER.search(line)
+        while m:
+            body = bodies[int(m.group(1))]
+            if line.strip() == m.group(0):
+                indent = line[:len(line) - len(line.lstrip())]
+                out += [indent + b for b in body[:-1]]
+                line = indent + body[-1]
+            else:
+                line = line[:m.start()] + " ".join(body) + line[m.end():]
+            m = PLACEHOLDER.search(line)
+        out.append(line)
+    return "\n".join(out)
+
+
+def main():
+    clang_format, style_file = sys.argv[1], sys.argv[2]
+    text, bodies = protect(sys.stdin.read())
+    bodies = format_bodies(clang_format, bodies)
+    # The placeholders take the length of the formatted bodies, so
+    # clang-format keeps a block on one line only if the real one fits.
+    text = PLACEHOLDER.sub(
+        lambda m: ("_cs" + m.group(1)).ljust(
+            len(" ".join(bodies[int(m.group(1))])) - 1, "_") + ";", text)
+    text = run(clang_format, "file:" + style_file, text)
+    sys.stdout.write(format_c(restore(text, bodies)))
+
+
 if __name__ == "__main__":
-    sys.stdout.write(format_c(sys.stdin.read()))
+    main()
