@@ -1,0 +1,21 @@
+/* Code highlighting (highlight.js classes) in the rice's base16 colours.
+   The --baseXX variables are prepended by nvim.nix. */
+
+.hljs { color: var(--base05); background: none; }
+
+.hljs-comment, .hljs-quote { color: var(--base03); font-style: italic; }
+.hljs-keyword, .hljs-selector-tag, .hljs-doctag, .hljs-meta .hljs-keyword { color: var(--base0E); }
+.hljs-string, .hljs-regexp, .hljs-addition, .hljs-meta .hljs-string { color: var(--base0B); }
+.hljs-number, .hljs-literal, .hljs-symbol, .hljs-bullet { color: var(--base09); }
+.hljs-title, .hljs-title.function_, .hljs-section { color: var(--base0D); }
+.hljs-type, .hljs-class .hljs-title, .hljs-title.class_, .hljs-built_in { color: var(--base0A); }
+.hljs-variable, .hljs-template-variable, .hljs-params { color: var(--base05); }
+.hljs-attr, .hljs-attribute, .hljs-property, .hljs-selector-attr { color: var(--base0C); }
+.hljs-name, .hljs-tag, .hljs-selector-id, .hljs-selector-class, .hljs-deletion { color: var(--base08); }
+.hljs-meta, .hljs-subst, .hljs-link { color: var(--base0F); }
+.hljs-punctuation, .hljs-operator { color: var(--base04); }
+
+.hljs-addition { background: color-mix(in srgb, var(--base0B) 12%, transparent); }
+.hljs-deletion { background: color-mix(in srgb, var(--base08) 12%, transparent); }
+.hljs-emphasis { font-style: italic; }
+.hljs-strong { font-weight: 650; }

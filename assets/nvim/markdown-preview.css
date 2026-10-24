@@ -1,0 +1,266 @@
+/* Markdown preview (markdown-preview.nvim). Replaces the plugin's GitHub
+   stylesheet entirely; the --baseXX colours are prepended by nvim.nix. */
+
+:root {
+  --bg: var(--base00);
+  --surface: var(--base01);
+  --line: var(--base02);
+  --muted: var(--base03);
+  --soft: var(--base04);
+  --text: var(--base05);
+  --strong: var(--base07);
+  --accent: var(--base0D);
+  --hairline: color-mix(in srgb, var(--base05) 9%, transparent);
+  --sans: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+  --mono: "FiraCode Nerd Font Mono", "SF Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+
+/* Page: one calm column, no header bar or card border. */
+html, body, #__next, main, main[data-theme] {
+  background: var(--bg) !important;
+}
+#page-ctn {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 72px 32px 120px;
+}
+#page-header { display: none; }
+
+::selection { background: color-mix(in srgb, var(--accent) 35%, transparent); }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border: 3px solid var(--bg);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-track { background: transparent; }
+html { scrollbar-color: var(--line) transparent; scrollbar-width: thin; }
+
+.markdown-body {
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--text);
+  font-feature-settings: "cv11", "ss01";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  word-wrap: break-word;
+}
+.markdown-body * { box-sizing: border-box; }
+.markdown-body > *:first-child { margin-top: 0 !important; }
+.markdown-body > *:last-child { margin-bottom: 0 !important; }
+
+.markdown-body p,
+.markdown-body ul, .markdown-body ol, .markdown-body dl,
+.markdown-body blockquote, .markdown-body pre,
+.markdown-body table, .markdown-body details {
+  margin: 0 0 1.1em;
+}
+
+/* Headings: tight, bright, with room above them. */
+.markdown-body h1, .markdown-body h2, .markdown-body h3,
+.markdown-body h4, .markdown-body h5, .markdown-body h6 {
+  position: relative;
+  margin: 2.2em 0 0.7em;
+  color: var(--strong);
+  font-weight: 650;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+}
+.markdown-body h1 {
+  margin-top: 0;
+  font-size: 2.4em;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+.markdown-body h2 {
+  padding-bottom: 0.45em;
+  font-size: 1.6em;
+  letter-spacing: -0.02em;
+  border-bottom: 1px solid var(--hairline);
+}
+.markdown-body h3 { font-size: 1.25em; }
+.markdown-body h4 { font-size: 1.05em; }
+.markdown-body h5, .markdown-body h6 {
+  font-size: 0.8em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--soft);
+}
+.markdown-body h1 + p { font-size: 1.1em; color: var(--soft); }
+
+/* Heading permalinks appear in the margin on hover. */
+.markdown-body .anchor {
+  position: absolute;
+  left: -28px;
+  padding-right: 8px;
+  color: var(--muted);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.markdown-body .anchor svg { fill: currentColor; vertical-align: middle; }
+.markdown-body :is(h1, h2, h3, h4, h5, h6):hover .anchor { opacity: 1; }
+
+/* Links and inline text. */
+.markdown-body a {
+  color: var(--accent);
+  text-decoration: none;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0 1px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  transition: background-size 0.2s;
+}
+.markdown-body a:hover { background-size: 100% 1px; }
+.markdown-body a.anchor, .markdown-body a:has(img) { background: none; }
+.markdown-body strong { color: var(--strong); font-weight: 650; }
+.markdown-body del { color: var(--muted); }
+.markdown-body mark {
+  padding: 0.05em 0.25em;
+  color: var(--strong);
+  background: color-mix(in srgb, var(--base0A) 28%, transparent);
+  border-radius: 4px;
+}
+.markdown-body kbd {
+  display: inline-block;
+  padding: 0.1em 0.45em;
+  font: 0.8em var(--mono);
+  color: var(--strong);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+}
+
+/* Lists. */
+.markdown-body ul, .markdown-body ol { padding-left: 1.5em; }
+.markdown-body li + li { margin-top: 0.3em; }
+.markdown-body li > ul, .markdown-body li > ol { margin: 0.3em 0 0; }
+.markdown-body li::marker { color: var(--muted); }
+.markdown-body ol > li::marker { font-variant-numeric: tabular-nums; }
+.markdown-body .task-list-item { list-style: none; }
+.markdown-body .task-list-item + .task-list-item { margin-top: 0.2em; }
+.markdown-body .contains-task-list { padding-left: 0.4em; }
+.markdown-body .task-list-item-checkbox {
+  appearance: none;
+  width: 1.05em;
+  height: 1.05em;
+  margin: 0 0.55em 0.2em 0;
+  vertical-align: middle;
+  border: 1.5px solid var(--muted);
+  border-radius: 5px;
+}
+.markdown-body .task-list-item-checkbox:checked {
+  background: var(--accent)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 8.5l2.5 2.5L12 5.5' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    center / 90% no-repeat;
+  border-color: var(--accent);
+}
+.markdown-body .task-list-item:has(:checked) { color: var(--muted); }
+.markdown-body dt { margin-top: 1em; color: var(--strong); font-weight: 600; }
+.markdown-body dd { margin: 0.2em 0 0 1.2em; color: var(--soft); }
+
+/* Quotes and GitHub-style callouts. */
+.markdown-body blockquote {
+  padding: 0.6em 1.1em;
+  color: var(--soft);
+  background: color-mix(in srgb, var(--surface) 55%, transparent);
+  border-left: 3px solid var(--line);
+  border-radius: 0 10px 10px 0;
+}
+.markdown-body blockquote > :last-child { margin-bottom: 0; }
+
+/* Code. */
+.markdown-body code, .markdown-body tt, .markdown-body pre {
+  font-family: var(--mono);
+  font-variant-ligatures: contextual;
+}
+.markdown-body :not(pre) > code {
+  padding: 0.15em 0.4em;
+  font-size: 0.86em;
+  color: var(--base06);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+}
+.markdown-body pre {
+  padding: 18px 22px;
+  overflow: auto;
+  font-size: 0.86em;
+  line-height: 1.6;
+  background: var(--surface) !important;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+}
+.markdown-body pre code {
+  padding: 0;
+  font-size: inherit;
+  background: none;
+  border: 0;
+  white-space: pre;
+}
+
+/* Tables: hairlines, a soft header, rounded frame. */
+.markdown-body table {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow: auto;
+  font-size: 0.94em;
+  font-variant-numeric: tabular-nums;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+}
+.markdown-body th, .markdown-body td {
+  padding: 9px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--hairline);
+}
+.markdown-body th + th, .markdown-body td + td { border-left: 1px solid var(--hairline); }
+.markdown-body tr:last-child td { border-bottom: 0; }
+.markdown-body th {
+  color: var(--strong);
+  font-weight: 600;
+  background: var(--surface);
+}
+.markdown-body tbody tr:hover { background: color-mix(in srgb, var(--surface) 50%, transparent); }
+
+/* Media, rules and the rest. */
+.markdown-body img {
+  max-width: 100%;
+  border-radius: 10px;
+}
+.markdown-body hr {
+  height: 1px;
+  margin: 2.5em 0;
+  background: var(--hairline);
+  border: 0;
+}
+.markdown-body details {
+  padding: 0.6em 1em;
+  background: color-mix(in srgb, var(--surface) 55%, transparent);
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+}
+.markdown-body summary { cursor: pointer; color: var(--strong); font-weight: 600; }
+.markdown-body details[open] summary { margin-bottom: 0.6em; }
+.markdown-body .footnotes {
+  margin-top: 3em;
+  padding-top: 1em;
+  font-size: 0.88em;
+  color: var(--soft);
+  border-top: 1px solid var(--hairline);
+}
+.markdown-body .footnotes-sep { display: none; }
+.markdown-body sup a { background: none; }
+.markdown-body .table-of-contents ol { list-style: none; padding-left: 1em; }
+.markdown-body .table-of-contents > ol { padding-left: 0; }
+.markdown-body .katex-display { overflow-x: auto; overflow-y: hidden; }
+.markdown-body .mermaid, .markdown-body .flowchart,
+.markdown-body .sequence-diagrams, .markdown-body .dot {
+  margin-bottom: 1.1em;
+  text-align: center;
+}

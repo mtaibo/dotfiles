@@ -21,47 +21,13 @@ let
   # Stylix only runs on the desktop; elsewhere use the same palette directly.
   c = config.lib.stylix.colors.withHashtag
     or (lib.mapAttrs (_: v: "#${v}") (import ../../palette.nix));
-  previewCss = pkgs.writeText "markdown-preview.css" ''
-    html, body, #page-ctn, .markdown-body {
-      background: ${c.base00} !important;
-    }
-    .markdown-body {
-      max-width: 1180px;
-      margin: 0 auto;
-      padding: 32px 36px;
-      color: ${c.base05};
-      font-family: "Inter", -apple-system, sans-serif;
-      font-size: 16px;
-      line-height: 1.65;
-    }
-    .markdown-body h1, .markdown-body h2, .markdown-body h3,
-    .markdown-body h4, .markdown-body h5, .markdown-body h6 {
-      color: ${c.base07};
-      font-weight: 650;
-      border-color: ${c.base02};
-    }
-    .markdown-body a { color: ${c.base0D}; }
-    .markdown-body code, .markdown-body pre, .markdown-body tt {
-      font-family: "FiraCode Nerd Font Mono", monospace;
-    }
-    .markdown-body :not(pre) > code {
-      background: ${c.base01};
-      color: ${c.base06};
-      border-radius: 6px;
-      padding: 0.15em 0.4em;
-    }
-    .markdown-body pre {
-      background: ${c.base01} !important;
-      border: 1px solid ${c.base02};
-      border-radius: 10px;
-    }
-    .markdown-body table { display: table; width: auto; }
-    .markdown-body table th, .markdown-body table td { border-color: ${c.base02}; }
-    .markdown-body table tr { background: transparent; border-color: ${c.base02}; }
-    .markdown-body table tr:nth-child(2n) { background: ${c.base01}; }
-    .markdown-body blockquote { color: ${c.base04}; border-left-color: ${c.base0D}; }
-    .markdown-body hr { background: ${c.base02}; }
-  '';
+  # The stylesheets live in assets/nvim and read the palette as --baseXX.
+  paletteVars = ":root {\n"
+    + lib.concatMapStrings (n: "  --${n}: ${c.${n}};\n") (lib.attrNames (import ../../palette.nix))
+    + "}\n";
+  previewStyle = name: file: pkgs.writeText name (paletteVars + builtins.readFile file);
+  previewCss = previewStyle "markdown-preview.css" ../../../assets/nvim/markdown-preview.css;
+  previewHighlightCss = previewStyle "markdown-preview-highlight.css" ../../../assets/nvim/markdown-preview-highlight.css;
 
   # A Firefox profile only for previews: no tabs or toolbars, so it looks
   # like a preview pane; Hyprland tiles it next to kitty.
@@ -316,7 +282,7 @@ in {
         }
       '';
 
-      # Markdown like VS Code: the file stays plain, and Space c v opens a
+      # Markdown like VS Code: the file stays plain, and :md or Space c v opens a
       # styled preview to the right that follows the text and the cursor
       # (render-markdown's own preview). Space u m still renders in place.
       "nvim/lua/plugins/markdown.lua".text = ''
@@ -355,10 +321,14 @@ in {
             init = function()
               vim.g.mkdp_theme = "dark"
               vim.g.mkdp_markdown_css = "${previewCss}"
+              vim.g.mkdp_highlight_css = "${previewHighlightCss}"
               vim.g.mkdp_page_title = "''${name}"
               vim.g.mkdp_combine_preview = 1
               vim.g.mkdp_auto_close = 0
               vim.g.mkdp_preview_options = { disable_filename = 1, sync_scroll_type = "middle" }
+              -- :md opens (or closes) the preview.
+              vim.api.nvim_create_user_command("Md", "MarkdownPreviewToggle", { desc = "Markdown Preview" })
+              vim.cmd([[cnoreabbrev <expr> md getcmdtype() ==# ':' && getcmdline() ==# 'md' ? 'Md' : 'md']])
               ${lib.optionalString pkgs.stdenv.hostPlatform.isLinux ''
               vim.cmd([[
                 function! MkdpOpen(url) abort
