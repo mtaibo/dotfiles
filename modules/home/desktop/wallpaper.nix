@@ -230,6 +230,10 @@ in {
           input_path = "${config.xdg.configHome}/matugen/templates/waybar.css";
           output_path = "${config.xdg.configHome}/waybar/matugen-colors.css";
         };
+        cider = {
+          input_path = "${config.xdg.configHome}/matugen/templates/cider-accent";
+          output_path = "${config.xdg.configHome}/cider/accent";
+        };
       };
     };
     "matugen/templates/kitty.conf".text = ''
@@ -244,6 +248,7 @@ in {
     "matugen/templates/rofi.rasi".text = ''
       * { accent: {{colors.primary.default.hex}}; }
     '';
+    "matugen/templates/cider-accent".text = "{{colors.primary.default.hex}}";
     "matugen/templates/waybar.css".text = ''
       @define-color accent {{colors.primary.default.hex}};
       @define-color accent_fixed {{colors.primary_fixed.default.hex}};

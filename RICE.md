@@ -33,6 +33,8 @@ I wanted my PC to feel as calm as a Mac: dark greys, frosted glass, one accent c
 | Notifications | dunst | [`modules/home/desktop/dunst.nix`](modules/home/desktop/dunst.nix) |
 | Lock screen | hyprlock | [`modules/home/desktop/hyprlock.nix`](modules/home/desktop/hyprlock.nix) |
 | Terminal | kitty | [`modules/home/desktop/kitty.nix`](modules/home/desktop/kitty.nix) |
+| Music | Cider (Apple Music), themed to match | [`modules/home/desktop/cider.nix`](modules/home/desktop/cider.nix) |
+| Shortcut cheatsheet | rofi over `hyprctl binds`, on SUPER+H | [`modules/home/desktop/cheatsheet.nix`](modules/home/desktop/cheatsheet.nix) |
 | Prompt | Starship | [`modules/home/starship.nix`](modules/home/starship.nix) |
 | System info | fastfetch | [`modules/home/fastfetch.nix`](modules/home/fastfetch.nix) |
 | Browser | Firefox + firefox-gnome-theme | [`modules/home/browsers/firefox.nix`](modules/home/browsers/firefox.nix) |
@@ -172,18 +174,22 @@ Stylix wants to paint the active border in the blue accent. I override it with `
 | `SUPER` + `L` | Lock screen |
 | `SUPER` + `W` | Next wallpaper |
 | `SUPER` + `Shift` + `W` | Pick a wallpaper (with previews) |
+| `SUPER` + `H` | Shortcut cheatsheet |
 | `SUPER` + `N` | Hide or show the bar |
 | `SUPER` + `M` | Exit Hyprland |
-| `SUPER` + `h` `j` `k` `l` | Move focus |
-| `SUPER` + `Shift` + `h` `j` `k` `l` | Resize window |
-| `SUPER` + `Alt` + `h` `j` `k` `l` | Move window within the layout |
+| `SUPER` + arrows | Move focus |
+| `SUPER` + `Shift` + arrows | Resize window |
+| `SUPER` + `Alt` + arrows | Move window within the layout |
 | `SUPER` + `1`…`9` | Switch workspace |
 | `SUPER` + `Shift` + `1`…`9` | Send window to workspace |
 | `SUPER` + drag | Left button resizes, right button moves |
 | `Print` | Screenshot a region to the clipboard (`grim` + `slurp`) |
 | Volume keys | `wpctl` up/down 5 %, mute |
+| Media keys | `playerctl` play-pause, next, previous |
 
 The workspace bindings are generated with a small `lib.concatMap` over `1..9` instead of 18 hand-written lines.
+
+Every binding is a `bindd`, a bind with a description (in Spanish, without commas, since commas separate the fields). `SUPER + H` opens a cheatsheet built from them: a small `hypr-cheatsheet` script reads `hyprctl binds -j` from the running compositor, turns the modifier mask and key names into `SUPER + SHIFT + ←`-style labels and shows them in a centred, searchable glass rofi window, like Spotlight. Enter runs the selected shortcut. Because it reads the live binds, it can't go stale; the two mouse binds can't carry descriptions and are added by hand. Focus, resize and move use the arrows: `SUPER + h` became the cheatsheet, and `SUPER + l` used to both lock the screen and move focus right.
 
 ## 🖼️ Wallpapers
 
@@ -211,6 +217,7 @@ Every time the wallpaper changes, [matugen](https://github.com/InioX/matugen) re
 
 - **Terminal:** matugen's primary, tertiary and secondary tones replace the terminal's blue, magenta and cyan (and their bright versions). The prompt uses them for git status and a nix shell, and fastfetch for its icons. Mountain turns them sky blue, the forest green, curvy lavender.
 - **Bar:** Waybar's islands take the palette's dark surface tone and the active workspace and hovers its accent (see [Top bar](#-top-bar--waybar)).
+- **Cider:** its accent colour (see [Music](#-music--cider)).
 - **`ls` / `l` (eza):** eza's default theme paints most columns red, yellow and green, which would never change. `EZA_COLORS` (set in `shell.nix`, starting with `reset` to drop its per-extension colours) redraws it with only the three accent tones and greys: folders and your user in the accent, permission bits `r` / `w` / `x` in the three tones, sizes white with grey units, links, dates, dashes and the header grey. A matching minimal `LS_COLORS` replaces the one NixOS's `dircolors` sets. Red is kept only for broken links and deleted or conflicted files in git.
 - **Kept fixed on purpose:** the terminal's red, green and yellow keep their meaning for other programs (errors, `git diff`, warnings), and the greys, background and foreground stay Stylix's so text stays readable on the glass.
 - **Why matugen and not wallust** (which Hyprlust uses): wallust takes colours straight from the picture, and on dark wallpapers several of them came out dark grey, unreadable on a dark terminal. Material You tones have a guaranteed lightness for dark themes, so every wallpaper gives a readable accent.
@@ -233,31 +240,31 @@ Every time the wallpaper changes, [matugen](https://github.com/InioX/matugen) re
 
 ## 📊 Top bar — Waybar
 
-Copied from the bar in [binnewbs' Hyprland rice](https://github.com/binnewbs/arch-hyprland) (JaKooLit's "window middle" layout with the "islands" style): no bar behind the modules, just a row of dark islands floating 6 px from the top, each tinted by the wallpaper. I made it a bit bigger (15 px text) and gave the islands the windows' 10 px corners instead of the original pills.
+Copied from the bar in [binnewbs' Hyprland rice](https://github.com/binnewbs/arch-hyprland) (JaKooLit's "window middle" layout with the "islands" style, with the workspaces moved to the middle in place of the focused window, the connections moved right and a music player instead of the power button): no bar behind the modules, just a row of dark islands floating 6 px from the top, each tinted by the wallpaper. I made it bigger (17 px text) and gave the islands the windows' 10 px corners instead of the original pills.
 
 ```
- (  08:31 ) ( ⋯ 󰈀 󰂯 ) ( 1 2 3 4 )        ( 󰈹  Firefox page )        ( 1 󱅫 ) ( 󰋋 40% ) ( 󰐥 )
-   clock   tray·connection  workspaces       focused window       notifications  audio   power
+ (   Sábado, 24 de Octubre 08:31 ) ( 󰝚  Song · Artist )        ( 1 2 3 4 )        ( ⋯ 󰈀 󰂯 ) ( 1 󱅫 ) ( 󰋋 40% )
+   clock                          music player            workspaces         tray·connection notifications audio
 ```
 
 | Module | Shows | Click |
 |---|---|---|
-| Clock | ` 08:31`; click for ` sábado, 24 de octubre  08:31` | Tooltip with a month calendar |
+| Clock | `  Sábado, 24 de Octubre 08:31`, always date and time, capitalised by a small `waybar-clock` script (waybar's own clock only gives lowercase Spanish names) | Tooltip with the month's calendar |
+| Music player | What's playing (`mpris`): title and artist, 󰏤 and grey when paused; hidden when nothing plays. It follows the player in use through `playerctld` | Left: a small glass popup under the island with the song, previous, play / pause and next (it reopens after each action, Escape or a click outside closes it) · middle: play / pause · right: next |
 | Tray + connection | App tray icons at 16 px, then 󰈀 ethernet · 󰖩 wifi · 󰈂 disconnected and 󰂯 / 󰂱 / 󰂲 bluetooth (grey when off) | Bluetooth: blueman |
-| Workspaces | Always four numbers, 1–4; the active one is a pill in the light accent with dark text, the rest grey | Switches workspace, scroll moves through them |
-| Focused window | Its title (Firefox gets its icon, zsh shows `> [dir]`); the island vanishes on an empty workspace | — |
+| Workspaces | Always four numbers, 1–4; the active one is a pill in the light accent with dark text, ones with windows in the text colour, empty ones grey | Switches workspace, scroll moves through them |
 | Notifications | 󰂚 with dunst's history count, 󱅫 when there are some, 󰂛 grey with the queued count in "do not disturb" | Left: toggle do not disturb · right: show the last one again · middle: clear |
 | Audio | Volume with its icon (headphones when they're the output), red when muted; hovering slides out the microphone | Left: mute · right: pavucontrol · scroll ±5 % (mic too) |
-| Power | 󰐥 | A small glass rofi menu under the button: lock, log out, reboot, power off |
 
 How it's built:
 
 - **Colours.** matugen writes a few tones of the wallpaper's palette to `~/.config/waybar/matugen-colors.css`: `island` (its dark `surface_container`, at 75 %), `text` (secondary), `muted` (outline, for inactive workspaces), `accent` / `accent_fixed` (primary, for hover and the active-workspace pill) and `surface` (the pill's text). The style `@import`s it and the `wallpaper` script sends waybar `SIGUSR2` so it reloads on every wallpaper change. An activation step writes Stylix equivalents there until matugen has run with these names, so the import never fails.
-- **Font.** JetBrainsMono Nerd Font Propo in bold, as in the original. The original also turns on `font-feature-settings` (slashed zero, stylistic sets); I dropped them because they drew circles around letters and numbers.
+- **Font.** JetBrainsMono Nerd Font Propo in bold, as in the original. If the bar ever shows a sans font with icons glued to the text, it started before the font was registered: `systemctl --user restart waybar`. The original also turns on `font-feature-settings` (slashed zero, stylistic sets); I dropped them because they drew circles around letters and numbers.
 - **Isolated from GTK.** The style starts with `* { all: unset; }`, so the GTK theme can't leak paddings or backgrounds into the bar.
-- **Spanish dates.** Waybar only localises day and month names when the format has chrono's `L` flag (`{:L%A}`); without it the clock showed "Fri 23 Oct" even with `locale = "es_ES.UTF-8"`.
+- **Spanish dates.** The clock is a custom module: `date` with `LC_TIME=es_ES.UTF-8`, then `sed` capitalises the day and the month, and `cal -m` gives the tooltip. Waybar's clock can localise names (chrono's `L` flag) but not capitalise them.
 - **Hiding.** `SUPER + N` sends waybar `SIGUSR1`, which toggles it.
-- **Custom modules need `exec`.** A `custom/*` module with only a `format` is never drawn, so the power button `echo`es its icon once.
+- **Custom modules need `exec`.** A `custom/*` module with only a `format` is never drawn.
+- **Music popup.** `waybar-media` is a rofi menu opened at the cursor's x (it's on the island that was clicked); its `y-offset` is tiny because rofi already starts below the bar's reserved space. The bar had a power button and menu (lock, log out, reboot, power off) until I swapped it for the player.
 - **Notifications.** dunst has no notification centre, so a small `waybar-notifications` script asks `dunstctl` once a second (paused or not, history and waiting counts) and returns JSON for the module.
 - Stylix's Waybar target is off; the CSS is hand-written. It runs as a systemd user service.
 
@@ -310,6 +317,12 @@ There's no hypridle on purpose: the screen never turns off or locks by itself. N
 ## 🐱 Terminal — kitty
 
 `programs.kitty` in Home Manager. Stylix sets the font (FiraCode Nerd Font Mono, 15 pt), the base16 colour table and the 0.7 background opacity, so Hyprland's blur shows through like the rest of the glass. The blue, magenta and cyan are then overridden by the wallpaper's accent (see [Colours that follow the wallpaper](#colours-that-follow-the-wallpaper)). What I set by hand is the feel (15 px padding, no window decorations, ligatures always on, no confirm-on-close) and one colour: Stylix maps bright black, the grey that eza, `ls` and the prompt's git branch use, to `base02`, almost the background, so it is overridden with `base03` (`#8e8e93`). The Mac keeps its own kitty config in `assets/kitty`.
+
+## 🎵 Music — Cider
+
+I use Apple Music, which has no Linux app, so [Cider](https://cider.sh) stands in: a third-party Apple Music client (Electron, the same MusicKit as music.apple.com) packaged in nixpkgs as `cider-2`, Widevine included. It's paid: it asks you to sign in to a Cider Taproom account that owns a licence before anything else, and Apple Music itself needs its subscription.
+
+It's themed like the rest: a transparent window with Stylix's background at 70 % (so Hyprland's blur shows through, like kitty), the wallpaper's accent instead of Apple's red, no album-art tinting, Inter, and no in-app window buttons. Cider keeps its settings in `~/.config/sh.cider.genten/spa-config.yml`, so the `cider` launcher (the only one installed, with its own desktop entry) writes those keys and a small custom CSS into it with `yq` and then starts the app. matugen writes the accent to `~/.config/cider/accent` on every wallpaper change; Cider picks it up on its next start. The settings file only appears after the first launch, so the theme shows from the second one. It reports what's playing over MPRIS, so it shows up in the bar's player.
 
 ## ❯ Prompt — Starship
 
