@@ -232,6 +232,31 @@ in {
         map("n", "<S-F12>", function() Snacks.picker.lsp_references() end, { desc = "Go to references" })
         map("n", "<F2>", vim.lsp.buf.rename, { desc = "Rename symbol" })
         map({ "n", "i", "v" }, "<C-.>", vim.lsp.buf.code_action, { desc = "Quick fix" })
+
+        -- :Make (and a typed :make) saves everything and runs make, from the
+        -- nearest Makefile above the current file, in a terminal on the right,
+        -- focused so the program can be typed into. Running it again replaces
+        -- the previous one; q closes it once it's done.
+        local make_buf
+        local function run_make(args)
+          vim.cmd("silent! wall")
+          local file = vim.api.nvim_buf_get_name(0)
+          local start = file ~= "" and vim.fs.dirname(file) or vim.uv.cwd()
+          local makefile = vim.fs.find({ "GNUmakefile", "makefile", "Makefile" }, { upward = true, path = start })[1]
+          local dir = makefile and vim.fs.dirname(makefile) or vim.uv.cwd()
+          if make_buf and vim.api.nvim_buf_is_valid(make_buf) then
+            vim.api.nvim_buf_delete(make_buf, { force = true })
+          end
+          vim.cmd("botright vnew")
+          make_buf = vim.api.nvim_get_current_buf()
+          vim.fn.jobstart(vim.list_extend({ "make" }, args), { cwd = dir, term = true })
+          vim.bo[make_buf].buflisted = false
+          vim.keymap.set("n", "q", "<cmd>bdelete!<cr>", { buffer = make_buf, desc = "Close make" })
+          vim.cmd("startinsert")
+        end
+        vim.api.nvim_create_user_command("Make", function(o) run_make(o.fargs) end, { nargs = "*", desc = "make in a terminal on the right" })
+        vim.cmd([[cnoreabbrev <expr> make getcmdtype() ==# ':' && getcmdline() ==# 'make' ? 'Make' : 'make']])
+        map("n", "<leader>m", "<cmd>Make<cr>", { desc = "Make" })
       '' + lib.optionalString cfg.ide ''
 
         -- Debugging

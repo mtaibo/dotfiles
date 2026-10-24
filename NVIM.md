@@ -180,6 +180,7 @@ clangd provides completion, errors, go-to-definition, formatting (clang-format) 
 
 - clangd needs a `compile_commands.json`. CMake projects get one with `set(CMAKE_EXPORT_COMPILE_COMMANDS ON)` (or `-DCMAKE_EXPORT_COMPILE_COMMANDS=ON`); for Make, run `bear -- make`.
 - CMake, through cmake-tools: `:CMakeGenerate`, `:CMakeBuild`, `:CMakeRun`, `:CMakeDebug`, `:CMakeSelectBuildType`, `:CMakeSelectLaunchTarget`, `:CMakeClean`.
+- `:make` (or `:Make`, or `Space m`) saves everything and runs `make` from the nearest Makefile above the current file in a terminal on the right, inside Neovim. It opens even if the Makefile doesn't run the program, and it's focused so the program can read input. `:make run` passes targets. Running it again replaces the previous one; `q` closes it (or any key once it has finished), `Ctrl+w h` goes back to the code.
 - To debug, build with debug info (`-g`, or the Debug build type) and press `F5`.
 
 ### C style on save
