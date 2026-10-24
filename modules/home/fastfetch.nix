@@ -1,11 +1,13 @@
 { pkgs, lib, ... }:
 let
   # Tree-style key: grey branch, blue icon + label padded to one width.
+  # Greys are `{#90}`: fastfetch writes `bright_black` as bold + black (1;30),
+  # which kitty draws in the background colour.
   key = branch: icon: label:
-    "{#bright_black}${branch}{#}  {#blue}${icon} ${label}${lib.strings.replicate (10 - builtins.stringLength label) " "}";
+    "{#90}${branch}{#}  {#blue}${icon} ${label}${lib.strings.replicate (10 - builtins.stringLength label) " "}";
   mid = key "│";
   last = key "╰";
-  header = title: { type = "custom"; format = "{#bright_black}╭─{#} {#1}${title}"; };
+  header = title: { type = "custom"; format = "{#90}╭─{#} {#1}${title}"; };
 in {
   # Uses the terminal's named colours, so on the desktop it follows Stylix
   # through kitty's palette and still looks right on the Mac.
@@ -29,7 +31,7 @@ in {
       display.separator = "  ";
 
       modules = [
-        { type = "title"; format = "{#1}{user-name}{#}{#bright_black}@{#}{#1}{host-name}"; }
+        { type = "title"; format = "{#1}{user-name}{#}{#90}@{#}{#1}{host-name}"; }
         "break"
         (header "Sistema")
         { type = "os"; key = mid "" "OS"; format = "{pretty-name}"; }
