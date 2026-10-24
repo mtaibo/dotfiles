@@ -11,8 +11,9 @@ express. Reads the file on stdin, writes it to stdout.
   on one line when it fits (clang-format splits an `else if` that follows a
   braced branch).
 - A call, prototype or function header that doesn't fit in 80 columns keeps
-  its first argument on the first line and packs the rest together below,
-  two spaces further in (clang-format fills the first line instead).
+  its first argument on the first line, packs the rest together below, two
+  spaces further in (clang-format fills the first line instead), and closes
+  with `);` (or `) {`) on its own line, like a block.
 - An initializer `x = { ... };` that doesn't fit on one line gets `{` at the
   end of the first line, the elements below two spaces in (a line per
   comment, comments aligned, the rest packed) and `};` on its own line.
@@ -520,14 +521,14 @@ def pack(indent, joined):
     if not args:
         return None
     head = indent + m.group("prefix") + m.group("name") + m.group("space") + "("
-    tail = ")" + m.group("end")
+    # Split over lines, the call closes like a block: `);` on its own line.
+    close = indent + ")" + m.group("end")
+    tail = ""
     cont = indent + "  "
     first_end = "," if len(args) > 1 else tail
     lines, line, rest = [], None, args[1:]
     if len(head + args[0] + first_end) <= LIMIT:
-        if len(args) < 2:
-            return None
-        lines = [head + args[0] + ","]
+        lines = [head + args[0] + first_end]
     else:
         # A long string first: it starts on the first line and is cut into
         # pieces; the other arguments follow its last piece.
@@ -549,7 +550,7 @@ def pack(indent, joined):
         if len(line) > LIMIT:
             return None
     lines.append(line)
-    return lines
+    return lines + [close]
 
 
 def repack_calls(text):
