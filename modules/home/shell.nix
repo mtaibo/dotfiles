@@ -78,16 +78,20 @@
       # The image logo needs kitty itself, not tmux. Locally fastfetch passes
       # kitty the file path (kitty-direct); over SSH the file isn't on kitty's
       # machine, so the `kitty` type sends the pixels through the terminal.
-      if [ "$TERM" = xterm-kitty ] && [ -z "$TMUX" ] && [ -z "$SSH_CONNECTION" ]; then
-        fastfetch --pipe false
-      ${lib.optionalString pkgs.stdenv.hostPlatform.isLinux ''
-      elif [ "$TERM" = xterm-kitty ] && [ -z "$TMUX" ]; then
-        fastfetch --pipe false --logo-type kitty
-      ''}else
-        fastfetch --pipe false --logo-type builtin --logo ${if pkgs.stdenv.hostPlatform.isDarwin
-          then "macos_small"
-          else ''"$([ -e /etc/NIXOS ] && echo NixOS_small || echo raspbian_small)"''}
-      fi
+      # A function so typing `fastfetch` later picks the same logo.
+      fastfetch() {
+        if [ "$TERM" = xterm-kitty ] && [ -z "$TMUX" ] && [ -z "$SSH_CONNECTION" ]; then
+          command fastfetch --pipe false "$@"
+        ${lib.optionalString pkgs.stdenv.hostPlatform.isLinux ''
+        elif [ "$TERM" = xterm-kitty ] && [ -z "$TMUX" ]; then
+          command fastfetch --pipe false --logo-type kitty "$@"
+        ''}else
+          command fastfetch --pipe false --logo-type builtin --logo ${if pkgs.stdenv.hostPlatform.isDarwin
+            then "macos_small"
+            else ''"$([ -e /etc/NIXOS ] && echo NixOS_small || echo raspbian_small)"''} "$@"
+        fi
+      }
+      fastfetch
       source ~/.config/zsh/.zshrc
       if command -v opam &>/dev/null && [ -f "$HOME/.opam/config" ]; then
         eval $(opam env)
