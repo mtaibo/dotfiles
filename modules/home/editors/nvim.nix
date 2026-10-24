@@ -49,13 +49,27 @@ let
     name = "markdown-preview-open";
     runtimeInputs = [ pkgs.coreutils ];
     text = ''
-      profile=''${XDG_CACHE_HOME:-$HOME/.cache}/markdown-preview-firefox
+      # A second name gives a second profile, so two pages can be open at once.
+      profile=''${XDG_CACHE_HOME:-$HOME/.cache}/''${2:-markdown-preview}-firefox
       mkdir -p "$profile/chrome"
       install -m 644 ${previewUserJs} "$profile/user.js"
       install -m 644 ${previewUserChrome} "$profile/chrome/userChrome.css"
       exec firefox --profile "$profile" --no-remote --new-instance --name markdown-preview "$1"
     '';
   };
+
+  # :help opens this page: a Vim guide (assets/nvim/help.md) rendered with
+  # the preview's own markdown-it and stylesheet, in the preview's window on
+  # Linux and the default browser on the Mac.
+  helpPage = pkgs.runCommand "nvim-help" { nativeBuildInputs = [ pkgs.nodejs ]; } ''
+    mkdir -p $out
+    node ${../../../assets/nvim/help-render.js} \
+      ${pkgs.vimPlugins.markdown-preview-nvim}/app ${../../../assets/nvim/help.md} \
+      $out/index.html ${previewCss} ${previewHighlightCss} ${../../../assets/nvim/help.css}
+  '';
+  helpOpen = if pkgs.stdenv.hostPlatform.isDarwin
+    then "{ 'open', '${helpPage}/index.html' }"
+    else "{ '${previewOpen}/bin/markdown-preview-open', 'file://${helpPage}/index.html', 'nvim-help' }";
 
   # C and Java formatting on save, in one house style: code-style runs
   # clang-format with this style and adds the layout clang-format can't do
@@ -338,6 +352,14 @@ in {
         vim.api.nvim_create_user_command("Test", function(o) run_test(o.fargs) end, { nargs = "*", desc = "Run the tests in a terminal" })
         vim.cmd([[cnoreabbrev <expr> test getcmdtype() ==# ':' && getcmdline() ==# 'test' ? 'Test' : 'test']])
       '' + lib.optionalString cfg.ide ''
+
+        -- :Help (and a typed :help with nothing after it) opens a Vim guide
+        -- in the browser, styled like the Markdown preview. :help topic is
+        -- still Vim's manual.
+        vim.api.nvim_create_user_command("Help", function()
+          vim.fn.jobstart(${helpOpen}, { detach = true })
+        end, { desc = "Vim guide in the browser" })
+        vim.cmd([[cnoreabbrev <expr> help getcmdtype() ==# ':' && getcmdline() ==# 'help' ? 'Help' : 'help']])
 
         -- :Getset (and a typed :getset), or Space c G: getters and setters
         -- for the Java field under the cursor (for every field when the

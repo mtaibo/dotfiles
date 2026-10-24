@@ -1,0 +1,43 @@
+/* The :help page: the Markdown preview's stylesheet plus a sidebar. */
+
+body { margin: 0; }
+#page-ctn { max-width: 860px; }
+
+/* Key tables read across the whole column, keys never wrap. */
+.markdown-body table { display: table; width: 100%; }
+.markdown-body th, .markdown-body td { padding: 7px 14px; }
+.markdown-body td:first-child { white-space: nowrap; width: 1%; }
+.markdown-body td:first-child code { color: var(--strong); }
+
+.toc {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 250px;
+  padding: 72px 20px 40px 28px;
+  overflow-y: auto;
+  font: 13px/1.5 var(--sans);
+  border-right: 1px solid var(--hairline);
+  scrollbar-width: none;
+}
+.toc::-webkit-scrollbar { display: none; }
+.toc a {
+  display: block;
+  padding: 3px 10px;
+  color: var(--muted);
+  text-decoration: none;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+.toc a.h2 { margin-top: 8px; color: var(--soft); font-weight: 600; }
+.toc a.h3 { padding-left: 22px; }
+.toc a:hover { color: var(--strong); }
+.toc a.active { color: var(--strong); background: var(--surface); }
+
+@media (min-width: 1200px) {
+  main { padding-left: 250px; }
+}
+@media (max-width: 1199px) {
+  .toc { display: none; }
+}

@@ -26,6 +26,7 @@ My Neovim is [LazyVim](https://www.lazyvim.org) inside kitty, set up to replace 
 - **Space is the leader key.** Press it and wait: which-key pops up with every command grouped by letter (`f` files, `s` search, `c` code, `g` git, `d` debug, `t` tests, `u` toggles…). `Space ?` lists the keys of the current buffer, `Space s k` searches all keymaps.
 - **The mouse works everywhere**: click to place the cursor, select, scroll, click tabs and their ×, click files in the explorer (a single click opens them).
 - **Modes**: Normal (move and run commands), Insert (`i`, `a`, `o` to type; `Esc` to leave), Visual (`v` characters, `V` lines, `Ctrl+V` block). Undo `u`, redo `Ctrl+R`.
+- **`:help`** opens a guide to Vim itself in the browser (motions, operators, text objects, registers, macros, search and replace, windows, folds…), styled like the Markdown preview, with what this setup changes marked. It's `assets/nvim/help.md`, rendered when the config is built. `:help topic` is still Vim's own manual.
 - **The first launch** downloads the plugins and Mason's tools (about a minute). `Space l` opens Lazy, the plugin manager; `Space c m` opens Mason.
 
 In the tables, `Space f f` means: press Space, then `f`, then `f`.
