@@ -289,7 +289,7 @@ Changes show in the margin, and the author of the current line appears at its en
 
 | Keys | Action |
 |---|---|
-| `Space c v` | VS Code-style preview: an HTML page in its own window (a toolbar-less Firefox profile) that Hyprland tiles to the right; live and scroll-synced. Again to stop it |
+| `:md` / `Space c v` | VS Code-style preview: an HTML page in its own window (a toolbar-less Firefox profile) that Hyprland tiles to the right; live and scroll-synced, in the rice's colours. Again to stop it |
 | `Space c V` | Styled preview inside the terminal, to the right |
 | `Space u m` | Render the Markdown in place instead |
 
