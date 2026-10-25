@@ -18,6 +18,14 @@
     };
   };
 
+  # The DualSense touchpad shows up as a touchpad and moves the cursor; hide
+  # it from libinput (Hyprland) only. Steam reads the controller over hidraw,
+  # so the touchpad still works inside games. Over USB it's named "Sony
+  # Interactive Entertainment DualSense…", over Bluetooth just "DualSense…".
+  services.udev.extraRules = ''
+    ACTION=="add|change", KERNEL=="event[0-9]*", ATTRS{name}=="*DualSense Wireless Controller Touchpad", ENV{LIBINPUT_IGNORE_DEVICE}="1"
+  '';
+
   # `mangohud %command%` in a game's launch options: FPS, GPU and CPU load
   # overlay, to see which one holds a game back.
   environment.systemPackages = [ pkgs.mangohud ];
