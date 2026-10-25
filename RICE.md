@@ -167,7 +167,7 @@ Stylix wants to paint the active border in the blue accent. I override it with `
 |---|---|
 | `SUPER` + `Space` | Launcher (Vicinae) |
 | `SUPER` + `Q` | Terminal (kitty) |
-| `SUPER` + `F` | Firefox |
+| `SUPER` + `F` | Firefox (a new tab in the open window) |
 | `SUPER` + `R` | Claude desktop app |
 | `SUPER` + `C` | Close window |
 | `SUPER` + `Shift` + `F` | Fullscreen |
@@ -395,7 +395,9 @@ Every new shell opens with an "About This Mac"-style summary:
 Firefox uses [firefox-gnome-theme](https://github.com/rafaelmardojai/firefox-gnome-theme) through Stylix's Firefox target, so it looks like a native GTK app rather than a web page in a frame: tabs and the address bar share one header, buttons and menus are rounded, and every colour comes from the palette. Stylix also sets Inter and FiraCode as the web fonts.
 
 - The theme is versioned per Firefox release, so it's its own flake input pinned to a tag (`v150` today) that `stylix.inputs.firefox-gnome-theme` follows. When nixpkgs moves Firefox to a new major version, the tag gets bumped in `flake.nix`.
-- The theme draws minimise/maximise/close buttons that are useless on Hyprland. One CSS rule hides them, added with `lib.mkAfter` so it lands after the theme's `@import` lines (CSS ignores imports that come after other rules).
+- It is pared down to one row: no home, Firefox View, account or extensions buttons, the tab strip only appears with two or more tabs, and there is no bookmarks bar (the bookmarks stay in the menu). The new tab page shows nothing at all, not even its customise (pencil) button. The minimise/maximise/close buttons the theme draws are hidden too, since they are useless on Hyprland.
+- It is glass like kitty: the window is the palette background at the terminal opacity (0.7) and the toolbar, tab panel and new tab page are transparent on top, so the blurred desktop shows through; pages that paint their own background stay solid. The window's `<body>` paints an opaque grey over `:root`, so it is made transparent as well. The CSS sits in `stylix.nix` with `lib.mkAfter` so it lands after the theme's `@import` lines (CSS ignores imports that come after other rules), and `browser.tabs.allow_transparent_browser` lets the page area be see-through. Firefox marks a tiled window as fully opaque on Wayland, so Hyprland would draw nothing behind it; an `opacity 0.99 override` window rule makes it blend.
+- Opening it always lands on an empty new tab: `SUPER+F` runs `firefox-tab`, which focuses the open window and sends it Ctrl+T (`firefox --new-tab` never reached the running instance), or starts Firefox on a blank page.
 - The old "dark-theme" add-on is set to `blocked` in the policies, so Firefox uninstalls it from existing profiles instead of letting it paint over the theme.
 - uBlock Origin is force-installed, and telemetry, Pocket and studies are off.
 

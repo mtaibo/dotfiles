@@ -1,4 +1,4 @@
-{ lib, pkgs, inputs, ... }:
+{ config, lib, pkgs, inputs, ... }:
 let
   walls = import ../../wallpapers.nix pkgs;
 in {
@@ -69,9 +69,42 @@ in {
     "L ${walls.current} - - - - ${walls.default}"
   ];
 
-  # Hyprland has no use for the minimise/maximise/close buttons the theme draws.
-  # mkAfter keeps this below the theme's @import lines.
-  home-manager.users.migueltaibo.programs.firefox.profiles.default.userChrome = lib.mkAfter ''
-    .titlebar-buttonbox-container { display: none !important; }
-  '';
+  # mkAfter keeps these below the theme's @import lines.
+  home-manager.users.migueltaibo.programs.firefox.profiles.default = let
+    c = config.lib.stylix.colors;
+    glass = "rgba(${c.base00-rgb-r}, ${c.base00-rgb-g}, ${c.base00-rgb-b}, ${toString config.stylix.opacity.terminal})";
+  in {
+    # Glass like kitty: the window itself is the terminal's background at its
+    # opacity and everything on top is see-through, so the toolbar and pages
+    # without a background (the new tab) show the blurred desktop. Hyprland
+    # needs an opacity rule for it (see modules/home/desktop/hyprland.nix).
+    userChrome = lib.mkAfter ''
+      :root, #main-window {
+        appearance: none !important;
+        background: ${glass} !important;
+        --gnome-headerbar-background: transparent !important;
+        --gnome-window-background: transparent !important;
+        --tabpanel-background-color: transparent !important;
+      }
+      /* The window's <body> paints an opaque grey over :root. */
+      #main-window > body, #navigator-toolbox, #nav-bar, #TabsToolbar, #titlebar, #PersonalToolbar,
+      #browser, #appcontent, #tabbrowser-tabbox, #tabbrowser-tabpanels,
+      .browserContainer, .browserStack, browser[type="content"] {
+        background: transparent !important;
+      }
+      .tab-background[selected] { background: rgba(255, 255, 255, 0.08) !important; }
+      #firefox-view-button { display: none !important; }
+      /* Hyprland has no use for the minimise/maximise/close buttons. */
+      .titlebar-buttonbox-container { visibility: collapse !important; }
+    '';
+    userContent = lib.mkAfter ''
+      @-moz-document url("about:blank"), url("about:newtab"), url("about:home") {
+        :root, body { background: transparent !important; }
+      }
+      /* The new tab page still draws its customise (pencil) button: hide all of it. */
+      @-moz-document url("about:newtab"), url("about:home") {
+        body > * { display: none !important; }
+      }
+    '';
+  };
 }

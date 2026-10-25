@@ -1,4 +1,18 @@
-{ lib, ... }: {
+{ lib, pkgs, ... }:
+let
+  # SUPER+F: a new tab in the open Firefox (`firefox --new-tab` never reached
+  # the running instance), or Firefox itself, which starts on a blank page.
+  firefox-tab = pkgs.writeShellScriptBin "firefox-tab" ''
+    if hyprctl clients -j | ${pkgs.jq}/bin/jq -e 'any(.[]; .class == "firefox")' >/dev/null; then
+      hyprctl dispatch focuswindow 'class:^(firefox)$'
+      hyprctl dispatch sendshortcut 'CTRL, T, class:^(firefox)$'
+    else
+      exec firefox
+    fi
+  '';
+in {
+  home.packages = [ firefox-tab ];
+
   wayland.windowManager.hyprland = {
     enable = true;
     # Hyprland itself and its portal come from the NixOS module.
@@ -11,7 +25,7 @@
       monitor = ",preferred,auto,1";
 
       "$terminal" = "kitty";
-      "$browser" = "firefox";
+      "$browser" = "firefox-tab";
       "$menu" = "vicinae toggle";
 
       # `bindd` = bind with a description; SUPER+H lists them (see cheatsheet.nix).
@@ -99,6 +113,10 @@
         "blur, vicinae"
         "ignorealpha 0, vicinae"
       ];
+
+      # Firefox marks a tiled window fully opaque, so Hyprland would draw
+      # nothing behind its glass; any opacity below 1 makes it blend.
+      windowrule = [ "opacity 0.99 override, class:^(firefox)$" ];
 
       animations = {
         bezier = [ "snappy, 0.05, 0.9, 0.1, 1.05" ];

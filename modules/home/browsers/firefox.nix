@@ -13,7 +13,7 @@ with lib;
       OfferToSaveLoginsDefault = false;
       PasswordManagerEnabled = false;
 
-      ShowHomeButton = true;
+      ShowHomeButton = false;
       HomepageUrl = "about:blank";
       HomepageStartPage = "none";
       NewTabPage = false;
@@ -46,7 +46,15 @@ with lib;
         "media.ffmpeg.vaapi.enabled" = true;
         "extensions.pocket.enabled" = false;
         "layout.css.devPixelsPerPx" = "1.2";
-        "browser.toolbars.bookmarks.visibility" = "always";
+        "browser.toolbars.bookmarks.visibility" = "never";
+        # Minimal chrome: no Firefox View, account or extensions buttons, and no
+        # tab strip while only one tab is open.
+        "browser.tabs.firefox-view" = false;
+        "identity.fxaccounts.enabled" = false;
+        "gnomeTheme.hideSingleTab" = true;
+        "gnomeTheme.hideUnifiedExtensions" = true;
+        # Lets pages without a background (the new tab) show the glass behind.
+        "browser.tabs.allow_transparent_browser" = true;
         "browser.newtabpage.enabled" = false;
         "browser.newtabpage.activity-stream.showSearch" = false;
         "browser.newtabpage.activity-stream.feeds.topsites" = false;
