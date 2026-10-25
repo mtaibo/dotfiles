@@ -130,10 +130,9 @@ in {
         ];
       };
 
-      # Games: adaptive sync and direct scanout, only for fullscreen windows
-      # (2) so the desktop and its blur stay as they are.
+      # Games: adaptive sync only for fullscreen windows (2) so the desktop
+      # stays as it is. No direct scanout: on NVIDIA it can glitch or slow games.
       misc.vrr = 2;
-      render.direct_scanout = 2;
 
       input = {
         # Spanish; system-language (language.nix) switches it to "us" and back.
