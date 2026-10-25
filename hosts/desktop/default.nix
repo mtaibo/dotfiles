@@ -13,6 +13,7 @@ in {
     ../../modules/nixos/desktop/nvidia.nix
     ../../modules/nixos/desktop/stylix.nix
     ../../modules/nixos/desktop/greeter.nix
+    ../../modules/nixos/desktop/steam.nix
     inputs.lanzaboote.nixosModules.lanzaboote
   ];
 

@@ -35,6 +35,7 @@ in {
         "SUPER, Q, Terminal, exec, $terminal"
         "SUPER, F, Firefox, exec, $browser"
         "SUPER, R, Claude, exec, claude-desktop"
+        "SUPER, S, Steam, exec, steam"
         "SUPER, C, Cerrar la ventana, killactive,"
         "SUPER SHIFT, F, Pantalla completa, fullscreen,"
         "SUPER, V, Ventana flotante o en mosaico, togglefloating,"
@@ -143,6 +144,7 @@ in {
     "Terminal" = "Terminal";
     "Firefox" = "Firefox";
     "Claude" = "Claude";
+    "Steam" = "Steam";
     "Cerrar la ventana" = "Close the window";
     "Pantalla completa" = "Fullscreen";
     "Ventana flotante o en mosaico" = "Floating or tiled window";
