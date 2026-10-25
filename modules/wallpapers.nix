@@ -1,6 +1,6 @@
 # The wallpapers SUPER+W cycles through (modules/home/desktop/wallpaper.nix).
 # Mostly dark, low-colour pictures that ship in nixpkgs (KDE Plasma, GNOME and
-# NixOS artwork, all freely licensed), plus my own in assets/wallpapers/.
+# NixOS artwork, all freely licensed), plus my own picks in assets/wallpapers/.
 # `default` is what Stylix, the lock screen and the login screen fall back to.
 pkgs:
 let
@@ -18,6 +18,11 @@ let
     "curvy.png" = fromJxl "curvy" "${pkgs.gnome-backgrounds}/share/backgrounds/gnome/curvy-d.jxl";
     "nineish-dark-gray.png" = pkgs.nixos-artwork.wallpapers.nineish-dark-gray.gnomeFilePath;
     "lake.jpg" = ../assets/wallpapers/lake.jpg;
+    "hollow-knight-cliffs.jpg" = ../assets/wallpapers/hollow-knight-cliffs.jpg;
+    "hollow-knight-city.jpg" = ../assets/wallpapers/hollow-knight-city.jpg;
+    "hollow-knight-nail.jpg" = ../assets/wallpapers/hollow-knight-nail.jpg;
+    "hollow-knight-pharloom.jpg" = ../assets/wallpapers/hollow-knight-pharloom.jpg;
+    "hollow-knight-garden.jpg" = ../assets/wallpapers/hollow-knight-garden.jpg;
   };
 in {
   default = images."mountain.png";

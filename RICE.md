@@ -236,6 +236,11 @@ Every time the wallpaper changes, [matugen](https://github.com/InioX/matugen) re
 | `curvy.png` | GNOME "curvy" (dark) | Grey curves; converted from JPEG XL at build time, since swww can't read it |
 | `nineish-dark-gray.png` | NixOS artwork | The NixOS logo on dark grey |
 | `lake.jpg` | [`assets/wallpapers/`](assets/wallpapers/) | My original sunny lake |
+| `hollow-knight-cliffs.jpg` | [`assets/wallpapers/`](assets/wallpapers/) | Hollow Knight: the Knight on blue, windy cliffs |
+| `hollow-knight-city.jpg` | [`assets/wallpapers/`](assets/wallpapers/) | Hollow Knight: the Knight looking out over a dark blue city |
+| `hollow-knight-nail.jpg` | [`assets/wallpapers/`](assets/wallpapers/) | Hollow Knight: the Knight with its nail, black and white |
+| `hollow-knight-pharloom.jpg` | [`assets/wallpapers/`](assets/wallpapers/) | Hollow Knight: Silksong — Hornet looking over a temple and cable car in Pharloom, warm painted scene |
+| `hollow-knight-garden.jpg` | [`assets/wallpapers/`](assets/wallpapers/) | Hollow Knight: a painted night garden with lanterns and a giant knight |
 
 **One wallpaper everywhere.** The choice is stored as a symlink, `/var/lib/wallpaper/current`, and three things read it: swww restores it when the session starts, hyprlock uses it as the lock-screen background, and the SDDM theme uses it on the login screen, which keeps login and lock identical. It lives outside `$HOME` because my home is `0700` and the greeter runs as the `sddm` user. `systemd.tmpfiles` creates the directory (owned by me, readable by everyone) and the first link to the default; the `L` rule never overwrites an existing link, so the choice survives rebuilds. If the link ever breaks, the login screen falls back to Stylix's image.
 
