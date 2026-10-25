@@ -4,100 +4,13 @@ let
   c = config.lib.stylix.colors;
   rgb = name: "${c."${name}-rgb-r"}, ${c."${name}-rgb-g"}, ${c."${name}-rgb-b"}";
 
-  # The picker, modelled on Hyprlust's rofi wallpaper menu: a wide glass
-  # window with one row of five large previews, ". random" first. The accent
-  # (selected border) comes from the wallpaper through matugen.
-  pickerTheme = pkgs.writeText "wallpaper-picker.rasi" ''
-    @import "${config.xdg.configHome}/rofi/matugen-colors.rasi"
-
-    configuration {
-      show-icons: true;
-      hover-select: true;
-      me-select-entry: "MouseSecondary";
-      me-accept-entry: "MousePrimary";
-      font: "${config.stylix.fonts.sansSerif.name} 12";
-    }
-
-    * {
-      background-color: transparent;
-      text-color: ${c.withHashtag.base05};
-    }
-
-    window {
-      location: center;
-      anchor: center;
-      width: 75%;
-      transparency: "real";
-      border-radius: 16px;
-      border: 1px;
-      border-color: rgba(255, 255, 255, 0.08);
-      background-color: rgba(${rgb "base00"}, 0.6);
-    }
-
-    mainbox {
-      children: [ "inputbar", "listview" ];
-    }
-
-    inputbar {
-      margin: 20px 36px 0 36px;
-      padding: 10px 18px;
-      border-radius: 999px;
-      background-color: rgba(255, 255, 255, 0.08);
-      children: [ "entry" ];
-    }
-
-    entry {
-      placeholder: "Buscar fondo…";
-      placeholder-color: rgba(255, 255, 255, 0.4);
-    }
-
-    listview {
-      columns: 5;
-      lines: 1;
-      padding: 26px 36px;
-      spacing: 20px;
-      cycle: true;
-      dynamic: true;
-      scrollbar: false;
-      layout: vertical;
-      fixed-height: true;
-      fixed-columns: true;
-    }
-
-    element {
-      orientation: vertical;
-      padding: 10px;
-      spacing: 8px;
-      border-radius: 12px;
-      border: 2px;
-      border-color: transparent;
-      background-color: rgba(0, 0, 0, 0.2);
-      cursor: pointer;
-    }
-
-    element selected.normal {
-      background-color: rgba(255, 255, 255, 0.12);
-      border-color: @accent;
-    }
-
-    element-icon {
-      size: 280px;
-      cursor: inherit;
-    }
-
-    element-text {
-      horizontal-align: 0.5;
-      cursor: inherit;
-    }
-  '';
-
   # wallpaper next|prev|random|pick|restore|set FILE
   # Draws with swww (a circle growing from the cursor), recolours the terminal
   # and the picker from the wallpaper with matugen, and records the choice in
   # ${walls.current}, which hyprlock and the login screen also read.
   wallpaper = pkgs.writeShellApplication {
     name = "wallpaper";
-    runtimeInputs = with pkgs; [ swww coreutils findutils procps hyprland rofi matugen ];
+    runtimeInputs = with pkgs; [ swww coreutils findutils procps hyprland quickshell matugen ];
     text = ''
       dir=${walls.collection}
       thumbs=${walls.thumbnails}
@@ -117,7 +30,7 @@ let
           --transition-duration 1.2 --transition-fps 144
       }
 
-      # Writes the accent colours for kitty, rofi and the bar, then makes every
+      # Writes the accent colours for kitty, rofi (the cheatsheet) and the bar, then makes every
       # open kitty and waybar reload so they change right away.
       recolour() {
         matugen image "$1" --quiet
@@ -148,29 +61,16 @@ let
         done
       }
 
-      name() { basename "''${1%.*}"; }
-
       pick() {
-        # The search field in English when the system language is (language.nix).
-        placeholder="Buscar fondo…"
-        if [ "$(cat "$XDG_RUNTIME_DIR/system-language" 2>/dev/null)" = en ]; then placeholder="Search wallpapers…"; fi
-        random=$(others | shuf -n 1)
-        choice=$(
-          {
-            printf '%s\0icon\x1f%s\n' ". random" "$thumbs/$(name "$random").jpg"
-            list | while read -r f; do
-              printf '%s\0icon\x1f%s\n' "$(name "$f")" "$thumbs/$(name "$f").jpg"
-            done
-          } | rofi -dmenu -i -p "" -theme ${pickerTheme} \
-              -theme-str "entry { placeholder: \"$placeholder\"; }"
-        ) || exit 0
-        case "$choice" in
-          "") exit 0 ;;
-          ". random") set_wallpaper "$random" ;;
-          *) set_wallpaper "$(list | while read -r f; do
-               if [ "$(name "$f")" = "$choice" ]; then echo "$f"; fi
-             done)" ;;
-        esac
+        # The carousel opens on the wallpaper in use and runs `wallpaper set`
+        # on the one chosen; -n keeps a second SUPER+Shift+W from opening another.
+        now=$(active)
+        name=""
+        while read -r f; do
+          if [ "$(readlink -f "$f")" = "$now" ]; then name=$(basename "$f"); fi
+        done < <(list)
+        WALLPAPER_DIR="$dir" WALLPAPER_THUMBS="$thumbs" WALLPAPER_CURRENT="$name" \
+          quickshell -n -p ${../../../assets/quickshell/wallpaper-picker}
       }
 
       case "''${1:-next}" in
@@ -285,10 +185,6 @@ in {
     bindd = [
       "SUPER, W, Siguiente fondo de pantalla, exec, wallpaper next"
       "SUPER SHIFT, W, Elegir fondo de pantalla, exec, wallpaper pick"
-    ];
-    layerrule = [
-      "blur, rofi"
-      "ignorealpha 0, rofi"
     ];
     # No Hyprland mascot/logo flashing in the moment before swww draws.
     misc = {

@@ -5,8 +5,8 @@ let
   radius = config.wayland.windowManager.hyprland.settings.decoration.rounding;
   english = pkgs.writeText "english.json" (builtins.toJSON config.dotfiles.english);
 
-  # A Spotlight-like glass window in the middle of the screen, the same look
-  # as the wallpaper picker; the accent comes from the wallpaper.
+  # A Spotlight-like glass window in the middle of the screen; the accent
+  # comes from the wallpaper.
   theme = pkgs.writeText "cheatsheet.rasi" ''
     @import "${config.xdg.configHome}/rofi/matugen-colors.rasi"
 
@@ -134,8 +134,12 @@ let
 in {
   home.packages = [ cheatsheet ];
 
-  wayland.windowManager.hyprland.settings.bindd = [
-    "SUPER, H, Atajos de teclado, exec, hypr-cheatsheet"
-  ];
+  wayland.windowManager.hyprland.settings = {
+    bindd = [ "SUPER, H, Atajos de teclado, exec, hypr-cheatsheet" ];
+    layerrule = [
+      "blur, rofi"
+      "ignorealpha 0, rofi"
+    ];
+  };
   dotfiles.english."Atajos de teclado" = "Keyboard shortcuts";
 }

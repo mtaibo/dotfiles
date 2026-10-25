@@ -34,15 +34,14 @@ in {
   collection = pkgs.linkFarm "wallpapers"
     (pkgs.lib.mapAttrsToList (name: path: { inherit name path; }) images);
 
-  # Square 400×400 previews for the picker (rofi gives every icon a square
-  # box), made once at build time so rofi doesn't decode 5K images every
-  # time it opens. Named after the wallpaper minus its extension:
-  # thumbnails/mountain.jpg is the preview of mountain.png.
+  # 500 px tall previews for the picker carousel, made once at build time so
+  # it doesn't decode 5K images every time it opens. Named after the
+  # wallpaper minus its extension: thumbnails/mountain.jpg is the preview of
+  # mountain.png.
   thumbnails = pkgs.runCommandLocal "wallpaper-thumbnails" { } ''
     mkdir $out
     ${pkgs.lib.concatStrings (pkgs.lib.mapAttrsToList (name: path: ''
-      ${pkgs.imagemagick}/bin/magick ${path} -resize 400x400^ -gravity center \
-        -extent 400x400 -quality 90 $out/${pkgs.lib.removeSuffix ".png" (pkgs.lib.removeSuffix ".jpg" name)}.jpg
+      ${pkgs.imagemagick}/bin/magick ${path} -thumbnail x500 -strip -quality 85 $out/${pkgs.lib.removeSuffix ".png" (pkgs.lib.removeSuffix ".jpg" name)}.jpg
     '') images)}
   '';
 }

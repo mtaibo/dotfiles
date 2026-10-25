@@ -27,7 +27,7 @@ I wanted my PC to feel as calm as a Mac: dark greys, frosted glass, one accent c
 | Login screen | SDDM + custom QML theme | [`modules/nixos/desktop/greeter.nix`](modules/nixos/desktop/greeter.nix), [`assets/sddm/`](assets/sddm/) |
 | Lock + login design | Shared Nix attrset | [`modules/lockscreen.nix`](modules/lockscreen.nix) |
 | Window manager | Hyprland | [`modules/home/desktop/hyprland.nix`](modules/home/desktop/hyprland.nix) |
-| Wallpapers | swww, a rofi picker and matugen accents, on SUPER+W | [`modules/wallpapers.nix`](modules/wallpapers.nix), [`modules/home/desktop/wallpaper.nix`](modules/home/desktop/wallpaper.nix) |
+| Wallpapers | swww, a Quickshell carousel picker and matugen accents, on SUPER+W | [`modules/wallpapers.nix`](modules/wallpapers.nix), [`modules/home/desktop/wallpaper.nix`](modules/home/desktop/wallpaper.nix) |
 | Top bar | Waybar | [`modules/home/desktop/waybar.nix`](modules/home/desktop/waybar.nix) |
 | Launcher | Vicinae | [`modules/home/desktop/vicinae.nix`](modules/home/desktop/vicinae.nix) |
 | Notifications | dunst | [`modules/home/desktop/dunst.nix`](modules/home/desktop/dunst.nix) |
@@ -200,19 +200,15 @@ Every binding is a `bindd`, a bind with a description (in Spanish, without comma
 
 ### The picker
 
-Modelled on the rofi wallpaper menu from [Hyprlust](https://github.com/NischalDawadi/Hyprlust): a glass window 75 % of the screen wide with one row of five large square previews and the name under each, plus a ". random" card first (its preview is the wallpaper it will pick). Type to filter, arrows or the mouse to choose, Enter or click to apply.
+A full-screen [Quickshell](https://quickshell.org) carousel adapted from [hyprquickpaper](https://github.com/iamsurjog/hyprquickpaper) ([`assets/quickshell/wallpaper-picker/shell.qml`](assets/quickshell/wallpaper-picker/shell.qml)): one row of tall previews floating over the desktop, with no window around them. The one in the middle is the largest and the rest shrink and bunch up towards the edges; moving glides the row so the selection stays centred. It opens on the wallpaper in use. Arrows (or A / D), the wheel (one wallpaper per notch) or dragging with the left button, anywhere on screen, to move, hovering to pick one, Enter, Space or click to apply, Esc, W or a click outside to close.
 
 ```
-╭──────────────────────────────────────────────────────────────────────╮
-│  ( Buscar fondo…                                                  )  │
-│  ┏━━━━━━━━━┓ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐         │
-│  ┃  ▓▓▓▓▓  ┃ │  ▓▓▓▓▓  │ │  ▓▓▓▓▓  │ │  ▓▓▓▓▓  │ │  ▓▓▓▓▓  │         │
-│  ┃ . random┃ │  curvy  │ │ darkest │ │ forest  │ │  lake   │         │
-│  ┗━━━━━━━━━┛ └─────────┘ └─────────┘ └─────────┘ └─────────┘         │
-╰──────────────────────────────────────────────────────────────────────╯
+                ▫ ▫ ▪ ▪ ▮ ▮ █ █ █ ▮ ▮ ▪ ▪ ▫ ▫
+                            ▲
+                      selected, largest
 ```
 
-The theme is generated in Nix with the same glass as the bar (`base00` at 60 %, faint white edge, blurred by a `rofi` layer rule). The selected card's border is the wallpaper's accent colour. The previews are 400 × 400 thumbnails made once at build time, so the menu opens instantly instead of decoding 5K images.
+`wallpaper pick` passes the collection, the thumbnails and the current wallpaper's name to it through the environment, and the carousel runs `wallpaper set` on the chosen one, so it gets the same grow transition (from the cursor, i.e. the clicked preview) and matugen colours as `SUPER + W`. `-n` keeps a second `SUPER + Shift + W` from opening another one. The previews are 500 px tall thumbnails made once at build time, so it opens instantly instead of decoding 5K images; each has a soft blurred shadow drawn with Qt's `MultiEffect`.
 
 ### Colours that follow the wallpaper
 
@@ -304,7 +300,7 @@ The bar's `ES`/`EN` island switches the keyboard and the system language togethe
 
 - **Keyboard:** Hyprland's `kb_layout` becomes `us` or `es`, one layout rather than `es,us` and an index, so every keyboard follows it, including ones that appear later (Vicinae's virtual keyboard, the Bluetooth keyboard reconnecting). Hyprland runs `system-language apply` on every start and reload, since a reload brings back the config's `es`.
 - **Apps:** `LANG` and `LC_TIME` are set in Hyprland, systemd and D-Bus, and Vicinae is restarted, so apps opened afterwards start in the new language. Open ones keep theirs until they are reopened.
-- **My own texts:** the choice is written to `$XDG_RUNTIME_DIR/system-language`, and everything I wrote in Spanish reads it: the bar's clock and notification tooltips, the music popup, the `SUPER + H` cheatsheet (descriptions, key names, search field), the wallpaper picker's search field, the lock screen (date, "Password", "Wrong password") and fastfetch's labels.
+- **My own texts:** the choice is written to `$XDG_RUNTIME_DIR/system-language`, and everything I wrote in Spanish reads it: the bar's clock and notification tooltips, the music popup, the `SUPER + H` cheatsheet (descriptions, key names, search field), the lock screen (date, "Password", "Wrong password") and fastfetch's labels.
 - **Every login starts in Spanish**, since that file lives in the runtime directory. The login screen comes before any session, so it stays in Spanish.
 
 ## 🔒 Lock screen — hyprlock
