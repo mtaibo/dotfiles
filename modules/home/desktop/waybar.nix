@@ -75,7 +75,7 @@ let
   };
 
 in {
-  home.packages = [ pkgs.nerd-fonts.jetbrains-mono pkgs.pavucontrol pkgs.playerctl ];
+  home.packages = [ pkgs.nerd-fonts.jetbrains-mono pkgs.playerctl ];
 
   # `playerctl` follows the player in use through it.
   services.playerctld.enable = true;
@@ -102,7 +102,7 @@ in {
   # rounded island tinted by the wallpaper. Clock and the music player on the
   # left, the workspaces in the middle (instead of the original's focused
   # window), background apps, Bluetooth, keyboard layout, notifications and
-  # audio on the right; no power button.
+  # volume on the right; no power button.
   # SUPER+N hides and shows the bar.
   wayland.windowManager.hyprland.settings.bindd = [
     "SUPER, N, Mostrar u ocultar la barra, exec, pkill -USR1 -x .waybar-wrapped"
@@ -124,7 +124,7 @@ in {
 
       modules-left = [ "custom/clock" "custom/media" ];
       modules-center = [ "hyprland/workspaces" ];
-      modules-right = [ "tray" "custom/bluetooth" "custom/language" "custom/notifications" "group/audio" ];
+      modules-right = [ "tray" "custom/bluetooth" "custom/language" "custom/notifications" "pulseaudio" ];
 
       "custom/clock" = {
         exec = "${clock}/bin/waybar-clock";
@@ -197,16 +197,8 @@ in {
         on-click-middle = "dunstctl history-clear";
       };
 
-      # Hover the volume and the microphone slides out.
-      "group/audio" = {
-        orientation = "inherit";
-        drawer = {
-          transition-duration = 500;
-          children-class = "audio-child";
-          transition-left-to-right = true;
-        };
-        modules = [ "pulseaudio" "pulseaudio#microphone" ];
-      };
+      # The volume; a click opens the popup (audio.nix) with a slider and the
+      # outputs and inputs, a right click mutes it.
       pulseaudio = {
         format = "{icon} {volume}%";
         format-muted = "󰝟 {volume}%";
@@ -215,20 +207,10 @@ in {
           headset = "󰋋";
           default = [ "󰕿" "󰖀" "󰕾" ];
         };
-        tooltip-format = "{desc} · {volume}%";
-        on-click = "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle";
-        on-click-right = "pavucontrol -t 3";
+        tooltip = false;
+        on-click = "audio-popup";
+        on-click-right = "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle";
         scroll-step = 5;
-      };
-      "pulseaudio#microphone" = {
-        format = "{format_source}";
-        format-source = "󰍬 {volume}%";
-        format-source-muted = "󰍭";
-        tooltip-format = "{source_desc} · {source_volume}%";
-        on-click = "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle";
-        on-click-right = "pavucontrol -t 4";
-        on-scroll-up = "wpctl set-volume -l 1 @DEFAULT_AUDIO_SOURCE@ 5%+";
-        on-scroll-down = "wpctl set-volume @DEFAULT_AUDIO_SOURCE@ 5%-";
       };
 
     };
@@ -255,7 +237,7 @@ in {
       #custom-language,
       #workspaces,
       #custom-notifications,
-      #audio,
+      #pulseaudio,
       #custom-media {
         background: alpha(@island, 0.75);
         border-radius: ${toString radius}px;
@@ -299,12 +281,7 @@ in {
         color: @accent;
       }
 
-      #pulseaudio.microphone {
-        padding-left: 10px;
-      }
-
-      #pulseaudio.muted,
-      #pulseaudio.microphone.source-muted {
+      #pulseaudio.muted {
         color: ${c.withHashtag.base08};
       }
 
