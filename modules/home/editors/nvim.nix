@@ -72,6 +72,11 @@ let
   helpOpen = if pkgs.stdenv.hostPlatform.isDarwin
     then "{ 'open', '${helpPage}/index.html' }"
     else "{ '${previewOpen}/bin/markdown-preview-open', 'file://${helpPage}/index.html', 'nvim-help' }";
+  # Opening a .pdf shows it in Firefox's viewer, in the preview's window
+  # (the default viewer on the Mac); arguments: path, profile name.
+  pdfOpen = if pkgs.stdenv.hostPlatform.isDarwin
+    then "function(path) return { 'open', path } end"
+    else "function(path, name) return { '${previewOpen}/bin/markdown-preview-open', path, name } end";
 
   # C and Java formatting on save, in one house style: code-style runs
   # clang-format with this style and adds the layout clang-format can't do
@@ -209,6 +214,41 @@ in {
                 end
               end
             end)
+          end,
+        })
+
+        -- A .pdf opens in the browser, like :md, instead of as bytes: the
+        -- buffer only says where it went, and closing it closes the window.
+        -- Each open PDF gets its own preview profile (pdf-preview, -2, ...).
+        local pdf_open = ${pdfOpen}
+        local pdf_jobs = {}
+        vim.api.nvim_create_autocmd("BufReadCmd", {
+          pattern = "*.pdf",
+          callback = function(ev)
+            local buf, path = ev.buf, vim.fn.fnamemodify(ev.file, ":p")
+            vim.bo[buf].buftype = "nofile"
+            vim.bo[buf].swapfile = false
+            vim.bo[buf].modifiable = true
+            vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "PDF abierto en el navegador: " .. path })
+            vim.bo[buf].modifiable = false
+            if pdf_jobs[buf] then return end
+            local used = {}
+            for _, j in pairs(pdf_jobs) do used[j.name] = true end
+            local name, n = "pdf-preview", 1
+            while used[name] do n = n + 1; name = "pdf-preview-" .. n end
+            local id = vim.fn.jobstart(pdf_open(path, name), {
+              detach = true,
+              on_exit = function() pdf_jobs[buf] = nil end,
+            })
+            if id > 0 then pdf_jobs[buf] = { id = id, name = name } end
+          end,
+        })
+        vim.api.nvim_create_autocmd({ "BufDelete", "BufWipeout" }, {
+          pattern = "*.pdf",
+          callback = function(ev)
+            local job = pdf_jobs[ev.buf]
+            pdf_jobs[ev.buf] = nil
+            if job then pcall(vim.fn.jobstop, job.id) end
           end,
         })
       '';

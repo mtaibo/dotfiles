@@ -320,6 +320,8 @@ Changes show in the margin, and the author of the current line appears at its en
 | `Space c V` | Styled preview inside the terminal, to the right |
 | `Space u m` | Render the Markdown in place instead |
 
+Opening a `.pdf` (`nvim file.pdf`, `:e`, the explorer) shows it in Firefox's PDF viewer in the same toolbar-less window as `:md`; the buffer only says where it went, and closing it (`:bd`, `Space b d`) closes the window. Each open PDF gets its own window. On the Mac it opens in the default viewer.
+
 The file itself stays plain, like in VS Code. There is no markdownlint (VS Code doesn't lint Markdown by default); marksman handles links and headings.
 
 ## Toggles
