@@ -54,6 +54,7 @@ in {
   home-manager.users = lib.mapAttrs (_: _: {
     imports = [ ../../modules/home ../../modules/home/desktop ];
   }) people;
+  dotfiles.steam.users = lib.attrNames people;
   programs.zsh.enable = true;
 
 
