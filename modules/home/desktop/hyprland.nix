@@ -130,6 +130,11 @@ in {
         ];
       };
 
+      # Games: adaptive sync and direct scanout, only for fullscreen windows
+      # (2) so the desktop and its blur stay as they are.
+      misc.vrr = 2;
+      render.direct_scanout = 2;
+
       input = {
         # Spanish; system-language (language.nix) switches it to "us" and back.
         kb_layout = "es";

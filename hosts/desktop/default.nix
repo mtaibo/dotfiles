@@ -48,7 +48,7 @@ in {
   users.users = lib.mapAttrs (_: description: {
     isNormalUser = true;
     inherit description;
-    extraGroups = [ "networkmanager" "wheel" ];
+    extraGroups = [ "networkmanager" "wheel" "gamemode" ];
     shell = pkgs.zsh;
   }) people;
   home-manager.users = lib.mapAttrs (_: _: {
