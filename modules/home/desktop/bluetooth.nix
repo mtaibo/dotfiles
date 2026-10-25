@@ -100,11 +100,28 @@ let
       if grep -q "Connected: yes" <<< "$inf"; then
         bluetoothctl disconnect "$mac" >/dev/null 2>&1 || true
       else
+        # Trusted first, so bluetoothd lets its services (a controller's
+        # HID) in without asking, instead of dropping it right after it
+        # connects.
+        bluetoothctl trust "$mac" >/dev/null 2>&1 || true
         if ! grep -q "Paired: yes" <<< "$inf"; then
-          bluetoothctl --timeout 20 pair "$mac" >/dev/null 2>&1 || true
-          bluetoothctl trust "$mac" >/dev/null 2>&1 || true
+          # Pairing needs an agent to answer the device, and a one-shot
+          # `bluetoothctl pair` has none, so it failed and left the device
+          # trusted but not bonded. Keep one session open with an agent
+          # until it's paired or 20 s go by.
+          {
+            printf 'agent NoInputNoOutput\ndefault-agent\npair %s\n' "$mac"
+            for _ in $(seq 20); do
+              sleep 1
+              bluetoothctl info "$mac" 2>/dev/null | grep -q "Paired: yes" && break
+            done
+            echo quit
+          } | bluetoothctl >/dev/null 2>&1 || true
         fi
-        bluetoothctl --timeout 15 connect "$mac" >/dev/null 2>&1 || true
+        # Pairing usually leaves it connected already.
+        if ! bluetoothctl info "$mac" 2>/dev/null | grep -q "Connected: yes"; then
+          bluetoothctl --timeout 15 connect "$mac" >/dev/null 2>&1 || true
+        fi
       fi
     '';
   };
