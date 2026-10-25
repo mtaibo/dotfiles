@@ -28,6 +28,9 @@ in {
       "$browser" = "firefox-tab";
       "$menu" = "vicinae toggle";
 
+      # Steam starts hidden, only its tray icon; SUPER+S shows the window.
+      exec-once = [ "steam -silent" ];
+
       # `bindd` = bind with a description; SUPER+H lists them (see cheatsheet.nix).
       # Descriptions can't contain commas. mkBefore keeps these first in the list.
       bindd = lib.mkBefore ([
