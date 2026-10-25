@@ -1,7 +1,10 @@
-{ config, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 let
   c = config.lib.stylix.colors;
-  user = "migueltaibo";
+  # Every account, in name order; the login screen starts on the last one used
+  # (or the first) and ←/→ switches between them.
+  users = map (u: { inherit (u) name; realName = u.description; })
+    (lib.filter (u: u.isNormalUser) (lib.attrValues config.users.users));
 
   # The same design hyprlock uses (modules/lockscreen.nix), plus what only the
   # login screen needs. Written as a QML object: JSON is valid JavaScript.
@@ -18,8 +21,7 @@ let
           # Same wallpaper as the desktop and the lock screen, Stylix's as fallback.
           wallpaper = (import ../../wallpapers.nix pkgs).current;
           fallbackWallpaper = "${config.stylix.image}";
-          inherit user;
-          realName = config.users.users.${user}.description;
+          inherit users;
         })}
     }
   '';
@@ -42,7 +44,7 @@ let
 in {
   # Login screen: SDDM with a custom QML theme that reproduces the hyprlock
   # lock screen (Stylix has no SDDM target, so colours come in through
-  # Style.qml). User and session are picked automatically.
+  # Style.qml). The session is picked automatically, the user with ←/→.
   services.displayManager = {
     defaultSession = "hyprland";
     sddm = {

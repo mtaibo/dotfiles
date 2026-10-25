@@ -122,7 +122,7 @@ The login screen does its own blur in Qt (see below), since it runs before Hyprl
 
 ## 🔑 Login screen — SDDM with a custom theme
 
-The first thing after boot looks exactly like the lock screen: same date, clock, name, password pill and blurred wallpaper (see [hyprlock](#-lock-screen--hyprlock) below). No user list, no session picker, no buttons. Booting and unlocking feel like the same thing, as on a Mac.
+The first thing after boot looks exactly like the lock screen: same date, clock, name, password pill and blurred wallpaper (see [hyprlock](#-lock-screen--hyprlock) below). No user list, no session picker, no buttons: just faint ‹ › arrows beside the name to switch accounts. Booting and unlocking feel like the same thing, as on a Mac.
 
 It's SDDM running a theme I wrote in QML ([`assets/sddm/Main.qml`](assets/sddm/Main.qml)). I first tried greetd + ReGreet because Stylix themes it, but ReGreet always shows a user and a session selector. A custom SDDM theme gives full control.
 
@@ -139,7 +139,7 @@ The layout isn't copied between the two: it's defined once in [`modules/lockscre
 
 ### Under the hood
 
-- **No choices to make:** there's one user and one session, so the theme logs in as SDDM's last user (falling back to `migueltaibo`) into the last session, which is always Hyprland (`defaultSession = "hyprland"`). The name under the clock is my account's description, like hyprlock's `$DESC`.
+- **Almost no choices to make:** every account on the machine (`migueltaibo`, `pablotaibo`, all set up the same way in `hosts/desktop/default.nix`) is passed to the theme, which starts on SDDM's last user (or the first) and switches with ←/→ or a click on the name, clearing the password. There's one session, so it always logs into Hyprland (`defaultSession = "hyprland"`). The name under the clock is the account's description, like hyprlock's `$DESC`.
 - **Keyboard and cursor:** `services.xserver.xkb.layout = "es"` gives SDDM's compositor (weston) the Spanish layout, so the password types the same as in the session. The cursor is Stylix's Bibata.
 - **A content hash in the theme's name** (e.g. `glass-467c1cfb`): Qt caches compiled QML by file path and modification time, and every file in the Nix store has the same 1970 mtime. Under a fixed path like `themes/glass/Main.qml`, the greeter kept running the very first compiled version after the theme changed. Hashing `Main.qml` and `Style.qml` into the name gives each version its own path, so the cache can never serve a stale one.
 
@@ -169,6 +169,7 @@ Stylix wants to paint the active border in the blue accent. I override it with `
 | `SUPER` + `Q` | Terminal (kitty) |
 | `SUPER` + `F` | Firefox (a new tab in the open window) |
 | `SUPER` + `R` | Claude desktop app |
+| `SUPER` + `S` | Steam |
 | `SUPER` + `C` | Close window |
 | `SUPER` + `Shift` + `F` | Fullscreen |
 | `SUPER` + `V` | Toggle floating |

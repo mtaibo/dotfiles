@@ -60,7 +60,6 @@
         {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
-          home-manager.users.migueltaibo = import ./modules/home;
           home-manager.extraSpecialArgs = {
             inherit inputs;
             pkgsUnstable = import inputs.nixpkgs-unstable {

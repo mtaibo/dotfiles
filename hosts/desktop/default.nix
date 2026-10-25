@@ -1,4 +1,10 @@
-{ config, pkgs, inputs, ... }: {
+{ config, lib, pkgs, inputs, ... }:
+let
+  people = {
+    migueltaibo = "Miguel Taibo";
+    pablotaibo = "Pablo Taibo";
+  };
+in {
   imports = [
     ./hardware-configuration.nix
     ../../modules/nixos/boot.nix
@@ -16,8 +22,6 @@
   nixpkgs.config.allowUnfree = true;
 
   programs.claude-desktop.enable = true;
-
-  home-manager.users.migueltaibo.imports = [ ../../modules/home/desktop ];
 
   # Lets dynamically linked binaries built for generic Linux run as-is
   # (e.g. the native helper VS Code extensions like Claude Code ship).
@@ -38,12 +42,17 @@
   };
   console.keyMap = "es";
 
-  users.users.migueltaibo = {
+  # Every user gets the same account and the same setup (modules/home plus
+  # the desktop modules); only the name changes. Login: SDDM, ←/→ picks one.
+  users.users = lib.mapAttrs (_: description: {
     isNormalUser = true;
-    description = "Miguel Taibo";
+    inherit description;
     extraGroups = [ "networkmanager" "wheel" ];
-  };
-  users.users.migueltaibo.shell = pkgs.zsh;
+    shell = pkgs.zsh;
+  }) people;
+  home-manager.users = lib.mapAttrs (_: _: {
+    imports = [ ../../modules/home ../../modules/home/desktop ];
+  }) people;
   programs.zsh.enable = true;
 
 
@@ -68,7 +77,8 @@
   fileSystems."/mnt/shared" = {
     device = "/dev/disk/by-uuid/342030672030326A";
     fsType = "ntfs3";
-    options = [ "rw" "uid=1000" "gid=100" "nofail" ];
+    # Group `users` (every account) can write too.
+    options = [ "rw" "uid=1000" "gid=100" "umask=002" "nofail" ];
   };
 
   fonts.packages = with pkgs; [

@@ -45,7 +45,17 @@ in {
     };
   };
 
-  home-manager.users.migueltaibo.stylix.targets = {
+  # Where SUPER+W records the wallpaper in use (see modules/wallpapers.nix):
+  # writable by every user (group `users`) so anyone can switch it, readable
+  # by the login screen's user. `L` only creates the link when missing, so a
+  # choice survives rebuilds.
+  systemd.tmpfiles.rules = [
+    "d /var/lib/wallpaper 0775 migueltaibo users -"
+    "L ${walls.current} - - - - ${walls.default}"
+  ];
+
+  # For every user (see hosts/desktop/default.nix).
+  home-manager.sharedModules = [{ stylix.targets = {
     # Firefox looks like a native GTK app (firefox-gnome-theme) in our colours.
     firefox = {
       profileNames = [ "default" ];
@@ -59,18 +69,10 @@ in {
     vscode.enable = false;
     # The bar is styled by hand in modules/home/desktop/waybar.nix.
     waybar.enable = false;
-  };
-
-  # Where SUPER+W records the wallpaper in use (see modules/wallpapers.nix):
-  # owned by me so I can switch it, readable by the login screen's user.
-  # `L` only creates the link when missing, so a choice survives rebuilds.
-  systemd.tmpfiles.rules = [
-    "d /var/lib/wallpaper 0755 migueltaibo users -"
-    "L ${walls.current} - - - - ${walls.default}"
-  ];
+  }; }
 
   # mkAfter keeps these below the theme's @import lines.
-  home-manager.users.migueltaibo.programs.firefox.profiles.default = let
+  { programs.firefox.profiles.default = let
     c = config.lib.stylix.colors;
     glass = "rgba(${c.base00-rgb-r}, ${c.base00-rgb-g}, ${c.base00-rgb-b}, ${toString config.stylix.opacity.terminal})";
   in {
@@ -106,5 +108,5 @@ in {
         body > * { display: none !important; }
       }
     '';
-  };
+  }; }];
 }

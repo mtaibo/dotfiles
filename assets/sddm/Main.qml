@@ -12,9 +12,15 @@ Rectangle {
     Style { id: style }
     readonly property var s: style.s
 
-    // There is a single user and a single session (Hyprland), so neither is
-    // ever shown: log in as the last user, falling back to the configured one.
-    readonly property string userName: userModel.lastUser !== "" ? userModel.lastUser : s.user
+    // Starts on the last user (the first one if unknown); ←/→ or a click on
+    // the name switches. There is a single session (Hyprland), never shown.
+    property int userIndex: Math.max(0, s.users.findIndex(u => u.name === userModel.lastUser))
+    readonly property string userName: s.users[userIndex].name
+    function switchUser(step) {
+        userIndex = (userIndex + step + s.users.length) % s.users.length
+        password.text = ""
+        authState = "idle"
+    }
     readonly property int sessionIndex: sessionModel.lastIndex >= 0 ? sessionModel.lastIndex : 0
 
     // "idle" | "checking" | "failed", like hyprlock's input states.
@@ -107,7 +113,26 @@ Rectangle {
             font.family: s.font
             font.pixelSize: px(s.name.size)
             font.weight: weight(s.name.weight)
-            text: s.realName
+            text: s.users[root.userIndex].realName
+
+            MouseArea {
+                anchors.fill: parent
+                cursorShape: Qt.BlankCursor
+                onClicked: root.switchUser(1)
+            }
+
+            // Faint arrows either side when there is someone else to switch to.
+            Repeater {
+                model: s.users.length > 1 ? ["‹", "›"] : []
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    x: index === 0 ? -width - parent.font.pixelSize : parent.width + parent.font.pixelSize
+                    text: modelData
+                    color: parent.color
+                    opacity: 0.4
+                    font: parent.font
+                }
+            }
         }
 
         // Password field: a glass pill showing dots, like hyprlock's input-field.
@@ -135,6 +160,9 @@ Rectangle {
                 cursorVisible: false
                 cursorDelegate: Item {}
                 onTextChanged: if (text !== "" && root.authState === "failed") root.authState = "idle"
+                // The dots have no cursor to move, so ←/→ pick the user instead.
+                Keys.onLeftPressed: root.switchUser(-1)
+                Keys.onRightPressed: root.switchUser(1)
                 onAccepted: {
                     if (text === "" || root.authState === "checking") return
                     root.authState = "checking"

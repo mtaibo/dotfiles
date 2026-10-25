@@ -8,8 +8,8 @@
     ./editors/vscode.nix
     ./browsers/firefox.nix
   ];
-  home.username = "migueltaibo";
-  home.homeDirectory = "/home/migueltaibo";
+  home.username = lib.mkDefault "migueltaibo";
+  home.homeDirectory = lib.mkDefault "/home/migueltaibo";
   home.stateVersion = "25.11";
   programs.git = {
     enable = true;
