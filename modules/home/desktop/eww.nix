@@ -85,6 +85,7 @@ let
         close
         exit 0
       fi
+      bluetooth-popup close
       x=$(hyprctl cursorpos | cut -d, -f1)
       x=$(( x - ${toString (width / 2)} ))
       [ "$x" -ge 10 ] || x=10

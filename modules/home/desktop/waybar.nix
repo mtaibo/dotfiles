@@ -101,8 +101,8 @@ in {
   # "islands" style): no bar background, every module is its own dark
   # rounded island tinted by the wallpaper. Clock and the music player on the
   # left, the workspaces in the middle (instead of the original's focused
-  # window), background apps, keyboard layout, notifications and audio on the
-  # right; no power button.
+  # window), background apps, Bluetooth, keyboard layout, notifications and
+  # audio on the right; no power button.
   # SUPER+N hides and shows the bar.
   wayland.windowManager.hyprland.settings.bindd = [
     "SUPER, N, Mostrar u ocultar la barra, exec, pkill -USR1 -x .waybar-wrapped"
@@ -124,7 +124,7 @@ in {
 
       modules-left = [ "custom/clock" "custom/media" ];
       modules-center = [ "hyprland/workspaces" ];
-      modules-right = [ "tray" "custom/language" "custom/notifications" "group/audio" ];
+      modules-right = [ "tray" "custom/bluetooth" "custom/language" "custom/notifications" "group/audio" ];
 
       "custom/clock" = {
         exec = "${clock}/bin/waybar-clock";
@@ -149,6 +149,17 @@ in {
       tray = {
         icon-size = 20;
         spacing = 8;
+      };
+
+      # Bluetooth (bluetooth.nix): a click opens the popup with the devices,
+      # to connect them; a right click turns it on or off.
+      "custom/bluetooth" = {
+        exec = "waybar-bluetooth";
+        return-type = "json";
+        interval = 5;
+        signal = 10;
+        on-click = "bluetooth-popup";
+        on-click-right = "bluetooth-power";
       };
 
       # ES or EN, keyboard and system language together (language.nix); a
@@ -240,6 +251,7 @@ in {
       /* Islands: one dark, wallpaper-tinted pill per module. */
       #custom-clock,
       #tray,
+      #custom-bluetooth,
       #custom-language,
       #workspaces,
       #custom-notifications,
@@ -298,6 +310,14 @@ in {
 
       #custom-notifications.dnd {
         color: @muted;
+      }
+
+      #custom-bluetooth.off {
+        color: @muted;
+      }
+
+      #custom-bluetooth.connected {
+        color: @accent;
       }
 
       #custom-media.paused {

@@ -243,11 +243,11 @@ Every time the wallpaper changes, [matugen](https://github.com/InioX/matugen) re
 
 ## 📊 Top bar — Waybar
 
-Copied from the bar in [binnewbs' Hyprland rice](https://github.com/binnewbs/arch-hyprland) (JaKooLit's "window middle" layout with the "islands" style, with the workspaces moved to the middle in place of the focused window, the network and bluetooth icons dropped, a keyboard layout indicator added and a music player instead of the power button): no bar behind the modules, just a row of dark islands floating 6 px from the top, each tinted by the wallpaper. I made it bigger (17 px text) and gave the islands 16 px corners (the windows' 10 px plus 6) instead of the original pills.
+Copied from the bar in [binnewbs' Hyprland rice](https://github.com/binnewbs/arch-hyprland) (JaKooLit's "window middle" layout with the "islands" style, with the workspaces moved to the middle in place of the focused window, the network icon dropped, the bluetooth one turned into a popup for connecting devices, a keyboard layout indicator added and a music player instead of the power button): no bar behind the modules, just a row of dark islands floating 6 px from the top, each tinted by the wallpaper. I made it bigger (17 px text) and gave the islands 16 px corners (the windows' 10 px plus 6) instead of the original pills.
 
 ```
- (   Sábado, 24 de Octubre 08:31 ) ( 󰝚  Song · Artist )        ( 1 2 3 4 )        ( ⋯ ) ( ES ) ( 1 󱅫 ) ( 󰋋 40% )
-   clock                          music player            workspaces         tray  layout notifications audio
+ (   Sábado, 24 de Octubre 08:31 ) ( 󰝚  Song · Artist )        ( 1 2 3 4 )        ( ⋯ ) ( 󰂯 ) ( ES ) ( 1 󱅫 ) ( 󰋋 40% )
+   clock                          music player            workspaces         tray  bluetooth  layout notifications audio
 ```
 
 | Module | Shows | Click |
@@ -255,6 +255,7 @@ Copied from the bar in [binnewbs' Hyprland rice](https://github.com/binnewbs/arc
 | Clock | `  Sábado, 24 de Octubre 08:31`, always date and time, capitalised by a small `waybar-clock` script (waybar's own clock only gives lowercase Spanish names) | Tooltip with the month's calendar |
 | Music player | What's playing: title and artist, 󰏤 and grey when paused; hidden when nothing plays. A custom module (`waybar-media`) built on the popup's `media-info`, not waybar's `mpris` module, because Cider's MPRIS metadata goes empty after skipping a song. `playerctl` follows the player in use through `playerctld` | Left: a wide glass popup centred under the click: small artwork with the title, artist and icon buttons (previous / play-pause / next) beside it, and a full-width progress bar with the times below (a click anywhere else, the bar included, closes it) · middle: play / pause · right: next |
 | Tray | Icons of apps running in the background (Claude, Cider’s in white); hidden when there are none | Each app’s own (Cider: left shows the window, right opens its menu) |
+| Bluetooth | 󰂯, 󰂱 in the accent when something is connected (the tooltip names it), 󰂲 grey when it’s off. A `waybar-bluetooth` script over `bluetoothctl` (bluetooth.nix) | Left: a glass popup like the player’s: an on/off switch and the devices (connected, then paired, then the ones found by a scan that runs while it’s open), each with its icon, state and battery; a click connects it (pairing and trusting it the first time) or disconnects it. Opening it closes the player’s and vice versa · right: turn Bluetooth on or off |
 | Language | `ES` or `EN`, the keyboard layout and the system language at once (see [Language](#-language--es--en)) | Switches both |
 | Workspaces | Always four numbers, 1–4; the active one is a pill in the light accent with dark text, ones with windows in the text colour, empty ones grey | Switches workspace, scroll moves through them |
 | Notifications | 󰂚 with dunst's history count, 󱅫 when there are some, 󰂛 grey with the queued count in "do not disturb" | Left: toggle do not disturb · right: show the last one again · middle: clear |
