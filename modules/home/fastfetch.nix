@@ -8,6 +8,8 @@ let
   mid = key "│";
   last = key "╰";
   header = title: { type = "custom"; format = "{#90}╭─{#} {#1}${title}"; };
+  # Name, then the temperature where the sensor can be read.
+  withTemp = "{name}{?temperature}  {#90}·{#}  {temperature}{?}";
   # The OS row's icon: Home Manager inside NixOS or nix-darwin gets `osConfig`;
   # the standalone one is the Raspberry Pi.
   osIcon = if pkgs.stdenv.hostPlatform.isDarwin then ""
@@ -38,8 +40,9 @@ let
     "break"
     (header "Hardware")
     { type = "host"; key = mid "󰌢" (t "Equipo" "Machine"); }
-    { type = "cpu"; key = mid "" "CPU"; format = "{name}"; }
-    { type = "gpu"; key = mid "󰢮" "GPU"; format = "{name}"; hideType = "integrated"; }
+    { type = "cpu"; key = mid "" "CPU"; format = withTemp; temp = true; }
+    # driverSpecific reads the NVIDIA temperature through NVML.
+    { type = "gpu"; key = mid "󰢮" "GPU"; format = withTemp; temp = true; driverSpecific = true; hideType = "integrated"; }
     # Display sits mid-list: on the headless Pi it prints nothing, and as the
     # last row it took the closing branch with it.
     { type = "display"; key = mid "󰍹" (t "Pantalla" "Display"); format = "{width}x{height} @ {refresh-rate} Hz"; }
