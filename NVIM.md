@@ -184,6 +184,7 @@ Suggestions appear while typing. `Enter` accepts, `↑`/`↓` or `Ctrl+N`/`Ctrl+
 clangd provides completion, errors, go-to-definition, formatting (clang-format) and `Space c h` to switch between a source file and its header.
 
 - clangd needs a `compile_commands.json`. CMake projects get one with `set(CMAKE_EXPORT_COMPILE_COMMANDS ON)` (or `-DCMAKE_EXPORT_COMPILE_COMMANDS=ON`); for Make, run `bear -- make`.
+- Without one, `gd`, `gn` and `gN` still reach the other files: they first open, hidden, the `.c`/`.h` files that mention the function (in the folder of the nearest Makefile or CMakeLists.txt, else the file's own folder), and headers are read as C, so starting from a `.h` works too.
 - CMake, through cmake-tools: `:CMakeGenerate`, `:CMakeBuild`, `:CMakeRun`, `:CMakeDebug`, `:CMakeSelectBuildType`, `:CMakeSelectLaunchTarget`, `:CMakeClean`.
 - `:make` (or `:Make`, or `Space m`) saves everything and runs `make` from the nearest Makefile above the current file in a terminal that opens in the editor window like a file (a tab of its own; the explorer stays on the left). It opens even if the Makefile doesn't run the program, and it's focused so the program can read input. `:make run` passes targets. Running it again replaces the previous one; when it ends it drops to normal mode, and `q` closes it and goes back to the file (`Ctrl+Tab` switches without closing).
 - gcc and make are also installed system-wide on Linux, so `make` works in any terminal (the Mac uses Xcode's). Programs that use `math.h` (`pow`, `sqrt`...) need `-lm` at the end of the gcc line.

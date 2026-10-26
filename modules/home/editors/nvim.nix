@@ -756,11 +756,40 @@ in {
           end
         end
 
+        -- clangd only knows the open files (and, with a compile_commands.json,
+        -- its index), so from a .h it finds no uses. Open the project's C
+        -- files that mention the name, hidden, and wait until clangd has read
+        -- them. The project is the nearest folder up with a Makefile or
+        -- CMakeLists.txt, else the file's folder.
+        local function open_mentions(client, node)
+          if client.name ~= "clangd" then return end
+          local file = vim.api.nvim_buf_get_name(0)
+          if vim.fs.root(file, "compile_commands.json") then return end
+          local root = vim.fs.root(file, { "GNUmakefile", "makefile", "Makefile", "CMakeLists.txt" })
+            or vim.fs.dirname(file)
+          local name = vim.treesitter.get_node_text(node, 0)
+          local res = vim.system({ "rg", "-l", "-w", "-F", "-t", "c", "-t", "cpp", "--", name, root }, { text = true }):wait()
+          local files = vim.split(res.stdout or "", "\n", { trimempty = true })
+          for i = 1, math.min(#files, 50) do
+            local b = vim.fn.bufadd(files[i])
+            if not vim.api.nvim_buf_is_loaded(b) then
+              vim.bo[b].buflisted = false
+              vim.fn.bufload(b)
+              -- Answered once clangd has parsed the file (and indexed it).
+              if vim.lsp.get_clients({ bufnr = b, name = "clangd" })[1] then
+                client:request_sync("textDocument/documentSymbol",
+                  { textDocument = { uri = vim.uri_from_bufnr(b) } }, 5000, b)
+              end
+            end
+          end
+        end
+
         -- Ask the language server about the name node; returns the
         -- locations as { uri, range } and the server's position encoding.
         local function ask(method, node, extra)
           local client = vim.lsp.get_clients({ bufnr = 0, method = method })[1]
           if not client then return {}, "utf-16" end
+          open_mentions(client, node)
           local row, col = node:start()
           local line = vim.api.nvim_buf_get_lines(0, row, row + 1, false)[1] or ""
           local params = vim.tbl_extend("force", {
@@ -861,6 +890,23 @@ in {
               opts.inlay_hints.exclude = opts.inlay_hints.exclude or {}
               table.insert(opts.inlay_hints.exclude, "c")
               table.insert(opts.inlay_hints.exclude, "java")
+              -- Without a compile_commands.json clangd reads a .h as C++, so its
+              -- functions aren't the ones the .c files call (gn found no uses
+              -- from a header). Tell it each header is C, as Neovim has it.
+              vim.api.nvim_create_autocmd("LspAttach", {
+                callback = function(ev)
+                  local client = vim.lsp.get_client_by_id(ev.data.client_id)
+                  local file = vim.api.nvim_buf_get_name(ev.buf)
+                  if not client or client.name ~= "clangd" or not file:match("%.h$")
+                    or vim.fs.root(file, "compile_commands.json") then return end
+                  client:notify("workspace/didChangeConfiguration", { settings = {
+                    compilationDatabaseChanges = { [file] = {
+                      workingDirectory = vim.fs.dirname(file),
+                      compilationCommand = { "clang", "-xc-header", file },
+                    } },
+                  } })
+                end,
+              })
               -- gd also works from inside a function's body, gn / gN walk
               -- through its uses (lua/config/code_nav.lua).
               local all = opts.servers["*"]
