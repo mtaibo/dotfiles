@@ -14,7 +14,7 @@ let
     else if args ? osConfig then ""
     else "";
   # The kernel row: XNU on the Mac, Linux everywhere else.
-  kernelIcon = if pkgs.stdenv.hostPlatform.isDarwin then "" else "";
+  kernelIcon = if pkgs.stdenv.hostPlatform.isDarwin then "" else "";
   # A white Apple logo in the style of the NixOS snowflake, drawn from the
   # Nerd Font glyph (the built-in macos logo is coloured ASCII).
   appleLogo = pkgs.runCommand "apple-logo.png" { nativeBuildInputs = [ pkgs.imagemagick ]; } ''
