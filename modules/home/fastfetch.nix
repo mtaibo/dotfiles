@@ -13,6 +13,8 @@ let
   osIcon = if pkgs.stdenv.hostPlatform.isDarwin then ""
     else if args ? osConfig then ""
     else "";
+  # The kernel row: XNU on the Mac, Linux everywhere else.
+  kernelIcon = if pkgs.stdenv.hostPlatform.isDarwin then "" else "";
   # A white Apple logo in the style of the NixOS snowflake, drawn from the
   # Nerd Font glyph (the built-in macos logo is coloured ASCII).
   appleLogo = pkgs.runCommand "apple-logo.png" { nativeBuildInputs = [ pkgs.imagemagick ]; } ''
@@ -27,7 +29,7 @@ let
     "break"
     (header (t "Sistema" "System"))
     { type = "os"; key = mid osIcon "OS"; format = "{pretty-name}"; }
-    { type = "kernel"; key = mid "" "Kernel"; format = "{release}"; }
+    { type = "kernel"; key = mid kernelIcon "Kernel"; format = "{release}"; }
     { type = "packages"; key = mid "󰏖" (t "Paquetes" "Packages"); format = "{all}"; }
     { type = "wm"; key = mid "" (t "Ventanas" "WM"); format = "{pretty-name}"; }
     { type = "terminal"; key = mid "" "Terminal"; format = "{pretty-name}"; }
