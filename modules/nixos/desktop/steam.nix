@@ -66,16 +66,23 @@ in {
     }) users);
     system.fsPackages = [ pkgs.bindfs ];
 
-    # Proton prefixes (saves, settings) stay per user: compatdata is a relative
-    # link that, seen from ~/games/steam/steamapps, lands in ~/games/proton.
-    # Wine also refuses a prefix owned by someone else.
+    # Steam puts the library one level down, in ~/games/steam/SteamLibrary.
+    # Proton prefixes (saves, settings) and shader caches stay per user:
+    # compatdata and shadercache are relative links that, seen from
+    # ~/games/steam/SteamLibrary/steamapps, land in ~/games. Wine refuses a
+    # prefix owned by someone else, and each Steam client keeps its own record
+    # of the shader cache, so a shared one is downloaded and reprocessed every
+    # time the other account plays.
     systemd.tmpfiles.rules = [
       "d /srv/steam 0700 root root -"
-      "d /srv/steam/steamapps 0755 root root -"
-      "L+ /srv/steam/steamapps/compatdata - - - - ../../proton"
+      "d /srv/steam/SteamLibrary 0755 root root -"
+      "d /srv/steam/SteamLibrary/steamapps 0755 root root -"
+      "L+ /srv/steam/SteamLibrary/steamapps/compatdata - - - - ../../../proton"
+      "L+ /srv/steam/SteamLibrary/steamapps/shadercache - - - - ../../../shadercache"
     ] ++ lib.concatMap (name: [
       "d /home/${name}/games 0755 ${name} users -"
       "d /home/${name}/games/proton 0755 ${name} users -"
+      "d /home/${name}/games/shadercache 0755 ${name} users -"
     ]) users;
   };
 }
