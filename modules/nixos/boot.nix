@@ -15,20 +15,17 @@
     # would show up a second time at the bottom of the menu alongside the
     # static entry added below.
     settings.auto-entries = false;
-    # Boot Windows automatically when the menu times out, instead of the
-    # latest NixOS generation (lanzaboote's own default is "nixos-*").
-    settings.default = "windows";
   };
 
   # Lanzaboote has no equivalent of systemd-boot's `extraEntries`, so add a
-  # static boot entry for Windows ourselves. Its sort-key ("0_windows")
-  # sorts alphabetically before lanzaboote's own sort-key ("lanza"), which
-  # is what puts Windows above every NixOS generation in the menu.
+  # static boot entry for Windows ourselves. Its sort-key ("windows") sorts
+  # alphabetically after lanzaboote's own sort-key ("lanza"), which is what
+  # puts Windows below every NixOS generation in the menu.
   system.activationScripts.windowsBootEntry = ''
     mkdir -p /boot/loader/entries
     cp ${pkgs.writeText "windows.conf" ''
       title Windows 11
-      sort-key 0_windows
+      sort-key windows
       efi /EFI/Microsoft/Boot/bootmgfw.efi
     ''} /boot/loader/entries/windows.conf
   '';
