@@ -62,7 +62,7 @@ The Raspberry Pi 5 that hosts [tphome](https://github.com/mtaibo/tphome) and my 
 |---|---|
 | **Shell** | Zsh with autosuggestions and syntax highlighting, Starship prompt, fastfetch on start |
 | **Terminal** | Kitty with FiraCode Nerd Font (themed by Stylix on Linux) |
-| **Editors** | Neovim on LazyVim, set up as an IDE for C/C++ and Java (LSP, debugger, tests, VS Code shortcuts), cheat sheet in [NVIM.md](NVIM.md), and VS Code (One Dark Pro, extensions declared in Nix) |
+| **Editors** | Neovim on LazyVim, set up as an IDE for C/C++, Java and OCaml (LSP, debugger, tests, VS Code shortcuts), cheat sheet in [NVIM.md](NVIM.md), and VS Code (One Dark Pro, extensions declared in Nix) |
 | **CLI tools** | eza, bat, git, GitHub CLI |
 | **AI** | Claude Code and OpenCode |
 | **Languages** | Node.js, Java 21 + Maven, OCaml + opam |

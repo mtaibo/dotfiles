@@ -2,12 +2,13 @@
 let
   cfg = config.dotfiles.nvim;
 
-  # LazyVim extras that turn it into an IDE (C/C++, CMake, Java, debugger,
-  # tests). Off on the Pi, where only the editor is wanted.
+  # LazyVim extras that turn it into an IDE (C/C++, CMake, Java, OCaml,
+  # debugger, tests). Off on the Pi, where only the editor is wanted.
   ideExtras = lib.optionals cfg.ide [
     "lang.clangd"
     "lang.cmake"
     "lang.java"
+    "lang.ocaml"
     "dap.core"
     "test.core"
   ];
@@ -100,7 +101,7 @@ in {
   options.dotfiles.nvim.ide = lib.mkOption {
     type = lib.types.bool;
     default = true;
-    description = "C/C++ and Java tooling (LSPs, debugger, tests) in Neovim.";
+    description = "C/C++, Java and OCaml tooling (LSPs, debugger, tests) in Neovim.";
   };
 
   config = {
@@ -116,6 +117,8 @@ in {
       # installs a jdtls snapshot that already needs Java 25. The Java debug
       # adapter and test runner are plain jars, so Mason installs those, and
       # codelldb too (NixOS runs it through nix-ld, see hosts/desktop).
+      # ocaml-lsp and ocamlformat from Nix too, built with the same OCaml as
+      # the compiler in packages.nix (Mason's need opam).
       extraPackages = with pkgs; [
         ripgrep
         fd
@@ -137,6 +140,9 @@ in {
         maven
         gradle
         codeStyle
+        ocamlPackages.ocaml-lsp
+        ocamlformat
+        dune_3
       ];
 
       extraLuaConfig = ''
@@ -701,6 +707,8 @@ in {
       "nvim/after/ftplugin/c.lua".text = cIndent;
       # Java in the same style.
       "nvim/after/ftplugin/java.lua".text = cIndent;
+      # And OCaml.
+      "nvim/after/ftplugin/ocaml.lua".text = cIndent;
 
       # gd and gn (keys in plugins/nix.lua): a function's definition and its
       # uses, for the function under the cursor or, anywhere else in a body,
@@ -846,6 +854,7 @@ in {
             opts = function(_, opts)
               opts.servers.clangd = vim.tbl_extend("force", opts.servers.clangd or {}, { mason = false })
               opts.servers.jdtls = vim.tbl_extend("force", opts.servers.jdtls or {}, { mason = false })
+              opts.servers.ocamllsp = vim.tbl_extend("force", opts.servers.ocamllsp or {}, { mason = false })
               -- No inlay hints in C or Java: the parameter names the servers
               -- draw push the code right, past the column-80 guide (Space u h
               -- shows them).
@@ -866,10 +875,21 @@ in {
           {
             "stevearc/conform.nvim",
             opts = {
-              formatters_by_ft = { c = { "c_style" }, java = { "java_style" } },
+              formatters_by_ft = {
+                c = { "c_style" },
+                java = { "java_style" },
+                ocaml = { "ocamlformat" },
+              },
               formatters = {
                 c_style = { command = "code-style", args = { "c" } },
                 java_style = { command = "code-style", args = { "java" } },
+                -- Only in projects with an .ocamlformat: it drops the ;; the
+                -- course files use for the toplevel.
+                ocamlformat = {
+                  condition = function(_, ctx)
+                    return vim.fs.find(".ocamlformat", { path = ctx.dirname, upward = true })[1] ~= nil
+                  end,
+                },
               },
             },
           },

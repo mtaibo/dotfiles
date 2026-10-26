@@ -1,6 +1,6 @@
 # Neovim
 
-My Neovim is [LazyVim](https://www.lazyvim.org) inside kitty, set up to replace VS Code: an explorer, tabs, fuzzy finders, LSP, a debugger and tests, with C/C++ and Java ready to go, and VS Code's shortcuts on top of LazyVim's own. Everything is declared in [`modules/home/editors/nvim.nix`](modules/home/editors/nvim.nix); this file is the cheat sheet.
+My Neovim is [LazyVim](https://www.lazyvim.org) inside kitty, set up to replace VS Code: an explorer, tabs, fuzzy finders, LSP, a debugger and tests, with C/C++, Java and OCaml ready to go, and VS Code's shortcuts on top of LazyVim's own. Everything is declared in [`modules/home/editors/nvim.nix`](modules/home/editors/nvim.nix); this file is the cheat sheet.
 
 - [The basics](#the-basics)
 - [VS Code shortcuts](#vs-code-shortcuts)
@@ -12,6 +12,7 @@ My Neovim is [LazyVim](https://www.lazyvim.org) inside kitty, set up to replace 
 - [Completion](#completion)
 - [C and C++](#c-and-c)
 - [Java](#java)
+- [OCaml](#ocaml)
 - [Debugging](#debugging)
 - [Tests](#tests)
 - [Git](#git)
@@ -246,6 +247,12 @@ Saving a `.java` file runs `code-style java`: the same clang-format settings and
 - Annotations go on their own line, on fields too.
 - A file with text blocks (`"""`) only gets clang-format and the line passes; members aren't reordered. Reordering never changes anything but the order: if the tokens don't match afterwards, the file is left as clang-format left it.
 
+## OCaml
+
+ocaml-lsp gives completion, errors, the type under the cursor (`K`) and go-to-definition, also in loose `.ml` files outside a dune project, like the ones in the course practicals. 2 spaces and the guide at column 80, as in C and Java.
+
+Saving formats with ocamlformat only in projects with an `.ocamlformat` file (an empty one is enough): it drops the `;;` that files written for the toplevel use. `Space c f` follows the same rule.
+
 ## Debugging
 
 | Keys | Action |
@@ -358,8 +365,8 @@ All under `Space u`:
 
 ## How it's set up
 
-- **LazyVim + extras**: `editor.neo-tree` and `lang.markdown` everywhere; `lang.clangd`, `lang.cmake`, `lang.java`, `dap.core` and `test.core` on the desktop and the Mac. The Pi keeps just the editor (`dotfiles.nvim.ide = false` in `hosts/tphome/home.nix`).
-- **Tools from Nix**: ripgrep, fd, lazygit, git, gcc, make, tree-sitter, Node and Python for LazyVim and Mason; clangd (clang-tools), jdtls (`jdt-language-server`, which runs on Java 21) with Lombok, CMake, JDK 21, Maven and Gradle for the IDE. They're only on Neovim's PATH.
-- **Tools from Mason**: the Java debug adapter and test runner (plain jars), codelldb (NixOS runs it through nix-ld), neocmakelsp, marksman and the formatters (clang-format comes from Nix). clangd and jdtls are kept away from Mason: its clangd can't find the system headers on NixOS, and its jdtls is a snapshot that already needs Java 25.
+- **LazyVim + extras**: `editor.neo-tree` and `lang.markdown` everywhere; `lang.clangd`, `lang.cmake`, `lang.java`, `lang.ocaml`, `dap.core` and `test.core` on the desktop and the Mac. The Pi keeps just the editor (`dotfiles.nvim.ide = false` in `hosts/tphome/home.nix`).
+- **Tools from Nix**: ripgrep, fd, lazygit, git, gcc, make, tree-sitter, Node and Python for LazyVim and Mason; clangd (clang-tools), jdtls (`jdt-language-server`, which runs on Java 21) with Lombok, CMake, JDK 21, Maven and Gradle, ocaml-lsp, ocamlformat and dune for the IDE. They're only on Neovim's PATH.
+- **Tools from Mason**: the Java debug adapter and test runner (plain jars), codelldb (NixOS runs it through nix-ld), neocmakelsp, marksman and the formatters (clang-format comes from Nix). clangd, jdtls and ocaml-lsp are kept away from Mason (its ocaml-lsp needs opam): its clangd can't find the system headers on NixOS, and its jdtls is a snapshot that already needs Java 25.
 - **Look**: carbonfox, monochrome, with a transparent background so kitty's glass shows through. English spell checking is off by default (it underlined everything written in Spanish).
 - **Files**: `lua/config/{lazy,options,keymaps,autocmds}.lua` and `lua/plugins/*.lua` under `~/.config/nvim`, all generated from `nvim.nix`. Lazy writes `lazy-lock.json` next to them.
