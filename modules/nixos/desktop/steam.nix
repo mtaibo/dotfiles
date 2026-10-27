@@ -66,6 +66,17 @@ in {
     }) users);
     system.fsPackages = [ pkgs.bindfs ];
 
+    # bindfs holds a file open for every one a game opens through the mount,
+    # and mount units start it with the default 1024: Wildlands hits that while
+    # loading and dies with "Too many open files". Same ceiling Wine uses.
+    systemd.units = lib.listToAttrs (map (name: lib.nameValuePair "home-${name}-games-steam.mount" {
+      overrideStrategy = "asDropin";
+      text = ''
+        [Mount]
+        LimitNOFILE=524288
+      '';
+    }) users);
+
     # Steam puts the library one level down, in ~/games/steam/SteamLibrary.
     # Proton prefixes (saves, settings) and shader caches stay per user:
     # compatdata and shadercache are relative links that, seen from
