@@ -22,7 +22,7 @@ let
   appleLogo = pkgs.runCommand "apple-logo.png" { nativeBuildInputs = [ pkgs.imagemagick ]; } ''
     magick -background none -fill white -pointsize 480 \
       -font ${pkgs.nerd-fonts.symbols-only}/share/fonts/truetype/NerdFonts/Symbols/SymbolsNerdFont-Regular.ttf \
-      label:$'\uf179' -trim -gravity center -extent 512x512 $out
+      label:$'\uf179' -trim +repage -gravity center -extent 512x512 $out
   '';
   # The wired connection, printed only when the default route goes through it
   # (an empty result hides the row); Wi-Fi has its own module.
@@ -89,7 +89,10 @@ in {
         type = "kitty-direct";
         source = if pkgs.stdenv.hostPlatform.isDarwin then appleLogo
           else "${pkgs.nixos-icons}/share/icons/hicolor/512x512/apps/nix-snowflake-white.png";
-        width = 24;
+        # kitty stretches the image to fill this box, and a FiraCode cell is
+        # twice as tall as it is wide, so a square image needs twice as many
+        # columns as rows.
+        width = 22;
         height = 11;
         padding = { top = 3; left = 2; right = 4; };
       };
