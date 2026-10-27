@@ -100,6 +100,22 @@ in {
   services.blueman.enable = true;
 
   services.printing.enable = true;
+  # The ET-2850 has no IPP-over-USB interface and no PPD exists for it (the
+  # ET-2840 one printed blank pages), so it is used driverless over the network.
+  services.avahi = {
+    enable = true;
+    nssmdns4 = true;
+  };
+  hardware.printers = {
+    ensurePrinters = [
+      {
+        name = "Epson_ET-2850";
+        deviceUri = "ipp://EPSONACE025.local:631/ipp/print";
+        model = "everywhere";
+      }
+    ];
+    ensureDefaultPrinter = "Epson_ET-2850";
+  };
   services.pulseaudio.enable = false;
   security.rtkit.enable = true;
   services.pipewire = {
