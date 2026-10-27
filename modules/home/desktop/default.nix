@@ -10,6 +10,8 @@
     ./hyprlock.nix
     ./kitty.nix
     ./language.nix
+    ./obs.nix
+    ./screenrec.nix
     ./vicinae.nix
     ./wallpaper.nix
     ./waybar.nix

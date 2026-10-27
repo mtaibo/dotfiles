@@ -124,7 +124,7 @@ in {
 
       modules-left = [ "custom/clock" "custom/media" ];
       modules-center = [ "hyprland/workspaces" ];
-      modules-right = [ "tray" "custom/bluetooth" "custom/language" "custom/notifications" "pulseaudio" ];
+      modules-right = [ "custom/recording" "tray" "custom/bluetooth" "custom/language" "custom/notifications" "pulseaudio" ];
 
       "custom/clock" = {
         exec = "${clock}/bin/waybar-clock";
