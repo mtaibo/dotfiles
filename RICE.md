@@ -386,10 +386,15 @@ Every new shell opens with an "About This Mac"-style summary:
              │  󰍹 Pantalla    2560x1440 @ 144 Hz
              │   Memoria     4.15 GiB / 15.38 GiB
              ╰   Disco       28.80 GiB / 195.80 GiB
+
+             ╭─ Red
+             │  󰈀 Ethernet    Conexión cableada 1
+             ╰  󰩟 IP local    192.168.x.x
 ```
 
 - **The logo is a real image**: the white NixOS snowflake PNG on the desktop, and a white Raspberry Pi logo on the Pi and a white Apple logo on the Mac (both rendered at build time from the Nerd Font glyphs with ImageMagick, so they match the snowflake), drawn with kitty's graphics protocol. Locally fastfetch hands kitty the file path (`kitty-direct`); over SSH that file isn't on kitty's machine, so the shell switches to the `kitty` type, which sends the pixels through the terminal. The choice lives in a `fastfetch` shell function, so typing `fastfetch` later picks the same logo as the one at login. Under tmux or in another terminal it falls back to a small text logo (`NixOS_small`, `raspbian_small` or `macos_small`).
 - **Tree layout** with grey branches, blue icon + label and white values. The greys are written as the raw code `{#90}`, because fastfetch turns `bright_black` into bold + black (`1;30`), which kitty draws in the background colour. Labels are padded in Nix rather than with `key.width`, which positions by absolute column and misaligns next to a logo.
+- **Red** shows the Wi-Fi network, or the wired connection when the default route goes through a cable (a small script that prints nothing otherwise, which hides the row), then the local IP of the default route. On the Mac a Tailscale row in between reads `tailscale status --json`: connected with its IPv4, or disconnected.
 - The integrated Intel GPU is hidden (`hideType = "integrated"`), and uptime is formatted as `3h 12m` instead of fastfetch's English "3 hours".
 - Like the prompt, it uses named terminal colours, so it follows Stylix through kitty.
 

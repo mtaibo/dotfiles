@@ -24,6 +24,26 @@ let
       -font ${pkgs.nerd-fonts.symbols-only}/share/fonts/truetype/NerdFonts/Symbols/SymbolsNerdFont-Regular.ttf \
       label:$'\uf179' -trim -gravity center -extent 512x512 $out
   '';
+  # The wired connection, printed only when the default route goes through it
+  # (an empty result hides the row); Wi-Fi has its own module.
+  ethernet = if pkgs.stdenv.hostPlatform.isDarwin then ''
+    i=$(route -n get default 2>/dev/null | awk '/interface:/ { print $2 }')
+    p=$(networksetup -listallhardwareports | awk -v d="Device: $i" '/^Hardware Port: / { sub(/^Hardware Port: /, ""); p = $0 } $0 == d { print p }')
+    case "$p" in ""|Wi-Fi) ;; *) printf '%s' "$p" ;; esac
+  '' else ''
+    i=$(ip route show default 2>/dev/null | awk '{ print $5; exit }')
+    case "$i" in en*|eth*) ;; *) exit 0 ;; esac
+    [ -d "/sys/class/net/$i/wireless" ] && exit 0
+    n=$(nmcli -g GENERAL.CONNECTION device show "$i" 2>/dev/null)
+    printf '%s' "''${n:-$i}"
+  '';
+  # Tailscale's state and its IPv4 (the Mac runs the app, the CLI comes with it).
+  tailscale = on: off: ''
+    ts=$(command -v tailscale || echo /Applications/Tailscale.app/Contents/MacOS/Tailscale)
+    "$ts" status --json 2>/dev/null | ${pkgs.jq}/bin/jq -r 'if .BackendState == "Running"
+      then "${on}  \u001b[90m·\u001b[0m  " + ([.Self.TailscaleIPs[] | select(contains(":") | not)][0] // "")
+      else "${off}" end'
+  '';
   # The rows, labels in Spanish or English (the English config is for when
   # the desktop's system language is, see language.nix and shell.nix).
   modules = lang: let t = es: en: if lang == "en" then en else es; in [
@@ -48,6 +68,14 @@ let
     { type = "display"; key = mid "󰍹" (t "Pantalla" "Display"); format = "{width}x{height} @ {refresh-rate} Hz"; }
     { type = "memory"; key = mid "" (t "Memoria" "Memory"); format = "{used} / {total}"; }
     { type = "disk"; key = last "" (t "Disco" "Disk"); folders = "/"; format = "{size-used} / {size-total}"; }
+    "break"
+    (header (t "Red" "Network"))
+    { type = "wifi"; key = mid "󰖩" "Wi-Fi"; format = "{?ssid}{ssid}{?}{/ssid}${t "Sin conexión" "Not connected"}{/}"; }
+    { type = "command"; key = mid "󰈀" "Ethernet"; text = ethernet; }
+  ] ++ lib.optional pkgs.stdenv.hostPlatform.isDarwin
+    { type = "command"; key = mid "󰖂" "Tailscale"; text = tailscale (t "Conectado" "Connected") (t "Desconectado" "Disconnected"); }
+  ++ [
+    { type = "localip"; key = last "󰩟" (t "IP local" "Local IP"); showIpv4 = true; showIpv6 = false; showMac = false; showPrefixLen = false; defaultRouteOnly = true; format = "{ipv4}"; }
   ];
 in {
   # Uses the terminal's named colours, so on the desktop it follows Stylix
