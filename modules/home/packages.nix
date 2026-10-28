@@ -17,6 +17,8 @@
     # C from any terminal, not only inside Neovim (the Mac has Xcode's).
     gcc
     gnumake
+    # Memory leak checks (Linux only: it doesn't run on Apple Silicon).
+    valgrind
     bibata-cursors
     grim
     slurp

@@ -39,6 +39,7 @@
     docker-compose
     pkgs.opencode
     pkgs.dnsmasq
+    valgrind
     pkgsUnstable.claude-code
   ];
 
