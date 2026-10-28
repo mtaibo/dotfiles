@@ -2,6 +2,8 @@
   home.packages = with pkgs; [
     eza
     bat
+    unzip
+    zip
     pkgs.opencode
     pkgsUnstable.claude-code
     nodejs_22
