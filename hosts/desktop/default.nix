@@ -116,17 +116,20 @@ in {
     ];
     ensureDefaultPrinter = "Epson_ET-2850";
   };
-  # lpadmin resolves the .local name over mDNS, which fails if avahi or the
-  # network is not up yet (or the printer is asleep): wait for them and retry
-  # instead of failing the whole switch.
+  # lpadmin resolves the .local name over mDNS, which fails while avahi has not
+  # discovered the printer yet (right after boot or a switch, or if it is
+  # asleep): wait for the name to resolve and keep retrying instead of failing
+  # the whole switch.
   systemd.services.ensure-printers = {
     after = [ "avahi-daemon.service" "network-online.target" ];
     wants = [ "network-online.target" ];
+    path = [ pkgs.glibc.getent ];
     serviceConfig = {
+      ExecStartPre = "${pkgs.bash}/bin/bash -c 'for i in $(seq 30); do getent hosts EPSONACE025.local && exit 0; sleep 2; done; exit 1'";
       Restart = "on-failure";
       RestartSec = 10;
     };
-    unitConfig.StartLimitBurst = 6;
+    unitConfig.StartLimitIntervalSec = 0;
   };
   services.pulseaudio.enable = false;
   security.rtkit.enable = true;
