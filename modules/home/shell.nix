@@ -37,6 +37,38 @@
       echo "crc: attach with: tmux attach -t $session"
       echo "crc: close all with: crc --close"
     '')
+    (let
+      dir = if pkgs.stdenv.hostPlatform.isDarwin
+        then "$HOME/Workspace/udc-ec"
+        else "$HOME/workspace/udc-ec";
+    in pkgs.writeShellScriptBin "simula" ''
+      set -euo pipefail
+
+      if [ "''${1:-}" = "--close" ]; then
+        sessions=$(tmux list-sessions -F '#{session_name}' 2>/dev/null | grep '^simula-' || true)
+        if [ -z "$sessions" ]; then
+          echo "simula: no sessions running"
+          exit 0
+        fi
+        echo "$sessions" | while IFS= read -r session; do
+          tmux kill-session -t "$session"
+          echo "simula: closed $session"
+        done
+        exit 0
+      fi
+
+      # One tmux session per window. The session's only command is the jar, so
+      # closing the Simula window ends java and tmux drops the session with it.
+      session="simula-$(date +%s)-$$"
+      tmux new-session -d -s "$session" -c "${dir}" -- ${pkgs.jdk21}/bin/java -jar "${dir}/Simula3MSv4_13.jar"
+      sleep 2
+      if ! tmux has-session -t "$session" 2>/dev/null; then
+        echo "simula: Simula3MS exited right away (try: java -jar ${dir}/Simula3MSv4_13.jar)"
+        exit 1
+      fi
+      echo "simula: opened (tmux session: $session)"
+      echo "simula: close all with: simula --close"
+    '')
   ];
 
   home.file.".hushlogin".text = "";
