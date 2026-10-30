@@ -20,7 +20,7 @@ in {
 
   launchd.daemons.batt.serviceConfig = {
     Label = "cc.chlc.batt";
-    ProgramArguments = [ "${batt}/bin/batt" "daemon" ];
+    ProgramArguments = [ "${batt}/bin/batt" "daemon" "--always-allow-non-root-access" ];
     RunAtLoad = true;
     KeepAlive = true;
     # Interactive so macOS doesn't throttle it, which would break the limit.
