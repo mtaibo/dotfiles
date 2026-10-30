@@ -28,7 +28,7 @@
 
       if $mac; then
         # Hold the battery at 80% and run from the charger (needs `batt`,
-        # which nixpkgs doesn't ship: https://github.com/charlie0129/batt).
+        # packaged in modules/darwin/batt.nix).
         if command -v batt >/dev/null; then
           batt limit 80 >/dev/null 2>&1 && echo "crc: battery limited to 80%"             || echo "crc: batt couldn't set the 80% limit (is its daemon installed?)"
         else

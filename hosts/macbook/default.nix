@@ -22,6 +22,8 @@
     migueltaibo ALL=(root) NOPASSWD: /usr/bin/pmset disablesleep 0, /usr/bin/pmset disablesleep 1
   '';
 
+  imports = [ ../../modules/darwin/batt.nix ];
+
   environment.systemPackages = with pkgs; [
     git
     gh
