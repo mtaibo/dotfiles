@@ -1,16 +1,19 @@
 { config, lib, pkgs, ... }:
 let
   users = config.dotfiles.steam.users;
+  names = lib.attrNames users;
 in {
   # One Steam library for every account, so a game installed by one is
   # installed for all. The files live once in /srv/steam (root only); each
-  # user sees it at ~/games/steam through bindfs, with every file shown as
-  # theirs, so Steam can update a game the other account installed.
-  # (A list here because reading users.users from fileSystems recurses.)
+  # user sees it at ~/games/steam through an idmapped bind mount, with root's
+  # files shown as theirs, so Steam can update a game the other account
+  # installed. It was bindfs (FUSE) before, which capped reads at ~800 MB/s;
+  # idmapping is done by the kernel. (UIDs given here because reading
+  # users.users from fileSystems recurses.)
   options.dotfiles.steam.users = lib.mkOption {
-    type = lib.types.listOf lib.types.str;
-    default = [ ];
-    description = "Accounts that share the Steam library.";
+    type = lib.types.attrsOf lib.types.int;
+    default = { };
+    description = "Accounts (name to UID) that share the Steam library.";
   };
 
   config = {
@@ -56,26 +59,13 @@ in {
     # them from stuttering or being killed.
     zramSwap.enable = true;
 
-    fileSystems = lib.listToAttrs (map (name: lib.nameValuePair "/home/${name}/games/steam" {
+    fileSystems = lib.mapAttrs' (name: uid: lib.nameValuePair "/home/${name}/games/steam" {
       device = "/srv/steam";
-      fsType = "fuse.bindfs";
+      fsType = "none";
       options = [
-        "force-user=${name}" "force-group=users" "perms=u+rwX"
-        "chown-ignore" "chgrp-ignore" "allow_other" "nofail"
+        "bind" "X-mount.idmap=u:0:${toString uid}:1 g:0:100:1" "nofail"
       ];
-    }) users);
-    system.fsPackages = [ pkgs.bindfs ];
-
-    # bindfs holds a file open for every one a game opens through the mount,
-    # and mount units start it with the default 1024: Wildlands hits that while
-    # loading and dies with "Too many open files". Same ceiling Wine uses.
-    systemd.units = lib.listToAttrs (map (name: lib.nameValuePair "home-${name}-games-steam.mount" {
-      overrideStrategy = "asDropin";
-      text = ''
-        [Mount]
-        LimitNOFILE=524288
-      '';
-    }) users);
+    }) users;
 
     # Steam puts the library one level down, in ~/games/steam/SteamLibrary.
     # Proton prefixes (saves, settings) and shader caches stay per user:
@@ -94,6 +84,6 @@ in {
       "d /home/${name}/games 0755 ${name} users -"
       "d /home/${name}/games/proton 0755 ${name} users -"
       "d /home/${name}/games/shadercache 0755 ${name} users -"
-    ]) users;
+    ]) names;
   };
 }

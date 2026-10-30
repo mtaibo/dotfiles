@@ -1,8 +1,8 @@
 { config, lib, pkgs, inputs, ... }:
 let
   people = {
-    migueltaibo = "Miguel Taibo";
-    pablotaibo = "Pablo Taibo";
+    migueltaibo = { description = "Miguel Taibo"; uid = 1000; };
+    pablotaibo = { description = "Pablo Taibo"; uid = 1001; };
   };
 in {
   imports = [
@@ -45,16 +45,16 @@ in {
 
   # Every user gets the same account and the same setup (modules/home plus
   # the desktop modules); only the name changes. Login: SDDM, ←/→ picks one.
-  users.users = lib.mapAttrs (_: description: {
+  users.users = lib.mapAttrs (_: { description, uid }: {
     isNormalUser = true;
-    inherit description;
+    inherit description uid;
     extraGroups = [ "networkmanager" "wheel" "gamemode" ];
     shell = pkgs.zsh;
   }) people;
   home-manager.users = lib.mapAttrs (_: _: {
     imports = [ ../../modules/home ../../modules/home/desktop ];
   }) people;
-  dotfiles.steam.users = lib.attrNames people;
+  dotfiles.steam.users = lib.mapAttrs (_: p: p.uid) people;
   programs.zsh.enable = true;
 
 
