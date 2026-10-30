@@ -4,35 +4,81 @@
     (pkgs.writeShellScriptBin "crc" ''
       set -euo pipefail
 
+      # Lid-closed mode (macOS only): the Mac stays awake with the lid shut so
+      # the phone can drive it over the cable. Needs the sudoers rule in
+      # hosts/macbook/default.nix (passwordless `pmset disablesleep`).
+      mac=false
+      [ "$(uname)" = Darwin ] && mac=true
+      lid() { $mac && sudo -n /usr/bin/pmset disablesleep "$1" 2>/dev/null || true; }
+
       if [ "''${1:-}" = "--close" ]; then
         sessions=$(tmux list-sessions -F '#{session_name}' 2>/dev/null | grep '^crc-' || true)
-        if [ -z "$sessions" ]; then
+        if [ -n "$sessions" ]; then
+          echo "$sessions" | while IFS= read -r session; do
+            tmux kill-session -t "$session"
+            echo "crc: closed $session"
+          done
+        else
           echo "crc: no background sessions running"
-          exit 0
         fi
-        echo "$sessions" | while IFS= read -r session; do
-          tmux kill-session -t "$session"
-          echo "crc: closed $session"
-        done
+        lid 0
+        $mac && echo "crc: lid sleep back to normal"
         exit 0
+      fi
+
+      if $mac; then
+        # Hold the battery at 80% and run from the charger (needs `batt`,
+        # which nixpkgs doesn't ship: https://github.com/charlie0129/batt).
+        if command -v batt >/dev/null; then
+          batt limit 80 >/dev/null 2>&1 && echo "crc: battery limited to 80%"             || echo "crc: batt couldn't set the 80% limit (is its daemon installed?)"
+        else
+          echo "crc: batt isn't installed, battery limit not applied"
+        fi
+        if sudo -n /usr/bin/pmset disablesleep 1 2>/dev/null; then
+          echo "crc: lid can be closed, the Mac stays awake"
+        else
+          echo "crc: couldn't disable lid sleep (run 'update' to install the sudoers rule)"
+        fi
       fi
 
       session="crc-$(date +%s)-$$"
       # remote-control (not plain claude) is what shows up in the Claude app.
       # The pane stays after an early exit so its error can be shown here.
-      tmux new-session -d -s "$session" -- claude remote-control "$@"
+      # When claude ends, the last crc session also gives lid sleep back.
+      tmux new-session -d -s "$session" -- sh -c '
+        claude remote-control "$@"
+        n=$(tmux list-sessions -F "#{session_name}" 2>/dev/null | grep -c "^crc-" || true)
+        if [ "$n" -le 1 ] && [ "$(uname)" = Darwin ]; then
+          sudo -n /usr/bin/pmset disablesleep 0 2>/dev/null || true
+        fi
+      ' sh "$@"
       tmux set-option -t "$session" remain-on-exit on
-      sleep 3
+
+      # Answer the startup prompts (trust folder, enable remote control, y/n)
+      # for up to 30s; stop after 5 quiet seconds once the screen has content.
+      quiet=0
+      for _ in $(seq 30); do
+        sleep 1
+        [ "$(tmux display-message -p -t "$session" '#{pane_dead}' 2>/dev/null)" = 1 ] && break
+        screen=$(tmux capture-pane -p -J -t "$session" 2>/dev/null || true)
+        if echo "$screen" | grep -qE '\[[yY]/[nN]\]|\([yY]/[nN]\)'; then
+          tmux send-keys -t "$session" y Enter; quiet=0
+        elif echo "$screen" | grep -qE '1\. *(Yes|Sí)|Trust .*\?|Do you trust|Press Enter to continue'; then
+          tmux send-keys -t "$session" Enter; quiet=0
+        elif [ -n "$screen" ]; then
+          quiet=$((quiet + 1))
+          [ "$quiet" -ge 5 ] && break
+        fi
+      done
+
       if [ "$(tmux display-message -p -t "$session" '#{pane_dead}')" = 1 ]; then
         tmux capture-pane -p -J -S - -t "$session" | grep -v -e '^$' -e '^Pane is dead' || true
         tmux kill-session -t "$session"
+        lid 0
         echo "crc: claude remote-control exited, nothing left running"
         exit 1
       fi
       tmux set-option -t "$session" remain-on-exit off
-      if tmux capture-pane -p -J -t "$session" | grep -q 'Trust .*?'; then
-        echo "crc: this folder isn't trusted yet; attach, answer y, then detach (Ctrl+B D)"
-      fi
       echo "crc: running in background (tmux session: $session)"
       echo "crc: attach with: tmux attach -t $session"
       echo "crc: close all with: crc --close"

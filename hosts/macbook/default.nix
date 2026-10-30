@@ -17,6 +17,11 @@
     nerd-fonts.hack
   ];
 
+  # `crc` turns lid sleep off and on without a password prompt.
+  security.sudo.extraConfig = ''
+    migueltaibo ALL=(root) NOPASSWD: /usr/bin/pmset disablesleep 0, /usr/bin/pmset disablesleep 1
+  '';
+
   environment.systemPackages = with pkgs; [
     git
     gh

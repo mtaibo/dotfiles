@@ -44,6 +44,12 @@ let
       then "${on}  \u001b[90m·\u001b[0m  " + ([.Self.TailscaleIPs[] | select(contains(":") | not)][0] // "")
       else "${off}" end'
   '';
+  # How many tmux sessions `crc` / `simula` have open, so a forgotten one shows
+  # up here; yellow when there is any.
+  sessions = prefix: ''
+    n=$(tmux list-sessions -F '#{session_name}' 2>/dev/null | grep -c '^${prefix}-' || true)
+    if [ "$n" -gt 0 ]; then printf '\033[33m%s\033[0m' "$n"; else printf '0'; fi
+  '';
   # The rows, labels in Spanish or English (the English config is for when
   # the desktop's system language is, see language.nix and shell.nix).
   modules = lang: let t = es: en: if lang == "en" then en else es; in [
@@ -68,6 +74,10 @@ let
     { type = "display"; key = mid "󰍹" (t "Pantalla" "Display"); format = "{width}x{height} @ {refresh-rate} Hz"; }
     { type = "memory"; key = mid "" (t "Memoria" "Memory"); format = "{used} / {total}"; }
     { type = "disk"; key = last "" (t "Disco" "Disk"); folders = "/"; format = "{size-used} / {size-total}"; }
+    "break"
+    (header (t "Procesos" "Processes"))
+    { type = "command"; key = mid "󰚩" "crc"; text = sessions "crc"; }
+    { type = "command"; key = last "󰆍" "simula"; text = sessions "simula"; }
     "break"
     (header (t "Red" "Network"))
     { type = "wifi"; key = mid "󰖩" "Wi-Fi"; format = "{?ssid}{ssid}{?}{/ssid}${t "Sin conexión" "Not connected"}{/}"; }
