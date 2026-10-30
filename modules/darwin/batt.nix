@@ -4,12 +4,14 @@ let
   # talks to the SMC as root; the `batt` CLI talks to the daemon.
   batt = pkgs.buildGoModule rec {
     pname = "batt";
-    version = "0.8.0";
+    version = "0.8.0-unstable-2026-10-29";
     src = pkgs.fetchFromGitHub {
       owner = "charlie0129";
       repo = "batt";
-      rev = "v${version}";
-      hash = "sha256-Dvda1IImHc6n8JqTlExHRqjzscqoTitEFT7goqulPbI=";
+      # v0.8.0 predates adapter mode, the only charge limit that works on
+      # macOS 27 firmware (the SMC charge keys are gated there).
+      rev = "2b9f8b579670b3d07365772f6f8e56b4f53912be";
+      hash = "sha256-weKPm6GlRCQKFlxUVQuaLQKf2Zg+xa1kt//frYVKWCQ=";
     };
     vendorHash = "sha256-v3YSYAn+tL5ZfuPq8OD1QvDZKOWRD3T2ts2wPxuKMEc=";
     subPackages = [ "cmd/batt" ];
