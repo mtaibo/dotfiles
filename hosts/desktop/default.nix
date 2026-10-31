@@ -94,6 +94,7 @@ in {
     docker-client
     docker-compose
     cifs-utils
+    python3
   ];
 
   hardware.bluetooth.enable = true;
