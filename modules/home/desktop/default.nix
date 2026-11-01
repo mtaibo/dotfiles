@@ -10,6 +10,7 @@
     ./hyprlock.nix
     ./kitty.nix
     ./language.nix
+    ./netflix-pip.nix
     ./obs.nix
     ./screenrec.nix
     ./vicinae.nix
