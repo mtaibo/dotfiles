@@ -1,4 +1,14 @@
-{ pkgs, inputs, ... }: {
+{ pkgs, inputs, ... }:
+let
+  androidSdk = (pkgs.androidenv.composeAndroidPackages {
+    platformVersions = [ "35" ];
+    buildToolsVersions = [ "35.0.0" ];
+    includeEmulator = true;
+    includeSystemImages = true;
+    systemImageTypes = [ "google_apis" ];
+    abiVersions = [ "arm64-v8a" ];
+  }).androidsdk;
+in {
   nixpkgs.hostPlatform = "aarch64-darwin";
 
   system.stateVersion = 5;
@@ -7,6 +17,7 @@
 
   nix.enable = false;
   nixpkgs.config.allowUnfree = true;
+  nixpkgs.config.android_sdk.accept_license = true;
   nixpkgs.config.permittedInsecurePackages = [
     "lima-full-1.2.2"
     "lima-additional-guestagents-1.2.2"
@@ -30,6 +41,9 @@
     colima
     docker-client
     xcodegen
+    androidSdk
   ];
+
+  environment.variables.ANDROID_HOME = "${androidSdk}/libexec/android-sdk";
 
 }
