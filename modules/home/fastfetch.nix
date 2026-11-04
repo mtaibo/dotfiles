@@ -17,12 +17,14 @@ let
     else "";
   # The kernel row: XNU on the Mac, Linux everywhere else.
   kernelIcon = if pkgs.stdenv.hostPlatform.isDarwin then "" else "";
-  # A white Apple logo in the style of the NixOS snowflake, drawn from the
-  # Nerd Font glyph (the built-in macos logo is coloured ASCII).
+  # A white Apple logo in the style of the NixOS snowflake, drawn from the real
+  # glyph in macOS's Helvetica (the built-in macos logo is coloured ASCII). kitty
+  # stretches the image to fill the logo box, 396x374 px with SF Mono's 18x34
+  # cells, so the canvas has that shape and the apple keeps its proportions.
   appleLogo = pkgs.runCommand "apple-logo.png" { nativeBuildInputs = [ pkgs.imagemagick ]; } ''
-    magick -background none -fill white -pointsize 480 \
-      -font ${pkgs.nerd-fonts.symbols-only}/share/fonts/truetype/NerdFonts/Symbols/SymbolsNerdFont-Regular.ttf \
-      label:$'\uf179' -trim +repage -gravity center -extent 512x512 $out
+    magick -background none -fill white -pointsize 1000 \
+      -font /System/Library/Fonts/Helvetica.ttc \
+      label:$'\uf8ff' -trim +repage -resize x568 -gravity center -extent 792x748 $out
   '';
   # The wired connection, printed only when the default route goes through it
   # (an empty result hides the row); Wi-Fi has its own module.
