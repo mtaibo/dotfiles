@@ -1,23 +1,8 @@
-{ pkgs, lib, ... }: {
+{ lib, ... }: {
   imports = [ ../../modules/home ];
   home.homeDirectory = lib.mkForce "/Users/migueltaibo";
-  home.file = (builtins.listToAttrs (map
-    (name: {
-      name = "/Library/Fonts/${name}";
-      value.source = "${pkgs.nerd-fonts.fira-code}/share/fonts/truetype/NerdFonts/FiraCode/${name}";
-    })
-    [
-      "FiraCodeNerdFont-Regular.ttf"
-      "FiraCodeNerdFont-Bold.ttf"
-      "FiraCodeNerdFont-Medium.ttf"
-      "FiraCodeNerdFont-Retina.ttf"
-      "FiraCodeNerdFont-SemiBold.ttf"
-      "FiraCodeNerdFont-Light.ttf"
-    ]))
-    // {
-      "Library/Services/OpenKittyFullscreen.workflow".source =
-        ../../assets/macos/OpenKittyFullscreen.workflow;
-    };
+  home.file."Library/Services/OpenKittyFullscreen.workflow".source =
+    ../../assets/macos/OpenKittyFullscreen.workflow;
   home.activation.setKittyIcon = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     KITTY_APP="/Users/migueltaibo/Applications/Home Manager Apps/kitty.app"
     if [ -d "$KITTY_APP" ]; then
