@@ -20,9 +20,12 @@ let
 in {
   environment.systemPackages = [ batt ];
 
+  # `command` (not ProgramArguments) so nix-darwin waits for /nix/store: at
+  # boot launchd ran it before the Nix volume was mounted, got EX_CONFIG and
+  # never retried, leaving the limit off.
+  launchd.daemons.batt.command = "${batt}/bin/batt daemon --always-allow-non-root-access";
   launchd.daemons.batt.serviceConfig = {
     Label = "cc.chlc.batt";
-    ProgramArguments = [ "${batt}/bin/batt" "daemon" "--always-allow-non-root-access" ];
     RunAtLoad = true;
     KeepAlive = true;
     # Interactive so macOS doesn't throttle it, which would break the limit.
