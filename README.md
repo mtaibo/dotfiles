@@ -67,7 +67,7 @@ The Raspberry Pi 5 that hosts [tphome](https://github.com/mtaibo/tphome) and my 
 | **AI** | Claude Code and OpenCode |
 | **Languages** | Node.js, Java 21 + Maven, OCaml + opam |
 | **Desktop (Linux)** | Hyprland, Stylix, Waybar, hyprlock, dunst, SDDM with a custom QML theme, Secure Boot (lanzaboote), NVIDIA, Firefox with the GNOME theme coloured by Stylix and uBlock Origin |
-| **macOS extras** | Fonts, Kitty icon, Automator fullscreen shortcut, Colima + Docker, XcodeGen |
+| **macOS extras** | Fonts, Kitty icon, Automator fullscreen shortcut, Colima + Docker, XcodeGen, Rosetta |
 | **Home server** | Docker, Tailscale, dnsmasq for `tp.home`, Samba storage, SSH keys pulled from GitHub |
 
 ## How it's organised

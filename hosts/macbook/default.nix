@@ -64,4 +64,13 @@ in {
 
   environment.variables.ANDROID_HOME = "${androidSdk}/libexec/android-sdk";
 
+  # Rosetta, for the Intel-only toolchains Arduino and similar tools download.
+  system.activationScripts.postActivation.text = ''
+    if [ ! -f /Library/Apple/usr/libexec/oah/libRosettaRuntime ]; then
+      echo "installing Rosetta..." >&2
+      /usr/sbin/softwareupdate --install-rosetta --agree-to-license \
+        || echo "warning: Rosetta could not be installed" >&2
+    fi
+  '';
+
 }
