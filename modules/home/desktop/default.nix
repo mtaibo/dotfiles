@@ -13,6 +13,7 @@
     ./netflix-pip.nix
     ./obs.nix
     ./screenrec.nix
+    ./tpcloud.nix
     ./vicinae.nix
     ./wallpaper.nix
     ./waybar.nix
