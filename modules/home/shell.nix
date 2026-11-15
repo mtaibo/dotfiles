@@ -52,29 +52,39 @@
         if [ "$n" -le 1 ] && [ "$(uname)" = Darwin ]; then
           sudo -n /usr/bin/pmset disablesleep 0 2>/dev/null || true
         fi
-      ' sh "$@"
-      tmux set-option -t "$session" remain-on-exit on
+      ' sh "$@" \; set-option -t "$session" remain-on-exit on
+      # (set in the same tmux command so a claude that dies at once can't
+      # take the session, and its error, with it)
 
       # Answer the startup prompts (trust folder, enable remote control, y/n)
-      # for up to 30s; stop after 5 quiet seconds once the screen has content.
-      quiet=0
+      # for up to 30s, and stop as soon as it's connected. An answered prompt
+      # stays on screen, so a prompt is only answered while the screen differs
+      # from the one last answered: otherwise the stray "y Enter"s land in the
+      # running remote-control.
+      yn='\[[yY]/[nN]\]|\([yY]/[nN]\)'
+      enter='1\. *(Yes|Sí)|Trust .*\?|Do you trust|Press Enter to continue'
+      answered=""
       for _ in $(seq 30); do
         sleep 1
         [ "$(tmux display-message -p -t "$session" '#{pane_dead}' 2>/dev/null)" = 1 ] && break
         screen=$(tmux capture-pane -p -J -t "$session" 2>/dev/null || true)
-        if echo "$screen" | grep -qE '\[[yY]/[nN]\]|\([yY]/[nN]\)'; then
-          tmux send-keys -t "$session" y Enter; quiet=0
-        elif echo "$screen" | grep -qE '1\. *(Yes|Sí)|Trust .*\?|Do you trust|Press Enter to continue'; then
-          tmux send-keys -t "$session" Enter; quiet=0
-        elif [ -n "$screen" ]; then
-          quiet=$((quiet + 1))
-          [ "$quiet" -ge 5 ] && break
+        grep -qE 'Connected|space to show QR' <<<"$screen" && break
+        # The typed "y" ends up after the prompt; drop it so it's the same line.
+        prompt=$(grep -E "$yn|$enter" <<<"$screen" | tail -n 1 \
+          | sed -E 's/([]\)]) *[yYnN]? *$/\1/' || true)
+        [ -z "$prompt" ] && continue
+        grep -qxF -- "$prompt" <<<"$answered" && continue
+        answered="$answered"$'\n'"$prompt"
+        if grep -qE "$yn" <<<"$prompt"; then
+          tmux send-keys -t "$session" y Enter
+        else
+          tmux send-keys -t "$session" Enter
         fi
       done
 
-      if [ "$(tmux display-message -p -t "$session" '#{pane_dead}')" = 1 ]; then
-        tmux capture-pane -p -J -S - -t "$session" | grep -v -e '^$' -e '^Pane is dead' || true
-        tmux kill-session -t "$session"
+      if [ "$(tmux display-message -p -t "$session" '#{pane_dead}' 2>/dev/null || echo 1)" = 1 ]; then
+        tmux capture-pane -p -J -S - -t "$session" 2>/dev/null | grep -v -e '^$' -e '^Pane is dead' || true
+        tmux kill-session -t "$session" 2>/dev/null || true
         lid 0
         echo "crc: claude remote-control exited, nothing left running"
         exit 1
