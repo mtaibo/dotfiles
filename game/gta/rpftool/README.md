@@ -39,7 +39,7 @@ Every command takes the game folder first: `rpftool <game> <command> …`. Inner
 | `relfield <rpf> <rel> <dat151 type> <field> <value>` | Set a numeric field (e.g. engine `MasterVolume`); refuses unless the file re-saves byte for byte, checks only that field's bytes changed |
 | `relset <rpf> <rel> <old> <new>` | Replace every `dat151` reference equal to `old` with `new` and save (check `relresave` is byte-identical first) |
 
-`py/` holds the helpers: `setaudio.py` (set `audioNameHash` per model in a `vehicles.meta`), `setnames.py` (menu name and brand per model, max 11 characters), `fixyft.py` (shader dedupe + geometry merge on a `.yft.xml`), `fixcontent.py` (drop `content.xml` items for missing files), `plate_e.py` (the EU plate edit), `bgra2png.py` and `sheet.py` (look at exported textures), `mdmp.py` (exception code and `module+offset` from a crash `.dmp`), `todds.py` (re-encode a texture as A8R8G8B8 with mips; reads BC7).
+`py/` holds the helpers: `setaudio.py` (set `audioNameHash` per model in a `vehicles.meta`), `setnames.py` (menu name and brand per model, max 11 characters), `fixyft.py` (shader dedupe + geometry merge on a `.yft.xml`), `fixcontent.py` (drop `content.xml` items for missing files), `plate_e.py` (the EU plate edit), `bgra2png.py` and `sheet.py` (look at exported textures), `mdmp.py` (exception code and `module+offset` from a crash `.dmp`), `todds.py` (re-encode a texture as A8R8G8B8 with mips; reads BC7), `steamstats.py` (Steam achievement unlock times from the local stats cache).
 
 ## verify
 
