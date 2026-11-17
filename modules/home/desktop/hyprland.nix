@@ -120,7 +120,19 @@ in {
 
       # Firefox marks a tiled window fully opaque, so Hyprland would draw
       # nothing behind its glass; any opacity below 1 makes it blend.
-      windowrule = [ "opacity 0.99 override, class:^(firefox)$" ];
+      #
+      # Proton games have no system tray to dock into, so Wine draws launcher
+      # icons (Ubisoft Connect, EA app) in a small untitled floating window;
+      # send it to a special workspace that is never shown.
+      #
+      # Games keep rendering on a hidden workspace: otherwise they stall
+      # waiting for frames, and after switching back their frame pacing (and
+      # the cursor they draw in menus) lags for a while.
+      windowrule = [
+        "opacity 0.99 override, class:^(firefox)$"
+        "workspace special:wine-tray silent, class:^(steam_app_[0-9]+)$, initialTitle:^$, floating:1"
+        "renderunfocused, class:^(steam_app_[0-9]+)$"
+      ];
 
       animations = {
         bezier = [ "snappy, 0.05, 0.9, 0.1, 1.05" ];
