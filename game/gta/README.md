@@ -27,7 +27,7 @@ Game folder: `~/games/steam/SteamLibrary/steamapps/common/Grand Theft Auto V Enh
 
 ### Status
 
-All 12 cars (11 packs) and their 9 sound packs load and drive in story mode (confirmed in game, 2026-11-17). `rpftool verify` passes 249/249 with 151 free vehicle slots.
+The first 12 cars (11 packs) and their 9 sound packs load and drive in story mode (confirmed in game, 2026-11-17). The Urus and the F-250 were added afterwards and also work. `rpftool verify` passes 287/287 with 149 free vehicle slots.
 
 Getting there took a long bisect: three add-on cars always worked and a fourth always crashed story-mode load, whichever car it was. The cause was the vehicle pool in `gameconfig.xml` (see [`addon-vehicles.md`](addon-vehicles.md#rules-enhanced-enforces)), not the cars.
 
@@ -52,6 +52,8 @@ Spawn names for the F5 menu. All are Enhanced builds from gta5-mods except the R
 | Bugatti Tourbillon 2026 | `tour26` | `tourbillon` | | Aquaphobic Pagani M297 V12 (`aq59pagm297`, patched) |
 | Ferrari 812 Superfast / Competizione | `fast812` / `comp812` | `ferrari812` / `ferrari812C` | one pack, `super812` | Legacy_DMC 812 Superfast (`lg86fer812sf`, patched) |
 | Ferrari F80 2025 | `25f80` | `ferrariF80` | | Aquaphobic Alfa 2.9 V6 TT (`alfa690t`) |
+| Lamborghini Urus SE 2025 | `luse` | `urusSE` | HAMMER | Legacy_DMC Urus 4.0 V8 Capristo (`lg51uruscapri`, patched) |
+| Ford Shelby F-250 Super Baja 2023 (4 seats) | `f250shelby` | `f250Baja` | TabbedScamper, Add-on/Enhanced build | Aquaphobic Coyote 5.0 V8 (`aq02coyotef150`; no 7.3 V8 pack exists) |
 
 Each sound pack is its own folder under `mods/update/x64/dlcpacks/` named after its `audioNameHash`. "Patched" packs had references that don't exist in Enhanced or a missing file in `content.xml`; [`audio.md`](audio.md#one-sound-per-car) has what was changed and why.
 
@@ -64,6 +66,8 @@ Packs that were tried and turned off live in `~/games/gtav-disabled-addons/` so 
 | `backup-before-sounds/` | each car got its own engine sound (`audioNameHash`) |
 | `backup-before-texfix/` | BC7/DXT3 textures were re-encoded (Mustang, BMW, Agera, Jesko, 812) |
 | `backup-before-volume/` | the engine sounds were lowered 6 dB |
+| `backup-before-volume-3db/` | the engine sounds went from −6 dB to quieter (holds the −6 dB versions) |
+| `originals-new/` | the Urus, F-250 and Urus sound packs as downloaded |
 | `backup-before-names/` | the menu names and brands were set |
 
 Saves were backed up to `~/games/gtav-enhanced-backup-20261117-0824` before the first mod went in.

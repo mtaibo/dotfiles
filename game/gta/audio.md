@@ -56,6 +56,8 @@ Every car got a sound pack for its real engine (or the closest thing that passes
 | Bugatti Tourbillon | 8.3 V16 | Aquaphobic Pagani Zonda M297 V12 (`aq59pagm297`) | no V16 exists; rev-limiter pop missing | high-revving NA V12; official pop |
 | Ferrari 812 Superfast/Competizione | 6.5 V12 | Legacy_DMC 812 Superfast (`lg86fer812sf`) | `content.xml` lists an `_amp.dat` that isn't in the pack (the bug that hung the first R8) | removed that entry; nothing references its synths |
 | Ferrari F80 | 3.0 V6 TT | Aquaphobic Alfa 2.9 V6 TT (`alfa690t`) | clean | — |
+| Lamborghini Urus SE | 4.0 V8 TT | Legacy_DMC Urus 4.0 V8 Capristo (`lg51uruscapri`) | `content.xml` lists an `_amp.dat` that isn't in the pack (same as the 812) | removed that entry |
+| Ford F-250 Super Baja | 7.3 V8 | Aquaphobic F-150 Coyote (`aq02coyotef150`) | no 7.3 V8 pack exists | Ford truck V8 from the same family |
 
 Lessons:
 
@@ -65,7 +67,9 @@ Lessons:
 
 ## Volume
 
-Every Aquaphobic pack sets `GranularEngineAudioSettings.MasterVolume` to `900` (+9 dB, in hundredths of a dB), the loudest value any official engine uses (official: median 0, p90 +4 dB, max +9 dB over 674 engines; `rpftool relstats GranularEngineAudioSettings MasterVolume`). In game it drowned the radio. All packs were lowered by 6 dB (`900` → `300`; the 812's `850` → `250`) with `rpftool relfield <rpf> <rel> GranularEngineAudioSettings MasterVolume 300`, which only runs when CodeWalker re-saves the file byte for byte and checks that only those 2 bytes changed. Originals are in `~/games/gtav-disabled-addons/backup-before-volume/`. To tune further, change the same field: ±100 is ±1 dB.
+Every Aquaphobic pack sets `GranularEngineAudioSettings.MasterVolume` to `900` (+9 dB, in hundredths of a dB), the loudest value any official engine uses (official: median 0, p90 +4 dB, max +9 dB over 674 engines; `rpftool relstats GranularEngineAudioSettings MasterVolume`). In game it drowned the radio.
+
+All packs are now **9 dB below their original value**, i.e. at 0 dB like a typical official engine: `900` → `0`, the 812's `850` → `-50`, the Urus Capristo's `700` → `-200`. Steps on 2026-11-17: −6 dB made the radio audible, and the user then asked for quieter still (a −3 dB step was a misunderstanding and never reached the game). Set with `rpftool relfield <rpf> <rel> GranularEngineAudioSettings MasterVolume <value>`, which only runs when CodeWalker re-saves the file byte for byte and checks that only that field's bytes changed. ±100 is ±1 dB. Previous versions are in `~/games/gtav-disabled-addons/backup-before-volume*/`.
 
 ## Tools
 
