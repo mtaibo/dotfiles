@@ -6,6 +6,7 @@
     ./cider.nix
     ./dunst.nix
     ./eww.nix
+    ./gta-map.nix
     ./hyprland.nix
     ./hyprlock.nix
     ./kitty.nix
