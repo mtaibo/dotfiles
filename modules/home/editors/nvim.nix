@@ -3,7 +3,8 @@ let
   cfg = config.dotfiles.nvim;
 
   # LazyVim extras that turn it into an IDE (C/C++, CMake, Java, OCaml,
-  # debugger, tests). Off on the Pi, where only the editor is wanted.
+  # debugger, tests). On everywhere; set dotfiles.nvim.ide = false for a
+  # machine that only needs the editor.
   ideExtras = lib.optionals cfg.ide [
     "lang.clangd"
     "lang.cmake"
