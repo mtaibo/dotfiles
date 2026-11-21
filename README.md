@@ -32,7 +32,7 @@ I used to set up every machine by hand, and every one ended up slightly differen
 <td width="33%" valign="top">
 
 ### 💻 `macbook`
-My daily laptop. **nix-darwin** + Home Manager on Apple Silicon: Nerd Fonts, Kitty with a custom icon and a `Cmd+K` shortcut to open it fullscreen, Docker through Colima, and the tooling for my Swift work.
+My daily laptop. **nix-darwin** + Home Manager on Apple Silicon: Nerd Fonts, Kitty with a custom icon and a `Cmd+K` shortcut to open it fullscreen, Docker through Colima, Blender wired to Claude Code through MCP for Blender, and the tooling for my Swift work.
 
 **macOS · aarch64**
 

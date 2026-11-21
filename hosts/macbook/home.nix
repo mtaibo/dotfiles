@@ -1,5 +1,5 @@
 { lib, ... }: {
-  imports = [ ../../modules/home ];
+  imports = [ ../../modules/home ../../modules/darwin/blender.nix ];
   home.homeDirectory = lib.mkForce "/Users/migueltaibo";
   home.file."Library/Services/OpenKittyFullscreen.workflow".source =
     ../../assets/macos/OpenKittyFullscreen.workflow;
