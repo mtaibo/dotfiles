@@ -62,9 +62,11 @@ in {
   # entry is rewritten on every switch. Telemetry is off.
   home.activation.blenderMcp = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     $DRY_RUN_CMD ${claude} mcp remove --scope user blender >/dev/null 2>&1 || true
-    $DRY_RUN_CMD ${claude} mcp add --scope user \
-      --env DISABLE_TELEMETRY=true \
-      blender -- ${pkgs.uv}/bin/uvx --from mcp-for-blender==${mcpVersion} mcp-for-blender \
-      >/dev/null
+    $DRY_RUN_CMD ${claude} mcp add-json --scope user blender ${lib.escapeShellArg (builtins.toJSON {
+      type = "stdio";
+      command = "${pkgs.uv}/bin/uvx";
+      args = [ "--from" "mcp-for-blender==${mcpVersion}" "mcp-for-blender" ];
+      env.DISABLE_TELEMETRY = "true";
+    })} >/dev/null
   '';
 }
