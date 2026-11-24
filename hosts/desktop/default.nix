@@ -97,6 +97,9 @@ in {
     python3
   ];
 
+  # Binaries installed outside Nix (tpcloud's installer puts it here).
+  environment.extraInit = ''export PATH="$PATH:/usr/local/bin"'';
+
   hardware.bluetooth.enable = true;
   services.blueman.enable = true;
 
