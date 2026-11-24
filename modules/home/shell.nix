@@ -176,6 +176,11 @@
       ];
     in ''
       export LS_COLORS='${lsColors}'
+      # Programs installed outside Nix (tpcloud's /get puts its command in /usr/local/bin,
+      # which NixOS leaves out of PATH). environment.extraInit only reaches shells of a
+      # session started after the rebuild; this reaches every new shell. Once per entry.
+      typeset -U path
+      path+=(/usr/local/bin)
       export EZA_COLORS='${ezaColors}'
 
       # The image logo needs kitty itself, not tmux. Locally fastfetch passes
