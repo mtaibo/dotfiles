@@ -1,11 +1,20 @@
 { lib, pkgs, ... }:
 let
-  # SUPER+F: a new tab in the open Firefox (`firefox --new-tab` never reached
-  # the running instance), or Firefox itself, which starts on a blank page.
+  # SUPER+F: a new tab in the Firefox on this workspace (`firefox --new-tab`
+  # never reached the running instance), a new window here when Firefox is
+  # only open on other workspaces, or Firefox itself on a blank page.
   firefox-tab = pkgs.writeShellScriptBin "firefox-tab" ''
-    if hyprctl clients -j | ${pkgs.jq}/bin/jq -e 'any(.[]; .class == "firefox")' >/dev/null; then
-      hyprctl dispatch focuswindow 'class:^(firefox)$'
-      hyprctl dispatch sendshortcut 'CTRL, T, class:^(firefox)$'
+    jq=${pkgs.jq}/bin/jq
+    ws=$(hyprctl activeworkspace -j | $jq .id)
+    clients=$(hyprctl clients -j)
+    here=$($jq -r --argjson ws "$ws" \
+      'first(.[] | select(.class == "firefox" and .workspace.id == $ws) | .address) // empty' \
+      <<<"$clients")
+    if [ -n "$here" ]; then
+      hyprctl dispatch focuswindow "address:$here"
+      hyprctl dispatch sendshortcut "CTRL, T, address:$here"
+    elif $jq -e 'any(.[]; .class == "firefox")' >/dev/null <<<"$clients"; then
+      exec firefox --new-window
     else
       exec firefox
     fi
