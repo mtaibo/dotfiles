@@ -1,4 +1,4 @@
-{ config, lib, pkgs, inputs, ... }:
+{ config, lib, pkgs, inputs, options, ... }:
 let
   people = {
     migueltaibo = { description = "Miguel Taibo"; uid = 1000; };
@@ -27,6 +27,21 @@ in {
   # Lets dynamically linked binaries built for generic Linux run as-is
   # (e.g. the native helper VS Code extensions like Claude Code ship).
   programs.nix-ld.enable = true;
+  # Graphical ones too: the TPCloud app (from tpcloud's /get, Rust + iced) loads
+  # Wayland, xkbcommon, Vulkan/GL and X11 when it starts; without them it stops
+  # with «NoWaylandLib». nix-ld's defaults are kept, these are added.
+  programs.nix-ld.libraries = options.programs.nix-ld.libraries.default ++ (with pkgs; [
+    wayland
+    libxkbcommon
+    vulkan-loader
+    libGL
+    xorg.libX11
+    xorg.libXcursor
+    xorg.libXrandr
+    xorg.libXi
+    fontconfig
+    freetype
+  ]);
 
   time.timeZone = "Europe/Madrid";
   i18n.defaultLocale = "es_ES.UTF-8";
