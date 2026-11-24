@@ -1,6 +1,6 @@
 { pkgs, ... }:
 let
-  # Opens the GTA V collectibles map in ~/gta (not part of this repo) after
+  # Opens the GTA V collectibles map in ~/workspace/achievement-guide (not part of this repo) after
   # reading the latest save, so what's done in game shows up already marked.
   # It also leaves `sync-save.js --watch` running in the background (once):
   # it re-reads the save every time the game writes it, and the open map
@@ -9,12 +9,12 @@ let
   # restarted.
   # It opens the file directly: the map keeps its marks in the browser under
   # the file:// origin, so a local server would start from scratch.
-  gta-map = pkgs.writeShellApplication {
-    name = "gta-map";
+  guide = pkgs.writeShellApplication {
+    name = "guide";
     runtimeInputs = [ pkgs.nodejs pkgs.xdg-utils pkgs.procps pkgs.coreutils ];
     text = ''
-      dir="$HOME/gta"
-      [ -f "$dir/index.html" ] || { echo "gta-map: no encuentro $dir/index.html" >&2; exit 1; }
+      dir="$HOME/workspace/achievement-guide"
+      [ -f "$dir/index.html" ] || { echo "guide: no encuentro $dir/index.html" >&2; exit 1; }
       running=
       for pid in $(pgrep -f "sync-save.js --watch" || true); do
         started=$(( $(date +%s) - $(ps -o etimes= -p "$pid") ))
@@ -25,8 +25,8 @@ let
         fi
       done
       if [ -z "$running" ]; then
-        node "$dir/sync-save.js" || echo "gta-map: no se pudo leer la partida, abro el mapa igualmente" >&2
-        log="''${XDG_STATE_HOME:-$HOME/.local/state}/gta-map.log"
+        node "$dir/sync-save.js" || echo "guide: no se pudo leer la partida, abro el mapa igualmente" >&2
+        log="''${XDG_STATE_HOME:-$HOME/.local/state}/guide.log"
         mkdir -p "$(dirname "$log")"
         setsid node "$dir/sync-save.js" --watch >"$log" 2>&1 &
       fi
@@ -34,5 +34,5 @@ let
     '';
   };
 in {
-  home.packages = [ gta-map ];
+  home.packages = [ guide ];
 }
