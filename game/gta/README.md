@@ -32,7 +32,7 @@ Game folder: `~/games/steam/SteamLibrary/steamapps/common/Grand Theft Auto V Enh
 
 ### Status
 
-The first 12 cars (11 packs) and their 9 sound packs load and drive in story mode (confirmed in game, 2026-11-17). The Urus and the F-250 were added afterwards and also work. `rpftool verify` passes 287/287 with 149 free vehicle slots.
+The first 12 cars (11 packs) and their 9 sound packs load and drive in story mode (confirmed in game, 2026-11-17). The Urus and the F-250 were added afterwards and also work. The Ducati Panigale V4 S (2026-11-18) was converted from Legacy and the Yamaha MT-09 added from its Enhanced build; `rpftool verify` passes 316/316 with 147 free vehicle slots.
 
 Getting there took a long bisect: three add-on cars always worked and a fourth always crashed story-mode load, whichever car it was. The cause was the vehicle pool in `gameconfig.xml` (see [`addon-vehicles.md`](addon-vehicles.md#rules-enhanced-enforces)), not the cars.
 
@@ -67,6 +67,8 @@ Spawn names for the F5 menu. All are Enhanced builds from gta5-mods except the R
 | Ferrari F80 2025 | `25f80` | `ferrariF80` | | Aquaphobic Alfa 2.9 V6 TT (`alfa690t`) |
 | Lamborghini Urus SE 2025 | `luse` | `urusSE` | HAMMER | Legacy_DMC Urus 4.0 V8 Capristo (`lg51uruscapri`, patched) |
 | Ford Shelby F-250 Super Baja 2023 (4 seats) | `f250shelby` | `f250Baja` | TabbedScamper, Add-on/Enhanced build | Aquaphobic Coyote 5.0 V8 (`aq02coyotef150`; no 7.3 V8 pack exists) |
+| Ducati Panigale V4 S 2025 (bike) | `25v4s` | `panigaleV4` | galen_ 1.1, Legacy only: converted with `rpftool convert` (24/28 shaders and geometries, no `script_rt`, no BC7/DXT3) | vanilla Bati 801RR (`BATI2`) |
+| Yamaha MT-09 2021 (bike) | `21mt09` | `yamahaMT09` | galen_ 1.0, Enhanced build | vanilla Vortex (`vortex`) |
 
 Each sound pack is its own folder under `mods/update/x64/dlcpacks/` named after its `audioNameHash`. "Patched" packs had references that don't exist in Enhanced or a missing file in `content.xml`; [`audio.md`](audio.md#one-sound-per-car) has what was changed and why.
 
@@ -81,6 +83,8 @@ Packs that were tried and turned off live in `~/games/gtav-disabled-addons/` so 
 | `backup-before-volume/` | the engine sounds were lowered 6 dB |
 | `backup-before-volume-3db/` | the engine sounds went from −6 dB to quieter (holds the −6 dB versions) |
 | `originals-new/` | the Urus, F-250 and Urus sound packs as downloaded |
+| `backup-before-mt09/` | `update.rpf` before `dlcpacks:/21mt09/` was added (download in `pending/mt09-1.0/`) |
+| `backup-before-panigale/` | `update.rpf` before `dlcpacks:/25v4s/` was added (the Panigale download and its conversion are in `pending/panigale-v4s-1.1/`) |
 | `backup-before-names/` | the menu names and brands were set |
 
 Saves were backed up to `~/games/gtav-enhanced-backup-20261117-0824` before the first mod went in.
